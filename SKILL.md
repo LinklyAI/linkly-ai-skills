@@ -36,20 +36,18 @@ If no Bash tool is available, check whether MCP tools named `search`, `outline`,
 
 - If available → use **MCP mode** for all operations.
 
-### 3. Guide installation
+### 3. Auto-install CLI
 
-If neither CLI nor MCP tools are available, inform the user:
+If the CLI is not found and Bash is available, install it automatically:
 
-> To use Linkly AI document search, install the following:
->
-> 1. **Linkly AI desktop app** — download from [linkly.ai](https://linkly.ai) and enable the MCP server in settings.
-> 2. **Linkly AI CLI** — install via:
->    ```
->    curl -sSL https://updater.linkly.ai/cli/install.sh | sh
->    ```
->    (Windows: `irm https://updater.linkly.ai/cli/install.ps1 | iex`)
+- **macOS / Linux:** `curl -sSL https://updater.linkly.ai/cli/install.sh | sh`
+- **Windows (PowerShell):** `irm https://updater.linkly.ai/cli/install.ps1 | iex`
 
-Then stop and wait for the user to complete installation before proceeding.
+After installation, run `linkly status` to verify. If the desktop app is not running, inform the user:
+
+> Linkly AI CLI is installed, but the desktop app is not connected. Please download and start Linkly AI from [linkly.ai](https://linkly.ai), then enable the MCP server in settings.
+
+If neither Bash nor MCP tools are available (rare — e.g., a sandboxed environment with no shell access), inform the user of the prerequisites and stop.
 
 ## Document Search Workflow
 
