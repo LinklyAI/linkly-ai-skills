@@ -10,22 +10,32 @@ The **Linkly AI desktop app** must be running with MCP server enabled. The CLI a
 
 ## Installation
 
-### macOS / Linux
+### GitHub Releases (recommended)
+
+Download the pre-built binary for your platform from the [Releases page](https://github.com/nicepkg/linkly-ai-cli/releases):
+
+| Platform              | File                                      |
+| --------------------- | ----------------------------------------- |
+| macOS (Apple Silicon) | `linkly-aarch64-apple-darwin.tar.gz`      |
+| macOS (Intel)         | `linkly-x86_64-apple-darwin.tar.gz`       |
+| Linux (x86_64)        | `linkly-x86_64-unknown-linux-gnu.tar.gz`  |
+| Linux (ARM64)         | `linkly-aarch64-unknown-linux-gnu.tar.gz` |
+| Windows (x64)         | `linkly-x86_64-pc-windows-msvc.zip`       |
+
+After downloading, extract the binary and place it in a directory on your `PATH`.
+
+### Install Script
+
+macOS / Linux:
 
 ```bash
 curl -sSL https://updater.linkly.ai/cli/install.sh | sh
 ```
 
-### Windows (PowerShell)
+Windows (PowerShell):
 
 ```powershell
 irm https://updater.linkly.ai/cli/install.ps1 | iex
-```
-
-### From Source
-
-```bash
-cargo install --git https://github.com/nicepkg/linkly-ai-cli
 ```
 
 ## Commands
