@@ -1,18 +1,8 @@
 ---
 name: linkly-ai
-description: >-
-  Search, browse, and read the user's local documents indexed by Linkly AI.
-  This skill should be used when the user asks to "search my documents",
-  "find files about a topic", "look up my notes", "read a local document",
-  "search my knowledge base", "find PDFs about X", "browse document outlines",
-  "what documents do I have about Y", "read my local files",
-  "search local knowledge", or any task involving searching, browsing,
-  or reading locally stored documents (PDF, Markdown, DOCX, TXT, HTML).
-  Linkly AI indexes documents on the user's computer and provides full-text
-  search with relevance ranking, structural outlines, and paginated reading
-  through CLI commands or MCP protocol tools.
-version: 0.1.0
+description: "Search, browse, and read the user's local documents indexed by Linkly AI. This skill should be used when the user asks to 'search my documents', 'find files about a topic', 'look up my notes', 'read a local document', 'search my knowledge base', 'find PDFs about X', 'browse document outlines', 'what documents do I have about Y', 'read my local files', 'search local knowledge', or any task involving searching, browsing, or reading locally stored documents (PDF, Markdown, DOCX, TXT, HTML). Also triggered by Chinese phrases: '搜索我的文档', '查找文件', '读取本地笔记', '知识库搜索', '浏览文档大纲'. Linkly AI provides full-text search with relevance ranking, structural outlines, and paginated reading through CLI commands or MCP tools."
 metadata:
+  version: 0.1.0
   openclaw:
     anyBins:
       - linkly
@@ -92,9 +82,12 @@ Get structural overviews of documents before reading. This step is especially us
 **CLI mode:**
 
 ```bash
-linkly outline <doc-id>
-linkly outline <id1> <id2> <id3>
+linkly outline <ID>
+linkly outline <ID1> <ID2> <ID3>
+linkly outline <ID> --json
 ```
+
+Note: The `expand` parameter is only available in MCP mode. CLI always renders the full outline.
 
 **MCP mode:**
 
@@ -102,14 +95,14 @@ Call the `outline` tool with `doc_ids` (list of document IDs). Optionally pass `
 
 **When to use outline:**
 
-- The document has `has_outline: true` in search results.
+- The document has `has_outline: true` in search results (typically Markdown and DOCX with headings).
 - The document is long (>200 lines) and reading it all at once is impractical.
 - The user wants to understand the structure before diving in.
 
 **When to skip outline:**
 
 - The document is short (<100 lines) — go directly to read.
-- The document has `has_outline: false` — use read with pagination instead.
+- The document has `has_outline: false` (PDF, TXT, HTML) — use read with pagination instead.
 
 ### Step 3: Read
 
@@ -118,8 +111,8 @@ Read document content with line numbers and pagination.
 **CLI mode:**
 
 ```bash
-linkly read <doc-id>
-linkly read <doc-id> --offset 50 --limit 100
+linkly read <ID>
+linkly read <ID> --offset 50 --limit 100
 ```
 
 **MCP mode:**
@@ -134,12 +127,14 @@ Call the `read` tool with `doc_id` (required), and optionally `offset` (1-based 
 
 ## JSON Output
 
-When structured output is needed (e.g., for programmatic processing), append `--json` in CLI mode or pass `output_format: "json"` in MCP mode. This returns structured JSON with a `status` field instead of Markdown.
+When structured output is needed (e.g., for programmatic processing), append `--json` in CLI mode or pass `output_format: "json"` in MCP mode. This returns structured JSON instead of Markdown.
+
+In CLI mode, `--json` is a global option that can be placed before or after the subcommand. The CLI wraps the response with a `status` field.
 
 ```bash
 linkly search "query" --limit 5 --json
-linkly outline <id> --json
-linkly read <id> --limit 50 --json
+linkly outline <ID> --json
+linkly read <ID> --limit 50 --json
 ```
 
 ## Best Practices

@@ -27,18 +27,18 @@ Search indexed local documents by keywords or phrases.
 
 Each result item:
 
-| Field         | Type       | Description                                      |
-| ------------- | ---------- | ------------------------------------------------ |
-| `doc_id`      | `string`   | Unique document identifier (use in outline/read) |
-| `title`       | `string`   | Document title                                   |
-| `path`        | `string`   | Shortened file path                              |
-| `relevance`   | `number`   | Relevance score (0–1)                            |
-| `word_count`  | `number?`  | Total word count                                 |
-| `total_lines` | `number?`  | Total line count                                 |
-| `has_outline` | `boolean`  | Whether a structural outline is available        |
-| `modified_at` | `number`   | Last modified timestamp (Unix ms)                |
-| `keywords`    | `string[]` | Extracted keywords                               |
-| `snippet`     | `string`   | Text snippet with matching context               |
+| Field         | Type       | Description                                                                                                |
+| ------------- | ---------- | ---------------------------------------------------------------------------------------------------------- |
+| `doc_id`      | `string`   | Unique document identifier, always an integer string (e.g. `"1044"`). Obtain from search; never fabricate. |
+| `title`       | `string`   | Document title                                                                                             |
+| `path`        | `string`   | Shortened file path                                                                                        |
+| `relevance`   | `number`   | Relevance score (0–1)                                                                                      |
+| `word_count`  | `number?`  | Total word count                                                                                           |
+| `total_lines` | `number?`  | Total line count                                                                                           |
+| `has_outline` | `boolean`  | Whether a structural outline is available                                                                  |
+| `modified_at` | `number`   | Last modified timestamp (Unix ms)                                                                          |
+| `keywords`    | `string[]` | Extracted keywords                                                                                         |
+| `snippet`     | `string`   | Text snippet with matching context                                                                         |
 
 ## outline
 
@@ -60,18 +60,18 @@ Get metadata and structural outlines of documents by their IDs.
 
 Each document object:
 
-| Field               | Type      | Description                                             |
-| ------------------- | --------- | ------------------------------------------------------- |
-| `doc_id`            | `string`  | Document identifier                                     |
-| `title`             | `string`  | Document title                                          |
-| `path`              | `string`  | Shortened file path                                     |
-| `word_count`        | `number?` | Total word count                                        |
-| `total_lines`       | `number?` | Total line count                                        |
-| `has_outline`       | `boolean` | Whether a parsed outline exists                         |
-| `outline_text`      | `string`  | Pre-rendered outline tree with node IDs and line ranges |
-| `abstract_text`     | `string?` | Document abstract or first paragraph                    |
-| `is_brief`          | `boolean` | True if document is short (<500 words)                  |
-| `no_outline_reason` | `string?` | Reason if outline is unavailable                        |
+| Field               | Type      | Description                                                      |
+| ------------------- | --------- | ---------------------------------------------------------------- |
+| `doc_id`            | `string`  | Document identifier                                              |
+| `title`             | `string`  | Document title                                                   |
+| `path`              | `string`  | Shortened file path                                              |
+| `word_count`        | `number?` | Total word count                                                 |
+| `total_lines`       | `number?` | Total line count                                                 |
+| `has_outline`       | `boolean` | Whether a parsed outline exists                                  |
+| `outline_text`      | `string`  | Pre-rendered outline tree with node IDs and line ranges          |
+| `abstract_text`     | `string?` | Document abstract or first paragraph                             |
+| `is_brief`          | `boolean` | True if document is short (<500 words, determined at index time) |
+| `no_outline_reason` | `string?` | Reason if outline is unavailable                                 |
 
 ### Outline Text Format
 
@@ -87,7 +87,7 @@ The `outline_text` field contains a tree structure with node IDs and line ranges
 [3] Results [L81-120, 40行]
 ```
 
-Use node IDs (e.g. `"1.2"`, `"2"`) with the `expand` parameter to drill into specific sections. Use line ranges (e.g. L30-50) with the `read` tool's `offset` and `limit` parameters to read that section.
+Use node IDs (e.g. `"1.2"`, `"2"`) with the `expand` parameter to drill into specific sections. Use line ranges with the `read` tool's `offset` and `limit` parameters to read that section. For example, to read section `[L30-50]`, use `offset=30` and `limit=21` (50 - 30 + 1 = 21 lines).
 
 ## read
 
@@ -104,17 +104,17 @@ Read document content by ID with line-based pagination.
 
 ### Response Fields (JSON mode)
 
-| Field         | Type      | Description                          |
-| ------------- | --------- | ------------------------------------ |
-| `doc_id`      | `string`  | Document identifier                  |
-| `title`       | `string`  | Document title                       |
-| `path`        | `string`  | Shortened file path                  |
-| `word_count`  | `number?` | Total word count                     |
-| `author`      | `string?` | Document author or summary           |
-| `content`     | `string`  | Content with line numbers (prefixed) |
-| `total_lines` | `number`  | Total lines in the document          |
-| `shown_from`  | `number`  | First line shown (1-based)           |
-| `shown_to`    | `number`  | Last line shown (1-based, inclusive) |
+| Field         | Type      | Description                                                                     |
+| ------------- | --------- | ------------------------------------------------------------------------------- |
+| `doc_id`      | `string`  | Document identifier                                                             |
+| `title`       | `string`  | Document title                                                                  |
+| `path`        | `string`  | Shortened file path                                                             |
+| `word_count`  | `number?` | Total word count                                                                |
+| `author`      | `string?` | Document author or summary                                                      |
+| `content`     | `string`  | Content with line numbers (prefixed)                                            |
+| `total_lines` | `number`  | Total lines in the document (always present, computed from actual file content) |
+| `shown_from`  | `number`  | First line shown (1-based)                                                      |
+| `shown_to`    | `number`  | Last line shown (1-based, inclusive)                                            |
 
 ### Content Format
 
@@ -138,4 +138,4 @@ Line numbers are right-aligned and tab-separated from the content.
 | Text     | `.txt`          | No              |
 | HTML     | `.html`, `.htm` | No              |
 
-Documents without parsed outlines can still be read with line-based pagination.
+For document types without outline support, `has_outline` is always `false` in search results. Use the `read` tool with pagination to browse these documents.

@@ -1,5 +1,9 @@
 # Linkly AI Skills
 
+![Version](https://img.shields.io/badge/version-0.1.0-blue)
+![License](https://img.shields.io/badge/license-Apache--2.0-green)
+![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey)
+
 [Agent Skills](https://agentskills.io) for [Linkly AI](https://linkly.ai) — search, browse, and read your local documents from any AI coding agent.
 
 This skill teaches AI agents how to use Linkly AI's document search capabilities, enabling them to find and read your locally indexed documents (PDF, Markdown, DOCX, TXT, HTML, and more).

@@ -41,6 +41,7 @@ linkly search <QUERY> [OPTIONS]
 | `<QUERY>`        | Search keywords or phrases (required)                     |
 | `--limit <N>`    | Maximum results, 1–50 (default: 20)                       |
 | `--type <types>` | Filter by document types, comma-separated (e.g. `pdf,md`) |
+| `--json`         | Output structured JSON (global option)                    |
 
 Examples:
 
@@ -60,6 +61,7 @@ linkly outline <IDS>...
 | Option     | Description                                     |
 | ---------- | ----------------------------------------------- |
 | `<IDS>...` | One or more document IDs from search (required) |
+| `--json`   | Output structured JSON (global option)          |
 
 Examples:
 
@@ -75,11 +77,12 @@ linkly outline 1044 --json
 linkly read <ID> [OPTIONS]
 ```
 
-| Option         | Description                        |
-| -------------- | ---------------------------------- |
-| `<ID>`         | Document ID from search (required) |
-| `--offset <N>` | Starting line number, 1-based      |
-| `--limit <N>`  | Number of lines to read, max 500   |
+| Option         | Description                            |
+| -------------- | -------------------------------------- |
+| `<ID>`         | Document ID from search (required)     |
+| `--offset <N>` | Starting line number, 1-based          |
+| `--limit <N>`  | Number of lines to read, max 500       |
+| `--json`       | Output structured JSON (global option) |
 
 Examples:
 
@@ -127,25 +130,48 @@ linkly self-update
 
 ## Global Options
 
-| Flag               | Description                                                                |
-| ------------------ | -------------------------------------------------------------------------- |
-| `--endpoint <url>` | Connect to a specific MCP endpoint (e.g. `http://192.168.1.100:60606/mcp`) |
-| `--json`           | Output in structured JSON format (useful for scripting)                    |
-| `-V, --version`    | Print version                                                              |
-| `-h, --help`       | Print help                                                                 |
+| Flag               | Description                                                            |
+| ------------------ | ---------------------------------------------------------------------- |
+| `--endpoint <url>` | Connect to a specific MCP endpoint (e.g. `http://127.0.0.1:60606/mcp`) |
+| `--json`           | Output in structured JSON format (useful for scripting)                |
+| `-V, --version`    | Print version                                                          |
+| `-h, --help`       | Print help                                                             |
 
 ## JSON Output Format
 
-When `--json` is used, all commands return structured JSON:
+`--json` is a global option that can be placed before or after the subcommand. The CLI wraps MCP server responses with a `status` field.
 
-**Success:**
+**search:**
 
 ```json
 {
   "status": "success",
-  "query": "...",
+  "query": "machine learning",
   "total": 10,
-  "results": [...]
+  "results": [{ "doc_id": "1044", "title": "...", "relevance": 0.85, ... }]
+}
+```
+
+**outline:**
+
+```json
+{
+  "status": "success",
+  "documents": [{ "doc_id": "1044", "title": "...", "outline_text": "...", ... }]
+}
+```
+
+**read:**
+
+```json
+{
+  "status": "success",
+  "doc_id": "1044",
+  "title": "...",
+  "content": "...",
+  "total_lines": 84,
+  "shown_from": 1,
+  "shown_to": 50
 }
 ```
 
@@ -157,5 +183,3 @@ When `--json` is used, all commands return structured JSON:
   "message": "error description"
 }
 ```
-
-The JSON structure varies by command — search returns `query`, `total`, `results`; outline returns `documents`; read returns `doc_id`, `title`, `content`, `total_lines`, etc.
