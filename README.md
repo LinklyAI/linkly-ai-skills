@@ -50,6 +50,27 @@ irm https://updater.linkly.ai/cli/install.ps1 | iex
 
 ## Installing This Skill
 
+### skills.sh (Recommended)
+
+Install to all supported agents with a single command:
+
+```bash
+npx skills add LinklyAI/linkly-ai-skills
+```
+
+Or install to a specific agent:
+
+```bash
+# Claude Code only
+npx skills add LinklyAI/linkly-ai-skills -a claude-code
+
+# Codex CLI only
+npx skills add LinklyAI/linkly-ai-skills -a codex
+
+# Global install (available across all projects)
+npx skills add LinklyAI/linkly-ai-skills -g
+```
+
 ### Claude Code (manual)
 
 Copy the skill to your personal skills directory:
@@ -73,13 +94,6 @@ git clone https://github.com/LinklyAI/linkly-ai-skills.git ~/.agents/skills/link
 ### Claude.ai (web)
 
 Download `linkly-ai.zip` from the [Releases](https://github.com/LinklyAI/linkly-ai-skills/releases) page, then upload it in Claude.ai → Settings → Capabilities → Skills.
-
-Or build the ZIP locally:
-
-```bash
-./scripts/package.sh
-# outputs linkly-ai.zip in the project root
-```
 
 ### ClawHub (OpenClaw)
 
