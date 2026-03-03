@@ -64,6 +64,23 @@ Or for a specific project:
 git clone https://github.com/LinklyAI/linkly-ai-skills.git .claude/skills/linkly-ai
 ```
 
+### Codex CLI (OpenAI)
+
+```bash
+git clone https://github.com/LinklyAI/linkly-ai-skills.git ~/.agents/skills/linkly-ai
+```
+
+### Claude.ai (web)
+
+Download `linkly-ai.zip` from the [Releases](https://github.com/LinklyAI/linkly-ai-skills/releases) page, then upload it in Claude.ai → Settings → Capabilities → Skills.
+
+Or build the ZIP locally:
+
+```bash
+./scripts/package.sh
+# outputs linkly-ai.zip in the project root
+```
+
 ### ClawHub (OpenClaw)
 
 ```bash
@@ -72,15 +89,17 @@ clawhub install linkly-ai
 
 ### Other AI Agents
 
-Any AI agent that supports the [Agent Skills](https://agentskills.io) open standard can use this skill. Copy the `SKILL.md` file and the `references/` directory to the appropriate location for your agent.
+Any AI agent that supports the [Agent Skills](https://agentskills.io) open standard can use this skill. Copy the `SKILL.md` file and the `references/` directory to the appropriate skills location for your agent.
 
 ## Skill Contents
 
 ```
 ├── SKILL.md                           # Core skill instructions
-└── references/
-    ├── cli-reference.md               # CLI commands and options
-    └── mcp-tools-reference.md         # MCP tool schemas and responses
+├── references/
+│   ├── cli-reference.md               # CLI commands and options
+│   └── mcp-tools-reference.md         # MCP tool schemas and responses
+└── scripts/
+    └── package.sh                     # Build linkly-ai.zip for upload
 ```
 
 | File                                | Purpose                                                            |
