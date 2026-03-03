@@ -38,13 +38,9 @@ If no Bash tool is available, check whether MCP tools named `search`, `outline`,
 
 ### 3. Auto-install CLI
 
-If the CLI is not found and Bash is available, consult `references/cli-reference.md` for platform-specific installation methods. Choose the most appropriate one for the user's environment, execute it, then **immediately add the CLI to the current session's PATH** before any subsequent commands:
+If the CLI is not found and Bash is available, consult `references/cli-reference.md` for platform-specific installation methods. Choose the most appropriate one for the user's environment and execute it. The install script adds the CLI to the user's shell profile, so `linkly` will be available in subsequent Bash calls.
 
-```bash
-export PATH="$HOME/.linkly/bin:$PATH"
-```
-
-Run `linkly status` to verify. This export ensures all subsequent Bash calls in the session can invoke `linkly` without repeating the export.
+Run `linkly status` to verify installation and app connection.
 
 If the desktop app is not running, inform the user:
 
