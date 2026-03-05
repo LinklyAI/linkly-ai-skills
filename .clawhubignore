@@ -1,0 +1,8 @@
+.git/
+.gitignore
+.clawhubignore
+.DS_Store
+scripts/
+LICENSE
+README.md
+*.zip
