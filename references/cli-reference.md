@@ -10,19 +10,17 @@ The **Linkly AI desktop app** must be running with MCP server enabled. The CLI a
 
 ## Installation
 
-### GitHub Releases (recommended)
+### Direct Download
 
-Download the pre-built binary for your platform from the [Releases page](https://github.com/nicepkg/linkly-ai-cli/releases):
+Download the pre-built binary for your platform, extract and place it in a directory on your `PATH`.
 
-| Platform              | File                                      |
-| --------------------- | ----------------------------------------- |
-| macOS (Apple Silicon) | `linkly-aarch64-apple-darwin.tar.gz`      |
-| macOS (Intel)         | `linkly-x86_64-apple-darwin.tar.gz`       |
-| Linux (x86_64)        | `linkly-x86_64-unknown-linux-gnu.tar.gz`  |
-| Linux (ARM64)         | `linkly-aarch64-unknown-linux-gnu.tar.gz` |
-| Windows (x64)         | `linkly-x86_64-pc-windows-msvc.zip`       |
-
-After downloading, extract the binary and place it in a directory on your `PATH`.
+| Platform              | CDN Download                                                                                                            | GitHub Mirror                                                                                                        |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| macOS (Apple Silicon) | [linkly-aarch64-apple-darwin.tar.gz](https://updater.linkly.ai/cli/latest/linkly-aarch64-apple-darwin.tar.gz)           | [GitHub](https://github.com/LinklyAI/linkly-ai-cli/releases/latest/download/linkly-aarch64-apple-darwin.tar.gz)      |
+| macOS (Intel)         | [linkly-x86_64-apple-darwin.tar.gz](https://updater.linkly.ai/cli/latest/linkly-x86_64-apple-darwin.tar.gz)             | [GitHub](https://github.com/LinklyAI/linkly-ai-cli/releases/latest/download/linkly-x86_64-apple-darwin.tar.gz)       |
+| Linux (x86_64)        | [linkly-x86_64-unknown-linux-gnu.tar.gz](https://updater.linkly.ai/cli/latest/linkly-x86_64-unknown-linux-gnu.tar.gz)   | [GitHub](https://github.com/LinklyAI/linkly-ai-cli/releases/latest/download/linkly-x86_64-unknown-linux-gnu.tar.gz)  |
+| Linux (ARM64)         | [linkly-aarch64-unknown-linux-gnu.tar.gz](https://updater.linkly.ai/cli/latest/linkly-aarch64-unknown-linux-gnu.tar.gz) | [GitHub](https://github.com/LinklyAI/linkly-ai-cli/releases/latest/download/linkly-aarch64-unknown-linux-gnu.tar.gz) |
+| Windows (x64)         | [linkly-x86_64-pc-windows-msvc.zip](https://updater.linkly.ai/cli/latest/linkly-x86_64-pc-windows-msvc.zip)             | [GitHub](https://github.com/LinklyAI/linkly-ai-cli/releases/latest/download/linkly-x86_64-pc-windows-msvc.zip)       |
 
 ### Install Script
 

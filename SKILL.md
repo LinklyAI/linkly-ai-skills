@@ -1,17 +1,7 @@
 ---
 name: linkly-ai
 description: "Search, browse, and read the user's local documents indexed by Linkly AI. This skill should be used when the user asks to 'search my documents', 'find files about a topic', 'look up my notes', 'read a local document', 'search my knowledge base', 'find PDFs about X', 'browse document outlines', 'what documents do I have about Y', 'read my local files', 'search local knowledge', or any task involving searching, browsing, or reading locally stored documents (PDF, Markdown, DOCX, TXT, HTML). Also triggered by Chinese phrases: '搜索我的文档', '查找文件', '读取本地笔记', '知识库搜索', '浏览文档大纲'. Linkly AI provides full-text search with relevance ranking, structural outlines, and paginated reading through CLI commands or MCP tools."
-metadata:
-  version: 0.1.5
-  openclaw:
-    anyBins:
-      - linkly
-    emoji: "\U0001F50D"
-    homepage: https://linkly.ai
-    os:
-      - macos
-      - linux
-      - windows
+metadata: {"version":"0.1.5","openclaw":{"anyBins":["linkly"],"emoji":"🔍","homepage":"https://linkly.ai","os":["darwin","linux","win32"],"install":[{"id":"download-macos-arm64","kind":"download","label":"macOS (Apple Silicon)","url":"https://updater.linkly.ai/cli/latest/linkly-aarch64-apple-darwin.tar.gz","archive":"tar.gz","bins":["linkly"],"os":["darwin"]},{"id":"download-macos-x64","kind":"download","label":"macOS (Intel)","url":"https://updater.linkly.ai/cli/latest/linkly-x86_64-apple-darwin.tar.gz","archive":"tar.gz","bins":["linkly"],"os":["darwin"]},{"id":"download-linux-x64","kind":"download","label":"Linux (x86_64)","url":"https://updater.linkly.ai/cli/latest/linkly-x86_64-unknown-linux-gnu.tar.gz","archive":"tar.gz","bins":["linkly"],"os":["linux"]},{"id":"download-linux-arm64","kind":"download","label":"Linux (ARM64)","url":"https://updater.linkly.ai/cli/latest/linkly-aarch64-unknown-linux-gnu.tar.gz","archive":"tar.gz","bins":["linkly"],"os":["linux"]},{"id":"download-windows-x64","kind":"download","label":"Windows (x64)","url":"https://updater.linkly.ai/cli/latest/linkly-x86_64-pc-windows-msvc.zip","archive":"zip","bins":["linkly"],"os":["win32"]}]}}
 ---
 
 # Linkly AI — Local Document Search
