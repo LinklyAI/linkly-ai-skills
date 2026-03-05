@@ -66,8 +66,8 @@ check_workdir() {
   fi
   print_ok "gh CLI available"
 
-  # Read current version from SKILL.md metadata (single-line JSON)
-  CURRENT_VERSION=$(grep -oE '"version"\s*:\s*"[0-9]+\.[0-9]+\.[0-9]+"' "$ROOT_DIR/SKILL.md" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+  # Read current version from SKILL.md top-level frontmatter
+  CURRENT_VERSION=$(grep -E '^version:' "$ROOT_DIR/SKILL.md" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
   if [[ -z "$CURRENT_VERSION" ]]; then
     CURRENT_VERSION="0.0.0"
   fi
@@ -116,8 +116,8 @@ show_release_notes() {
 }
 
 update_version_in_files() {
-  # Update version in SKILL.md metadata (single-line JSON)
-  sed -i '' "s/\"version\":\"$CURRENT_VERSION\"/\"version\":\"$NEW_VERSION\"/" "$ROOT_DIR/SKILL.md"
+  # Update version in SKILL.md top-level frontmatter
+  sed -i '' "s/^version: $CURRENT_VERSION/version: $NEW_VERSION/" "$ROOT_DIR/SKILL.md"
 
   # Update version badge in README.md
   sed -i '' "s/version-$CURRENT_VERSION-blue/version-$NEW_VERSION-blue/" "$ROOT_DIR/README.md"
