@@ -36,6 +36,19 @@ Windows (PowerShell):
 irm https://updater.linkly.ai/cli/install.ps1 | iex
 ```
 
+### Homebrew (macOS / Linux)
+
+```bash
+brew tap LinklyAI/tap
+brew install linkly
+```
+
+### Cargo (cross-platform)
+
+```bash
+cargo install linkly-ai-cli
+```
+
 ## Commands
 
 ### search — Search indexed documents

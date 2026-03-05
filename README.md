@@ -42,10 +42,23 @@ macOS / Linux:
 curl -sSL https://updater.linkly.ai/cli/install.sh | sh
 ```
 
+Or via Homebrew:
+
+```bash
+brew tap LinklyAI/tap
+brew install linkly
+```
+
 Windows (PowerShell):
 
 ```powershell
 irm https://updater.linkly.ai/cli/install.ps1 | iex
+```
+
+Cross-platform (requires Rust):
+
+```bash
+cargo install linkly-ai-cli
 ```
 
 ## Installing This Skill
