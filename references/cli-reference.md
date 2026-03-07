@@ -92,6 +92,33 @@ linkly outline 1044 591 302
 linkly outline 1044 --json
 ```
 
+### grep — Locate specific lines within a document by regex
+
+```bash
+linkly grep <PATTERN> <DOC_ID> [OPTIONS]
+```
+
+| Option          | Description                                                  |
+| --------------- | ------------------------------------------------------------ |
+| `<PATTERN>`     | Regular expression pattern (required)                        |
+| `<DOC_ID>`      | Document ID to search within (required, from search results) |
+| `-C, --context` | Lines of context before and after each match                 |
+| `-B, --before`  | Lines of context before each match                           |
+| `-A, --after`   | Lines of context after each match                            |
+| `-i`            | Case-insensitive matching                                    |
+| `--mode`        | Output mode: `content` or `count`                            |
+| `--limit`       | Maximum matches, 1–100 (default: 20)                         |
+| `--json`        | Output structured JSON (global option)                       |
+
+Examples:
+
+```bash
+linkly grep "useState" 456
+linkly grep "error|warning" 1044 -C 3
+linkly grep "TODO" 591 -i --mode count
+linkly grep "function\s+\w+" 1044 -A 5 --json
+```
+
 ### read — Read document content
 
 ```bash
@@ -179,6 +206,18 @@ linkly self-update
 {
   "status": "success",
   "documents": [{ "doc_id": "1044", "title": "...", "outline_text": "...", ... }]
+}
+```
+
+**grep:**
+
+```json
+{
+  "status": "success",
+  "pattern": "useState",
+  "total_matches": 5,
+  "total_documents": 2,
+  "results": [{ "doc_id": "456", "title": "...", "match_count": 3, "matches": [...] }]
 }
 ```
 

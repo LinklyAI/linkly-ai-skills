@@ -1,6 +1,6 @@
 # Linkly AI MCP Tools Reference
 
-The Linkly AI MCP server exposes three tools for document operations. These tools are available when the Linkly AI desktop app is running with MCP server enabled.
+The Linkly AI MCP server exposes four tools for document operations. These tools are available when the Linkly AI desktop app is running with MCP server enabled.
 
 **Server name:** `linkly-ai`
 
@@ -88,6 +88,65 @@ The `outline_text` field contains a tree structure with node IDs and line ranges
 ```
 
 Use node IDs (e.g. `"1.2"`, `"2"`) with the `expand` parameter to drill into specific sections. Use line ranges with the `read` tool's `offset` and `limit` parameters to read that section. For example, to read section `[L30-50]`, use `offset=30` and `limit=21` (50 - 30 + 1 = 21 lines).
+
+## grep
+
+Locate specific lines within a single document by regex pattern. Best for documents with `has_outline=false` where outline is unavailable. Use after `search` to pinpoint exact positions of names, dates, terms, identifiers, or any pattern — then use `read` with offset to see full context. Works on all document types (PDF, Markdown, DOCX, TXT, HTML). For searching across multiple documents, call grep once per document.
+
+### Parameters
+
+| Parameter          | Type      | Required | Default     | Description                                                                                     |
+| ------------------ | --------- | -------- | ----------- | ----------------------------------------------------------------------------------------------- |
+| `pattern`          | `string`  | Yes      | —           | Regular expression pattern to search for                                                        |
+| `doc_id`           | `string`  | Yes      | —           | Document ID to search within (from search results)                                              |
+| `context`          | `integer` | No       | 3           | Lines of context before and after each match (-C)                                               |
+| `before`           | `integer` | No       | —           | Lines of context before each match (-B), overrides `context`                                    |
+| `after`            | `integer` | No       | —           | Lines of context after each match (-A), overrides `context`                                     |
+| `case_insensitive` | `boolean` | No       | false       | Case-insensitive matching                                                                       |
+| `output_mode`      | `string`  | No       | `"content"` | `"content"` (matching lines with context) or `"count"` (match count only, preview totals first) |
+| `limit`            | `integer` | No       | 20          | Maximum matching lines to return (max 100)                                                      |
+| `offset`           | `integer` | No       | 0           | Number of matches to skip for pagination                                                        |
+| `output_format`    | `string`  | No       | —           | Set to `"json"` for structured JSON output                                                      |
+
+### Response Fields (JSON mode)
+
+| Field             | Type     | Description                        |
+| ----------------- | -------- | ---------------------------------- |
+| `pattern`         | `string` | The regex pattern used             |
+| `total_matches`   | `number` | Total number of matching lines     |
+| `total_documents` | `number` | Number of documents with matches   |
+| `results`         | `array`  | List of per-document match results |
+
+Each result item:
+
+| Field         | Type     | Description                                           |
+| ------------- | -------- | ----------------------------------------------------- |
+| `doc_id`      | `string` | Document identifier                                   |
+| `title`       | `string` | Document title                                        |
+| `path`        | `string` | Shortened file path                                   |
+| `match_count` | `number` | Number of matches in this document                    |
+| `matches`     | `array`  | List of match objects (only in `content` output_mode) |
+
+Each match object:
+
+| Field            | Type                 | Description                                 |
+| ---------------- | -------------------- | ------------------------------------------- |
+| `line_number`    | `number`             | 1-based line number of the match            |
+| `content`        | `string`             | The matching line text                      |
+| `context_before` | `[number, string][]` | Lines before the match (line number + text) |
+| `context_after`  | `[number, string][]` | Lines after the match (line number + text)  |
+
+### Content Format (Markdown mode)
+
+Matching lines are shown with a `>` marker and line numbers:
+
+```
+  23	import { useState, useEffect } from 'react';
+  45>	  const [notes, setNotes] = useState([]);
+  78>	  const [isLoading, setIsLoading] = useState(false);
+```
+
+Use the line numbers with `read --offset` to see more surrounding context.
 
 ## read
 

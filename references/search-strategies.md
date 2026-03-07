@@ -68,6 +68,22 @@ Try in this order:
 3. **Semantic description** — describe the document's topic in natural language.
 4. **Remove type filters** — drop `--type` to search all formats.
 
+### Using grep for targeted pattern matching
+
+After finding documents with `search`, use `grep` to locate specific content without reading entire files:
+
+1. **Known terms or names**: `linkly grep "John Smith" <ID>` — find exact references to a person, product, or concept.
+2. **Codes or identifiers**: `linkly grep "INV-\d{4}" <ID1> <ID2> -i` — search for invoice numbers, error codes, etc. across multiple documents.
+3. **Count occurrences**: `linkly grep "TODO|FIXME" <ID> --mode count` — quickly tally matches.
+4. **Context for understanding**: `linkly grep "pattern" <ID> -C 3` — see surrounding lines.
+5. **Combine with read**: After finding a match at line N, use `linkly read <ID> --offset N-10 --limit 30` to read the full surrounding context.
+
+**When to use grep vs outline:**
+
+- Use **outline** when you need to understand the document's overall structure (sections, headings, hierarchy).
+- Use **grep** when you know what specific text to look for (names, dates, terms, identifiers, keywords).
+- They are complementary: outline tells you _where_ things are structurally, grep tells you _where_ things are textually.
+
 ### Handling large result sets
 
 - Start with `--limit 5` to check relevance quickly.

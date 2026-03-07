@@ -18,16 +18,17 @@ When installed, this skill enables AI agents to:
 
 - **Search** your local documents by keywords with relevance ranking
 - **Browse** document outlines to understand structure before diving in
+- **Grep** for specific text patterns with regex matching
 - **Read** document content with line-based pagination
 - **Auto-detect** whether to use CLI commands or MCP tools based on the environment
 - **Guide setup** if Linkly AI is not yet installed
 
 The skill supports two access modes:
 
-| Mode | When Used                      | How It Works                           |
-| ---- | ------------------------------ | -------------------------------------- |
-| CLI  | Agent has Bash/terminal access | Runs `linkly` CLI commands (preferred) |
-| MCP  | Agent has MCP tool access      | Calls search/outline/read MCP tools    |
+| Mode | When Used                      | How It Works                             |
+| ---- | ------------------------------ | ---------------------------------------- |
+| CLI  | Agent has Bash/terminal access | Runs `linkly` CLI commands (preferred)   |
+| MCP  | Agent has MCP tool access      | Calls search/outline/grep/read MCP tools |
 
 ## Prerequisites
 
