@@ -98,17 +98,19 @@ linkly outline 1044 --json
 linkly grep <PATTERN> <DOC_ID> [OPTIONS]
 ```
 
-| Option          | Description                                                  |
-| --------------- | ------------------------------------------------------------ |
-| `<PATTERN>`     | Regular expression pattern (required)                        |
-| `<DOC_ID>`      | Document ID to search within (required, from search results) |
-| `-C, --context` | Lines of context before and after each match                 |
-| `-B, --before`  | Lines of context before each match                           |
-| `-A, --after`   | Lines of context after each match                            |
-| `-i`            | Case-insensitive matching                                    |
-| `--mode`        | Output mode: `content` or `count`                            |
-| `--limit`       | Maximum matches, 1–100 (default: 20)                         |
-| `--json`        | Output structured JSON (global option)                       |
+| Option               | Description                                                                   |
+| -------------------- | ----------------------------------------------------------------------------- |
+| `<PATTERN>`          | Regular expression pattern (required)                                         |
+| `<DOC_ID>`           | Document ID to search within (required, from search results)                  |
+| `-C, --context`      | Lines of context before and after each match                                  |
+| `-B, --before`       | Lines of context before each match                                            |
+| `-A, --after`        | Lines of context after each match                                             |
+| `-i`                 | Case-insensitive matching                                                     |
+| `--mode`             | Output mode: `content` or `count`                                             |
+| `--limit`            | Maximum matches, 1–100 (default: 20)                                          |
+| `--offset`           | Number of matches to skip for pagination (default: 0)                         |
+| `--fuzzy-whitespace` | Fuzzy whitespace matching: `true`/`false`, omit for auto (PDF on, others off) |
+| `--json`             | Output structured JSON (global option)                                        |
 
 Examples:
 
@@ -216,8 +218,8 @@ linkly self-update
   "status": "success",
   "pattern": "useState",
   "total_matches": 5,
-  "total_documents": 2,
-  "results": [{ "doc_id": "456", "title": "...", "match_count": 3, "matches": [...] }]
+  "total_documents": 1,
+  "results": [{ "doc_id": "456", "title": "...", "match_count": 5, "matches": [...] }]
 }
 ```
 

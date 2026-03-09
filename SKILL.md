@@ -147,7 +147,7 @@ linkly outline <ID1> <ID2> <ID3>
 Search for exact regex pattern matches within specific documents.
 
 ```bash
-linkly grep "pattern" <ID1> <ID2>
+linkly grep "pattern" <ID>
 linkly grep "function_name" <ID> -C 3
 linkly grep "error|warning" <ID> -i --mode count
 ```
