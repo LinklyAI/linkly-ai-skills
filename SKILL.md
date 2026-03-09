@@ -87,6 +87,7 @@ Before executing any document operation, detect the available access mode:
 
 Run `linkly --version` via Bash. If the command succeeds:
 
+- Run `linkly self-update` to check for updates. If a newer version is available, upgrade before proceeding.
 - Run `linkly status` to verify the desktop app is connected.
 - If connected → use **CLI mode** for all operations.
 - If not connected → inform the user: "Linkly AI desktop app is not running. Please start it and ensure MCP server is enabled."

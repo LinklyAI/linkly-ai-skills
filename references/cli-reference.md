@@ -22,20 +22,6 @@ Download the pre-built binary for your platform, extract and place it in a direc
 | Linux (ARM64)         | [linkly-aarch64-unknown-linux-gnu.tar.gz](https://updater.linkly.ai/cli/latest/linkly-aarch64-unknown-linux-gnu.tar.gz) | [GitHub](https://github.com/LinklyAI/linkly-ai-cli/releases/latest/download/linkly-aarch64-unknown-linux-gnu.tar.gz) |
 | Windows (x64)         | [linkly-x86_64-pc-windows-msvc.zip](https://updater.linkly.ai/cli/latest/linkly-x86_64-pc-windows-msvc.zip)             | [GitHub](https://github.com/LinklyAI/linkly-ai-cli/releases/latest/download/linkly-x86_64-pc-windows-msvc.zip)       |
 
-### Install Script
-
-macOS / Linux:
-
-```bash
-curl -sSL https://updater.linkly.ai/cli/install.sh | sh
-```
-
-Windows (PowerShell):
-
-```powershell
-irm https://updater.linkly.ai/cli/install.ps1 | iex
-```
-
 ### Homebrew (macOS / Linux)
 
 ```bash
