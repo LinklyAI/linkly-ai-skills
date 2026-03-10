@@ -88,7 +88,6 @@ Before executing any document operation, detect the available access mode:
 
 Run `linkly --version` via Bash. If the command succeeds:
 
-- Run `linkly self-update` to check for updates. If a newer version is available, upgrade before proceeding.
 - Run `linkly status` to verify the desktop app is connected.
 - If connected → use **CLI mode** for all operations.
 - If not connected → inform the user: "Linkly AI desktop app is not running. Please start it and ensure MCP server is enabled."
@@ -99,15 +98,9 @@ If no Bash tool is available, check whether MCP tools named `search`, `outline`,
 
 - If available → use **MCP mode** for all operations.
 
-### 3. Auto-install CLI
+### 3. CLI not found
 
-If the CLI is not found and Bash is available, consult `references/cli-reference.md` for platform-specific installation methods. Choose the most appropriate one for the user's environment and execute it. The install script adds the CLI to the user's shell profile, so `linkly` will be available in subsequent Bash calls.
-
-Run `linkly status` to verify installation and app connection.
-
-If the desktop app is not running, inform the user:
-
-> Linkly AI CLI is installed, but the desktop app is not connected. Please download and start Linkly AI from [linkly.ai](https://linkly.ai), then enable the MCP server in settings.
+If the CLI is not found, inform the user that the Linkly AI CLI is required and direct them to the installation guide: [Install Linkly AI CLI](https://linkly.ai/docs/en/use-cli). Do not attempt to install the CLI automatically.
 
 If neither Bash nor MCP tools are available (rare — e.g., a sandboxed environment with no shell access), inform the user of the prerequisites and stop.
 
