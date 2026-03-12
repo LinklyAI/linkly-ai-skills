@@ -19,7 +19,11 @@ Run `linkly --version` via Bash. If the command succeeds:
 
 - Run `linkly status` to verify the desktop app is connected.
 - If connected → use **CLI mode** for all operations.
-- If not connected → inform the user: "Linkly AI desktop app is not running. Please start it and ensure MCP server is enabled."
+- If not connected → the CLI supports three connection modes:
+  - **Local** (default): Auto-discovers the desktop app via `~/.linkly/port`. Requires the app to be running locally.
+  - **LAN**: Use `--endpoint <url> --token <token>` to connect to a Linkly AI instance on the local network. Both `--endpoint` and `--token` are required together and cannot be used with `--remote`.
+  - **Remote**: Use `--remote` to connect via the `https://mcp.linkly.ai` tunnel. Requires prior setup: `linkly auth set-key <api-key>`.
+  - Inform the user which modes are available and how to set them up.
 
 ### 2. Check for MCP tools (fallback)
 
