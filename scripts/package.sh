@@ -66,11 +66,8 @@ check_workdir() {
   fi
   print_ok "gh CLI available"
 
-  # Read current version from SKILL.md top-level frontmatter
-  CURRENT_VERSION=$(grep -E '^version:' "$ROOT_DIR/SKILL.md" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
-  if [[ -z "$CURRENT_VERSION" ]]; then
-    CURRENT_VERSION="0.0.0"
-  fi
+  # Read current version from latest git tag
+  CURRENT_VERSION=$(git -C "$ROOT_DIR" describe --tags --abbrev=0 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "0.0.0")
   print_ok "Current version: $CURRENT_VERSION"
 }
 
@@ -116,9 +113,6 @@ show_release_notes() {
 }
 
 update_version_in_files() {
-  # Update version in SKILL.md top-level frontmatter
-  sed -i '' "s/^version: $CURRENT_VERSION/version: $NEW_VERSION/" "$ROOT_DIR/SKILL.md"
-
   # Update version badge in README.md
   sed -i '' "s/version-$CURRENT_VERSION-blue/version-$NEW_VERSION-blue/" "$ROOT_DIR/README.md"
 }
@@ -149,7 +143,7 @@ confirm_and_execute() {
   # -- Commit & Tag --
   echo -n "  Committing and tagging... "
   cd "$ROOT_DIR"
-  git add SKILL.md README.md
+  git add README.md
   git commit -m "chore: release v$NEW_VERSION" > /dev/null
   git tag "v$NEW_VERSION"
   echo -e "${GREEN}OK${NC}"
