@@ -1,6 +1,6 @@
 # Linkly AI Skills
 
-![Version](https://img.shields.io/badge/version-0.1.11-blue)
+![Version](https://img.shields.io/badge/version-0.1.12-blue)
 ![License](https://img.shields.io/badge/license-Apache--2.0-green)
 ![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey)
 
