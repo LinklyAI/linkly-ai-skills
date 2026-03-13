@@ -229,3 +229,45 @@ linkly self-update
   "message": "error description"
 }
 ```
+
+## Shell Composition Tips
+
+The CLI outputs plain text or structured JSON, making it composable with standard Unix tools for more precise text processing.
+
+**Extract doc IDs and batch outline:**
+
+```bash
+linkly search "architecture" --json | jq -r '.results[].doc_id' | xargs linkly outline
+```
+
+**Chain search → grep for two-stage filtering:**
+
+```bash
+# First narrow by semantics, then filter by exact keyword
+linkly search "deployment" --json \
+  | jq -r '.results[].doc_id' \
+  | xargs -I{} linkly grep "docker\|kubernetes" {}
+```
+
+**Aggregate outline output into a single file:**
+
+```bash
+linkly search "API design" --json \
+  | jq -r '.results[].doc_id' \
+  | while read id; do linkly outline "$id"; done \
+  > combined-outlines.txt
+```
+
+**Count document types in search results:**
+
+```bash
+linkly search "" --json | jq '.results[].type' | sort | uniq -c | sort -rn
+```
+
+**Use `grep` on CLI output for further filtering:**
+
+```bash
+linkly search "security" | grep -i "auth\|token\|jwt"
+```
+
+When using `--json`, pipe through `jq` to extract specific fields before passing to the next command. This keeps token usage low and gives you precise control over what the Agent reads.
