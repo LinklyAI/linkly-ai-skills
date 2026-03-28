@@ -14,18 +14,32 @@ See the [CLI installation guide](https://linkly.ai/docs/en/use-cli) for platform
 
 ## Commands
 
+### list-libraries — List knowledge libraries
+
+```bash
+linkly list-libraries
+```
+
+Lists all knowledge libraries configured in the desktop app with document counts.
+
+| Option   | Description                            |
+| -------- | -------------------------------------- |
+| `--json` | Output structured JSON (global option) |
+
 ### search — Search indexed documents
 
 ```bash
 linkly search <QUERY> [OPTIONS]
 ```
 
-| Option           | Description                                               |
-| ---------------- | --------------------------------------------------------- |
-| `<QUERY>`        | Search keywords or phrases (required)                     |
-| `--limit <N>`    | Maximum results, 1–50 (default: 20)                       |
-| `--type <types>` | Filter by document types, comma-separated (e.g. `pdf,md`) |
-| `--json`         | Output structured JSON (global option)                    |
+| Option              | Description                                                                                           |
+| ------------------- | ----------------------------------------------------------------------------------------------------- |
+| `<QUERY>`           | Search keywords or phrases (required)                                                                 |
+| `--limit <N>`       | Maximum results, 1–50 (default: 20)                                                                   |
+| `--type <types>`    | Filter by document types, comma-separated (e.g. `pdf,md`)                                             |
+| `--library <name>`  | Restrict search to a specific library by name                                                         |
+| `--path-glob <pat>` | SQLite GLOB pattern to filter by file path. `*` matches any chars including `/`, `?` matches one char |
+| `--json`            | Output structured JSON (global option)                                                                |
 
 Examples:
 
@@ -33,6 +47,8 @@ Examples:
 linkly search "machine learning"
 linkly search "API design" --limit 5
 linkly search "notes" --type pdf,md,docx
+linkly search "deep learning" --library my-research
+linkly search "report" --path-glob "*2024*"
 linkly search "budget" --json
 ```
 
@@ -114,6 +130,23 @@ linkly status --json
 
 Shows CLI version, app version, MCP endpoint, indexed document count, and index status.
 
+### doctor — Diagnose connection issues
+
+```bash
+linkly doctor
+linkly doctor --remote
+linkly doctor --endpoint http://192.168.1.100:60606/mcp --token <token>
+linkly doctor --json
+```
+
+Runs a series of diagnostic checks based on the connection mode:
+
+- **Local**: Port file readability → HTTP connectivity → App status
+- **LAN**: HTTP connectivity → Auth token → App status
+- **Remote**: Credentials → Server reachability → Auth → Tunnel status → MCP round-trip
+
+Each check reports pass/fail with actionable advice on failures. Use this as the first step when troubleshooting any connection problem.
+
 ### mcp — Run as MCP stdio bridge
 
 ```bash
@@ -155,7 +188,7 @@ linkly self-update
 
 ## Connection Options
 
-`--endpoint` and `--token` are available on `search`, `grep`, `outline`, `read`, `status`, and `mcp` commands (`mcp` only accepts `--endpoint`, without `--token`). `--remote` is available on `search`, `grep`, `outline`, `read`, and `status` (not on `mcp`, `auth`, or `self-update`).
+`--endpoint` and `--token` are available on `search`, `grep`, `outline`, `read`, `status`, `doctor`, and `list-libraries` commands. `--remote` is available on the same commands (not on `mcp`, `auth`, or `self-update`).
 
 | Flag               | Scope  | Description                                                                                       |
 | ------------------ | ------ | ------------------------------------------------------------------------------------------------- |

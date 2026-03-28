@@ -1,8 +1,29 @@
 # Linkly AI MCP Tools Reference
 
-The Linkly AI MCP server exposes four tools for document operations. These tools are available when the Linkly AI desktop app is running with MCP server enabled.
+The Linkly AI MCP server exposes five tools for document operations. These tools are available when the Linkly AI desktop app is running with MCP server enabled.
 
 **Server name:** `linkly-ai`
+
+## list_libraries
+
+List all knowledge libraries configured by the user.
+
+### Parameters
+
+No parameters required.
+
+### Response
+
+Returns a Markdown-formatted list of libraries with descriptions and document counts. Example:
+
+```
+# Libraries
+
+- **my-research**: AI and ML papers (42 docs, 3 folders)
+- **work-notes**: Daily work logs (128 docs, 1 folders)
+```
+
+**When to use:** Only when the user asks what libraries exist, or before using the `library` parameter in `search` to verify a library name.
 
 ## search
 
@@ -10,12 +31,14 @@ Search indexed local documents by keywords or phrases.
 
 ### Parameters
 
-| Parameter       | Type       | Required | Default | Description                                     |
-| --------------- | ---------- | -------- | ------- | ----------------------------------------------- |
-| `query`         | `string`   | Yes      | —       | Search keywords or phrases                      |
-| `limit`         | `integer`  | No       | 20      | Maximum results to return (1–50)                |
-| `doc_types`     | `string[]` | No       | —       | Filter by document types (e.g. `["pdf", "md"]`) |
-| `output_format` | `string`   | No       | —       | Set to `"json"` for structured JSON output      |
+| Parameter       | Type       | Required | Default | Description                                                                                                                   |
+| --------------- | ---------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `query`         | `string`   | Yes      | —       | Search keywords or phrases                                                                                                    |
+| `limit`         | `integer`  | No       | 20      | Maximum results to return (1–50)                                                                                              |
+| `doc_types`     | `string[]` | No       | —       | Filter by document types (e.g. `["pdf", "md"]`)                                                                               |
+| `library`       | `string`   | No       | —       | Restrict search to a specific library by name. Use `list_libraries` to see available names.                                   |
+| `path_glob`     | `string`   | No       | —       | SQLite GLOB pattern to filter by file path. `*` matches any chars including `/`, `?` matches one char. Always case-sensitive. |
+| `output_format` | `string`   | No       | —       | Set to `"json"` for structured JSON output                                                                                    |
 
 ### Response Fields (JSON mode)
 
