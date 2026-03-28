@@ -17,18 +17,20 @@ This skill teaches AI agents how to use Linkly AI's document search capabilities
 When installed, this skill enables AI agents to:
 
 - **Search** your local documents by keywords with relevance ranking
+- **List libraries** to discover and search within specific knowledge bases
 - **Browse** document outlines to understand structure before diving in
 - **Grep** for specific text patterns with regex matching
 - **Read** document content with line-based pagination
+- **Diagnose issues** with `linkly doctor` when things aren't working
 - **Auto-detect** whether to use CLI commands or MCP tools based on the environment
 - **Guide setup** if Linkly AI is not yet installed
 
 The skill supports two access modes:
 
-| Mode | When Used                      | How It Works                             |
-| ---- | ------------------------------ | ---------------------------------------- |
-| CLI  | Agent has Bash/terminal access | Runs `linkly` CLI commands (preferred)   |
-| MCP  | Agent has MCP tool access      | Calls search/outline/grep/read MCP tools |
+| Mode | When Used                      | How It Works                                            |
+| ---- | ------------------------------ | ------------------------------------------------------- |
+| CLI  | Agent has Bash/terminal access | Runs `linkly` CLI commands (preferred)                  |
+| MCP  | Agent has MCP tool access      | Calls search/outline/grep/read/list_libraries MCP tools |
 
 ## Prerequisites
 
@@ -125,7 +127,9 @@ Any AI agent that supports the [Agent Skills](https://agentskills.io) open stand
 ├── SKILL.md                           # Core skill instructions
 ├── references/
 │   ├── cli-reference.md               # CLI commands and options
-│   └── mcp-tools-reference.md         # MCP tool schemas and responses
+│   ├── mcp-tools-reference.md         # MCP tool schemas and responses
+│   ├── search-strategies.md           # Advanced query crafting patterns
+│   └── troubleshooting.md             # Diagnosing and resolving issues
 └── scripts/
     └── package.sh                     # Build linkly-ai.zip for upload
 ```
@@ -133,8 +137,10 @@ Any AI agent that supports the [Agent Skills](https://agentskills.io) open stand
 | File                                | Purpose                                                            |
 | ----------------------------------- | ------------------------------------------------------------------ |
 | `SKILL.md`                          | Main instructions: environment detection, workflow, best practices |
-| `references/cli-reference.md`       | Detailed CLI installation, commands, options, JSON output format   |
+| `references/cli-reference.md`       | CLI commands, options, JSON output format                          |
 | `references/mcp-tools-reference.md` | MCP tool parameters, response schemas, supported document types    |
+| `references/search-strategies.md`   | Advanced query crafting, multi-round search, library scoping       |
+| `references/troubleshooting.md`     | Connection issues, version mismatches, and diagnostic steps        |
 
 ## Compatibility
 
