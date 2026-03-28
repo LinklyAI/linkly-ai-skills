@@ -91,6 +91,44 @@ When using Linkly AI through an AI tool's MCP connection (Claude, Cursor, ChatGP
 - MCP connections can drop if the desktop app restarts or the network changes.
 - Most AI tools will automatically reconnect. If not, restart the AI tool's MCP connection.
 
+## Version Mismatch Issues
+
+### CLI version outdated
+
+The CLI evolves alongside the desktop app. An outdated CLI may be missing commands, parameters, or have incompatible argument syntax. Common symptoms:
+
+- `error: unexpected argument '--library'` → CLI too old, missing library support
+- `error: unexpected argument '--remote'` → CLI below v0.2.0, missing remote mode
+- `linkly doctor` not recognized → CLI needs updating
+- Commands fail silently or return unexpected errors after a desktop app update
+
+**Fix:** Update the CLI:
+
+```bash
+linkly self-update
+```
+
+After updating, verify with `linkly --version` and retry.
+
+### MCP schema out of sync
+
+When the desktop app updates its MCP tool definitions (e.g., adding `list_libraries`, or new parameters like `library`/`path_glob` on `search`), connected AI tools may still cache the old schema. Symptoms:
+
+- New tools not visible in the AI tool
+- New parameters silently ignored
+- Stale tool descriptions
+
+**Fix:** Disconnect and reconnect the MCP connection in your AI tool:
+
+- **Claude Desktop / Cursor:** Restart the app, or remove and re-add the MCP server.
+- **`linkly mcp` bridge users:** Run `linkly self-update` first, then restart the `linkly mcp` process.
+
+### Skills version outdated
+
+This skill itself may be outdated — it might reference commands or parameters that no longer exist, or miss newly added features. There is currently no automatic version check for skills.
+
+**Fix:** As a fallback when other troubleshooting steps don't help, try reinstalling or updating the skill. See the [Skills installation guide](https://linkly.ai/docs/en/use-skills) for instructions.
+
 ## General Tips
 
 1. **Always check `linkly status` first** (CLI) or verify MCP tools are responding (MCP mode).
