@@ -26,6 +26,26 @@ Lists all knowledge libraries configured in the desktop app with document counts
 | -------- | -------------------------------------- |
 | `--json` | Output structured JSON (global option) |
 
+### explore — Overview of indexed documents
+
+```bash
+linkly explore [OPTIONS]
+```
+
+Get a bird's-eye overview of all indexed documents or a specific library. Returns document type distribution, directory structure with file counts and median word counts, and top keywords with source attribution.
+
+| Option             | Description                                     |
+| ------------------ | ----------------------------------------------- |
+| `--library <name>` | Restrict overview to a specific library by name |
+| `--json`           | Output structured JSON (global option)          |
+
+Examples:
+
+```bash
+linkly explore
+linkly explore --library my-research
+```
+
 ### search — Search indexed documents
 
 ```bash

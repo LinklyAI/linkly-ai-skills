@@ -1,6 +1,6 @@
 # Linkly AI MCP Tools Reference
 
-The Linkly AI MCP server exposes five tools for document operations. These tools are available when the Linkly AI desktop app is running with MCP server enabled.
+The Linkly AI MCP server exposes six tools for document operations. These tools are available when the Linkly AI desktop app is running with MCP server enabled.
 
 **Server name:** `linkly-ai`
 
@@ -24,6 +24,27 @@ Returns a Markdown-formatted list of libraries with descriptions and document co
 ```
 
 **When to use:** Only when the user asks what libraries exist, or before using the `library` parameter in `search` to verify a library name.
+
+## explore
+
+Get a bird's-eye overview of all indexed documents or a specific library. Returns document type distribution, directory structure with file counts and median word counts, and top keywords with source attribution.
+
+### Parameters
+
+| Parameter | Type     | Required | Default | Description                                                                    |
+| --------- | -------- | -------- | ------- | ------------------------------------------------------------------------------ |
+| `library` | `string` | No       | —       | Restrict to a specific library by name. Omit to explore all indexed documents. |
+
+### Response
+
+Returns a Markdown-formatted overview with four sections:
+
+1. **Summary**: Total document count, outline count, and type distribution
+2. **Directory Structure**: Tree view with file counts, median word counts, and last modified dates (UTC)
+3. **Top Keywords**: Global keywords (spread across directories) and local keywords (concentrated ≥90% in a single directory, grouped by source)
+4. **Recent Activity**: Directories with document changes in the last 7 days, with file counts and timestamps
+
+**When to use:** When the user wants to understand what's in their knowledge base, wants an overview of themes, asks about recent changes, or doesn't yet know what to search for. Use the keywords, directory names, and recent activity from the output to formulate targeted search queries.
 
 ## search
 
