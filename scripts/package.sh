@@ -33,7 +33,7 @@ print_err() { echo -e "  ${RED}✗${NC} $1"; }
 print_step() { echo -e "\n${BOLD}$1${NC}"; }
 
 build_zip() {
-  ZIP_FILE="$ROOT_DIR/linkly-ai.zip"
+  ZIP_FILE="$ROOT_DIR/linkly-skills-latest.zip"
   rm -f "$ZIP_FILE"
 
   cd "$ROOT_DIR"
@@ -178,14 +178,13 @@ confirm_and_execute() {
     notes=$(git log "v$NEW_VERSION" --pretty=format:"- %s" --no-merges)
   fi
 
-  gh release create "v$NEW_VERSION" "$ZIP_FILE" \
+  gh release create "v$NEW_VERSION" "$ZIP_FILE#linkly-ai-skills-v${NEW_VERSION}.zip" \
     --title "v$NEW_VERSION" \
     --notes "$notes" \
     > /dev/null 2>&1
   echo -e "${GREEN}OK${NC}"
 
-  # -- Cleanup --
-  rm -f "$ZIP_FILE"
+  # -- Done (keep ZIP for manual R2 upload) --
 
   echo ""
   echo -e "  ${GREEN}${BOLD}Released v$NEW_VERSION${NC}"
