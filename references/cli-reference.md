@@ -46,20 +46,52 @@ linkly explore
 linkly explore --library my-research
 ```
 
+### find-paths — Locate folder paths
+
+```bash
+linkly find-paths --patterns <keywords> [OPTIONS]
+```
+
+Locate real folder paths in the indexed documents by fuzzy keyword matching on the file path. Returns top folder candidates with file counts so you can pick a `--path-glob` for a follow-up `linkly search` call.
+
+| Option              | Description                                                                                                                                                     |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--patterns <list>` | Keywords (comma-separated) to substring-match against file paths. Multiple keywords are OR-matched — pass cross-language or spelling variants in a single call. |
+| `--library <name>`  | Restrict to a specific library by name                                                                                                                          |
+| `--limit <N>`       | Maximum folder candidates, 1–50 (default: 10)                                                                                                                   |
+| `--json`            | Output structured JSON (global option)                                                                                                                          |
+
+Examples:
+
+```bash
+linkly find-paths --patterns WeChat,微信,wxid
+linkly find-paths --patterns Notion,notion --library my-knowledge --limit 5
+linkly find-paths --patterns Slack --json
+```
+
+**When to use:** The user names a container by a fuzzy or cross-language word ("in my WeChat files", "在我的 Notion 笔记里") and you don't yet know the on-disk path. The tool returns folder candidates — take a distinctive segment of one of them (often the leaf name) and pass it to `linkly search --path-glob "*<segment>*"`.
+
+**When NOT to use:** Pure content queries (use `search` directly); file-type filters (use `search --path-glob "*.pdf"`).
+
+**Aggregation note:** This is a "find folders" tool. Files whose patterns only match the filename segment (not any directory segment) are silently dropped. If you get zero folders despite expecting matches, fall back to `linkly search` directly without `--path-glob`.
+
 ### search — Search indexed documents
 
 ```bash
 linkly search <QUERY> [OPTIONS]
 ```
 
-| Option              | Description                                                                                           |
-| ------------------- | ----------------------------------------------------------------------------------------------------- |
-| `<QUERY>`           | Search keywords or phrases (required)                                                                 |
-| `--limit <N>`       | Maximum results, 1–50 (default: 20)                                                                   |
-| `--type <types>`    | Filter by document types, comma-separated (e.g. `pdf,md`)                                             |
-| `--library <name>`  | Restrict search to a specific library by name                                                         |
-| `--path-glob <pat>` | SQLite GLOB pattern to filter by file path. `*` matches any chars including `/`, `?` matches one char |
-| `--json`            | Output structured JSON (global option)                                                                |
+| Option                    | Description                                                                                                                                  |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `<QUERY>`                 | Search keywords or phrases (required)                                                                                                        |
+| `--limit <N>`             | Maximum results, 1–50 (default: 20)                                                                                                          |
+| `--type <types>`          | Filter by document types, comma-separated (e.g. `pdf,md`)                                                                                    |
+| `--library <name>`        | Restrict search to a specific library by name                                                                                                |
+| `--path-glob <pat>`       | SQLite GLOB pattern to filter by file path. `*` matches any chars including `/`, `?` matches one char. When unknown, run `find-paths` first. |
+| `--modified-after <iso>`  | Inclusive lower bound on modification time (ISO 8601 UTC; bare date or RFC 3339)                                                             |
+| `--modified-before <iso>` | Inclusive upper bound on modification time (same format as `--modified-after`)                                                               |
+| `--time-sort <mode>`      | Reorder by modification time: `newest` or `oldest`. Omit (default) to keep relevance ordering.                                               |
+| `--json`                  | Output structured JSON (global option)                                                                                                       |
 
 Examples:
 
@@ -69,8 +101,12 @@ linkly search "API design" --limit 5
 linkly search "notes" --type pdf,md,docx
 linkly search "deep learning" --library my-research
 linkly search "report" --path-glob "*2024*"
+linkly search "Q3 report" --modified-after 2024-07-01 --modified-before 2024-09-30
+linkly search "weekly retro" --time-sort newest --limit 5
 linkly search "budget" --json
 ```
+
+Read the `[meta] now=<iso>` footer (Markdown output) or top-level `_meta.now` (JSON output) of any tool response to compute relative dates ("last month", "this year") rather than guessing the current date.
 
 ### outline — Get document outlines
 

@@ -1,8 +1,17 @@
 # Linkly AI MCP Tools Reference
 
-The Linkly AI MCP server exposes six tools for document operations. These tools are available when the Linkly AI desktop app is running with MCP server enabled.
+The Linkly AI MCP server exposes seven tools for document operations. These tools are available when the Linkly AI desktop app is running with MCP server enabled.
 
 **Server name:** `linkly-ai`
+
+## Response Metadata
+
+Every successful tool response carries the wallclock time so callers can compute relative dates ("last month", "this year") without relying on training cutoffs:
+
+- **Markdown** output ends with a footer block: `\n---\n[meta] now=<ISO 8601 UTC>` (e.g. `[meta] now=2026-05-07T14:43:14Z`).
+- **JSON** output (`output_format: "json"`) includes a top-level `_meta` object: `{ "now": "<ISO 8601 UTC>" }`.
+
+Errors (`isError: true`) do **not** include this metadata — the error body itself conveys the failure cause. When deriving relative dates, prefer the most recent `now` value you've seen over any other source.
 
 ## list_libraries
 
@@ -46,20 +55,90 @@ Returns a Markdown-formatted overview with four sections:
 
 **When to use:** When the user wants to understand what's in their knowledge base, wants an overview of themes, asks about recent changes, or doesn't yet know what to search for. Use the keywords, directory names, and recent activity from the output to formulate targeted search queries.
 
+## find_paths
+
+Locate real folder paths in the indexed documents by fuzzy keyword matching on the file path. Returns top folder candidates with file counts so the caller can pick a `path_glob` for a follow-up `search` call.
+
+### Parameters
+
+| Parameter       | Type       | Required | Default      | Description                                                                                                                                                                                                                                                                                 |
+| --------------- | ---------- | -------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `patterns`      | `string[]` | Yes      | —            | Keywords to substring-match against file paths. Multiple keywords are OR-matched (each one wrapped as SQL `LIKE %keyword%`); pass cross-language or spelling variants in a single call (e.g. `["WeChat", "微信", "xinWeChat", "wxid"]`). Case-insensitive for ASCII; CJK matches literally. |
+| `library`       | `string`   | No       | —            | Restrict to a specific library by name. Use `list_libraries` to see available names.                                                                                                                                                                                                        |
+| `limit`         | `integer`  | No       | 10           | Maximum folder candidates to return (max 50).                                                                                                                                                                                                                                               |
+| `output_format` | `string`   | No       | `"markdown"` | `"markdown"` (default) or `"json"`.                                                                                                                                                                                                                                                         |
+
+### Response Fields (JSON mode)
+
+| Field         | Type      | Description                                                                               |
+| ------------- | --------- | ----------------------------------------------------------------------------------------- |
+| `total_files` | `number`  | Total files aggregated across all returned folder candidates (before `limit` truncation). |
+| `truncated`   | `boolean` | True when `limit` capped the directory list (more candidates exist than were returned).   |
+| `directories` | `array`   | Folder candidates, ordered by `file_count` descending (ties broken by path ascending).    |
+
+Each directory entry:
+
+| Field        | Type     | Description                                                                                                           |
+| ------------ | -------- | --------------------------------------------------------------------------------------------------------------------- |
+| `path`       | `string` | Folder path (privacy-aware: shortened to `.../parent/leaf` unless the user opted into full path display in Settings). |
+| `file_count` | `number` | Number of indexed files inside this folder whose path matched any of the `patterns`.                                  |
+
+### Aggregation behaviour (important)
+
+- This is a "find folders" tool. Files whose `patterns` only match the **filename segment** (no matching directory segment) are **dropped** silently — they are not returned as their own folder. If a query yields zero directories despite matching files, fall back to `search` directly.
+- Each match is bucketed by the **shallowest** pattern occurrence in its path, truncated at the next `/`. So `local:///Users/me/Library/.../com.tencent.xinWeChat/Data/...` matched by `WeChat` aggregates under `.../com.tencent.xinWeChat`, regardless of how deep the matching file lives.
+
+**When to use:** The user names a container by a fuzzy or cross-language word ("in my WeChat files", "in my Notion notes", "在我的微信里") and you don't yet know the actual on-disk path. Pass several variants in `patterns` in a single call, then pipe a distinctive segment of any returned path back to `search` as `path_glob` (substring-matched, so `*xinWeChat*` works as well as a full prefix).
+
+**When NOT to use:**
+
+- Pure content/topic queries ("find resumes", "find AI papers") — call `search` directly; its hybrid retrieval already covers title/filename/content/path.
+- Filtering by file type ("all PDFs") — call `search` with `path_glob="*.pdf"` directly.
+- Vague queries with no container intent ("find recent stuff") — call `search`.
+
+### Example
+
+Call:
+
+```json
+{ "patterns": ["WeChat", "微信", "wxid"], "limit": 5 }
+```
+
+Response (JSON mode):
+
+```json
+{
+  "total_files": 940,
+  "truncated": false,
+  "directories": [
+    {
+      "path": ".../com.tencent.xinWeChat/Data",
+      "file_count": 940
+    }
+  ],
+  "_meta": { "now": "2026-05-07T14:43:14Z" }
+}
+```
+
+The follow-up `search` call would then use `path_glob: "*xinWeChat*"` to scope the actual content query.
+
 ## search
 
 Search indexed local documents by keywords or phrases.
 
 ### Parameters
 
-| Parameter       | Type       | Required | Default | Description                                                                                                                   |
-| --------------- | ---------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `query`         | `string`   | Yes      | —       | Search keywords or phrases                                                                                                    |
-| `limit`         | `integer`  | No       | 20      | Maximum results to return (1–50)                                                                                              |
-| `doc_types`     | `string[]` | No       | —       | Filter by document types (e.g. `["pdf", "md"]`)                                                                               |
-| `library`       | `string`   | No       | —       | Restrict search to a specific library by name. Use `list_libraries` to see available names.                                   |
-| `path_glob`     | `string`   | No       | —       | SQLite GLOB pattern to filter by file path. `*` matches any chars including `/`, `?` matches one char. Always case-sensitive. |
-| `output_format` | `string`   | No       | —       | Set to `"json"` for structured JSON output                                                                                    |
+| Parameter         | Type       | Required | Default     | Description                                                                                                                                                                              |
+| ----------------- | ---------- | -------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `query`           | `string`   | Yes      | —           | Search keywords or phrases                                                                                                                                                               |
+| `limit`           | `integer`  | No       | 20          | Maximum results to return (1–50)                                                                                                                                                         |
+| `doc_types`       | `string[]` | No       | —           | Filter by document types (e.g. `["pdf", "md"]`)                                                                                                                                          |
+| `library`         | `string`   | No       | —           | Restrict search to a specific library by name. Use `list_libraries` to see available names.                                                                                              |
+| `path_glob`       | `string`   | No       | —           | SQLite GLOB pattern to filter by file path. `*` matches any chars including `/`, `?` matches one char. Always case-sensitive. When the actual path is unknown, run `find_paths` first.   |
+| `modified_after`  | `string`   | No       | —           | Inclusive lower bound on modification time. Accepts ISO 8601 UTC: a bare date `"2024-01-01"` (expanded to `00:00:00Z`) or a full RFC 3339 datetime `"2024-01-01T00:00:00Z"`.             |
+| `modified_before` | `string`   | No       | —           | Inclusive upper bound on modification time. Same format as `modified_after`.                                                                                                             |
+| `time_sort`       | `string`   | No       | `"default"` | One of `"default"` / `"newest"` / `"oldest"`. `"default"` keeps hybrid relevance ordering; `"newest"` / `"oldest"` reorder by `modified_at` after dedup, useful for "latest / earliest". |
+| `output_format`   | `string`   | No       | —           | Set to `"json"` for structured JSON output                                                                                                                                               |
 
 ### Response Fields (JSON mode)
 

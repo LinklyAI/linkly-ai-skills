@@ -8,6 +8,8 @@ Linkly AI uses **BM25 + vector hybrid retrieval**. Understanding how both signal
 - **Vector (semantic)**: The entire query string is encoded into a single embedding vector. Documents are ranked by cosine similarity. Results with vector distance > 0.6 are filtered as noise.
 - **Hybrid fusion**: Both result sets are merged using RRF (Reciprocal Rank Fusion) with equal 50/50 weighting.
 - **Graceful degradation**: If the embedding model is not ready, search falls back to pure BM25.
+- **Pre-search path discovery**: when the user names a container by a fuzzy / cross-language word ("in my WeChat", "在 Notion 笔记里"), `find_paths` aggregates indexed paths by keyword and returns top folder candidates — pipe one as `path_glob` to scope the subsequent `search`. See ["Locate the container first"](#locate-the-container-first-with-find_paths) below.
+- **Time-aware filtering and sorting**: `search` accepts `modified_after` / `modified_before` (ISO 8601 UTC) for explicit windows and `time_sort` (`newest` / `oldest`) for relative ordering. See ["Constraining by time"](#constraining-by-time) below.
 
 ## Query Crafting Strategies
 
@@ -67,6 +69,7 @@ Try in this order:
 2. **Key content fragment** — search for a memorable sentence or data point.
 3. **Semantic description** — describe the document's topic in natural language.
 4. **Remove type filters** — drop `--type` to search all formats.
+5. **In a specific container** — when the user mentions a folder/app ("in my WeChat", "in my Notion notes"), run `linkly find-paths --patterns ...` first to discover the real path, then `linkly search ... --path-glob "*<segment>*"`. See ["Locate the container first"](#locate-the-container-first-with-find_paths).
 
 ### Using grep for targeted pattern matching
 
@@ -98,6 +101,58 @@ linkly search "design" --path-glob "*linkly-ai-v3*"      # follow up on a recent
 The explore output includes a **Recent Activity** section showing directories with changes in the last 7 days. Use this to answer questions like "what have I been working on?" or to focus searches on actively maintained content.
 
 This two-step pattern avoids blind searches and produces more relevant results.
+
+### Locate the container first with `find_paths`
+
+When the user describes a target by a fuzzy or cross-language container name ("find shopping receipts in my WeChat", "搜一下我 Notion 笔记里的产品方案", "stuff in my work backup folder") and you don't yet know the on-disk path, jumping straight to `search` with a guessed `path_glob` is fragile — the actual folder is usually named after a real app/SDK identifier (`xinWeChat`, `notion`, `wxid_*`) that the user wouldn't say out loud.
+
+The robust pattern is two-step:
+
+1. **Discover the path with `find_paths`** — pass several variants in a single call (translation pairs, casing, real-app names if known) so they're OR-matched in one round-trip.
+2. **Scope the actual content `search`** — take a distinctive segment of any returned folder path (often the leaf or a unique sub-segment) and pass it as `--path-glob "*<segment>*"`. The GLOB is substring-matched, so a partial segment works as well as a full prefix.
+
+```bash
+# 1. discover real path
+linkly find-paths --patterns WeChat,微信,wxid --limit 5
+# → top candidate ends with /com.tencent.xinWeChat/Data/.../xwechat_files (940 files)
+
+# 2. scope the content search
+linkly search "购物订单 receipt" --path-glob "*xinWeChat*" --limit 10
+```
+
+**Aggregation caveat:** `find_paths` is a "find folders" tool. Files whose patterns only match the **filename** (not any directory segment) are dropped silently. If `find_paths` returns zero folders despite obvious filename matches, fall back to `linkly search` directly — it can still match against filenames via the `filename` BM25 field.
+
+**Skip this step when:**
+
+- The query is purely about content/topic ("find resumes", "find AI papers about transformers") — call `search` directly.
+- The user is filtering only by file type ("all my PDFs") — use `linkly search "..." --path-glob "*.pdf"` directly.
+
+### Constraining by time
+
+`search` supports two complementary time mechanisms. They can be combined.
+
+**Window (explicit range)** — use `--modified-after` / `--modified-before` for queries with an explicit time scope. Both accept ISO 8601 UTC: a bare date `2024-01-01` (expanded to `00:00:00Z`) or a full RFC 3339 timestamp `2024-01-01T00:00:00Z`. Both bounds are inclusive.
+
+```bash
+linkly search "quarterly report"  --modified-after 2024-07-01 --modified-before 2024-09-30  # Q3 2024
+linkly search "weekly retro"      --modified-after 2024-01-01 --modified-before 2024-12-31  # all of 2024
+linkly search "incident postmortem" --modified-before 2023-01-01                            # before 2023
+```
+
+**Sort (relative ordering)** — use `--time-sort newest` or `--time-sort oldest` for queries that ask for "the most recent / earliest" without a fixed window. The candidate set is selected by the same hybrid retrieval, then reordered by `modified_at` after dedup.
+
+```bash
+linkly search "team standup notes" --time-sort newest --limit 10
+linkly search "first version of the design doc" --time-sort oldest --limit 5
+```
+
+**Combining both** — useful for "the most relevant document from a specific window" or "earliest entry in 2024":
+
+```bash
+linkly search "release notes" --modified-after 2024-01-01 --modified-before 2024-12-31 --time-sort oldest
+```
+
+**Computing relative dates** — when the user phrases the time as "last month", "this year", "in the last 30 days", read the `now` value from any prior tool response (Markdown footer `[meta] now=…` or JSON `_meta.now`) and do the date math from there. Don't guess the current date from the model's training cutoff.
 
 ### Scoped search with libraries
 

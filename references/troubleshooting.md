@@ -62,6 +62,23 @@ linkly doctor --remote
   2. Try broader keywords or natural language queries.
   3. Remove `--type` or `--library` filters to search globally.
 
+#### `Invalid modified_after` / `Invalid modified_before`
+
+- **Cause:** The date string isn't valid ISO 8601 UTC (typo, missing digits, wrong separator, or month/day out of range).
+- **Fix:** Use a bare date (`2024-01-01`) or a full RFC 3339 timestamp (`2024-01-01T00:00:00Z`). The error message echoes back what you passed and the expected format — check it for typos.
+
+#### `Invalid time_sort`
+
+- **Cause:** `time_sort` was set to something other than `default`, `newest`, or `oldest`.
+- **Fix:** Pass one of those three values, or omit `--time-sort` entirely (defaults to relevance ordering).
+
+#### `find-paths` returns no folders
+
+- **Cause:** The patterns missed every directory segment in the indexed paths. Two common reasons:
+  - The user's wording differs from the actual folder name across languages (e.g. user says "微信" but the indexed path contains `xinWeChat`). Try several variants in a single call: `--patterns WeChat,微信,wxid,xinWeChat`.
+  - The patterns only match the **filename** segment, not a directory segment. `find_paths` is a "find folders" tool — orphan filename matches are dropped silently. In that case, fall back to `linkly search` directly without `--path-glob`.
+- **Fix:** Broaden or vary the patterns first. If still empty, the container may not be indexed yet (check `linkly status`) or use `linkly search` without path scoping.
+
 ### CLI not found
 
 If `linkly --version` fails:
@@ -112,11 +129,12 @@ After updating, verify with `linkly --version` and retry.
 
 ### MCP schema out of sync
 
-When the desktop app updates its MCP tool definitions (e.g., adding `list_libraries`, or new parameters like `library`/`path_glob` on `search`), connected AI tools may still cache the old schema. Symptoms:
+When the desktop app updates its MCP tool definitions (e.g., adding `list_libraries` / `find_paths`, or new parameters like `library`/`path_glob`/`modified_after`/`time_sort` on `search`), connected AI tools may still cache the old schema. Symptoms:
 
-- New tools not visible in the AI tool
-- New parameters silently ignored
+- New tools not visible in the AI tool (e.g. `find_paths` doesn't appear)
+- New parameters silently ignored or rejected as unknown (`modified_after`, `time_sort`, etc.)
 - Stale tool descriptions
+- Trailing `[meta] now=…` footer or top-level `_meta.now` field appearing in responses for the first time and the AI tool not understanding it (it's safe to ignore — see [Response Metadata](mcp-tools-reference.md#response-metadata))
 
 **Fix:** Disconnect and reconnect the MCP connection in your AI tool:
 
