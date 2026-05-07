@@ -134,10 +134,10 @@ After updating, verify with `linkly --version` and retry.
 The opposite mismatch can also bite: the CLI is up to date but the desktop app on the other end is still on an older release whose MCP server doesn't yet expose the newer tools / parameters. Symptoms:
 
 - `Error: ... unknown tool 'find_paths'` (or similar "tool not found" / "method not found") — the desktop is below v0.4.1 and doesn't ship the find_paths tool yet
-- `Error: ... invalid argument` / `unknown field` for `modified_after`, `modified_before`, or `time_sort` — the desktop is below v0.4.1 and doesn't recognize these search parameters
+- A `search` call with `--modified-after` / `--modified-before` / `--time-sort` looks like it succeeded but the result set ignores the time bounds (the same documents come back as a query without those flags). Pre-v0.4.1 desktop silently drops parameters it doesn't recognise. **Run `linkly status` to confirm — if `App` is below v0.4.1, the time filters aren't actually being applied.** From v0.4.1 onward this case becomes an explicit `Error: ... unknown field 'modified_after'` instead of a silent miss.
 - The `[meta] now=` footer / `_meta.now` field is absent from successful responses — the desktop hasn't started attaching metadata, also a pre-v0.4.1 indicator
 
-**Fix:** Update the desktop app to a release that matches or exceeds your CLI. Open the desktop app and check Settings → About → Check for Updates, or download the latest installer from [linkly.ai](https://linkly.ai). Run `linkly status` after the update — the displayed `App` version should be ≥ v0.4.1 to use `find_paths` and the search time filters.
+**Fix:** Update the desktop app to a release that matches or exceeds your CLI. Open the desktop app and check Settings → About → Check for Updates, or download the latest installer from [linkly.ai](https://linkly.ai). Run `linkly status` after the update — the displayed `App` version should be ≥ v0.4.1 to use `find_paths` and the search time filters. Recent CLI builds also surface a ⚠ banner under the `App` line when the desktop is too old.
 
 ### MCP schema out of sync
 
