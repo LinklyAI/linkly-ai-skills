@@ -16,7 +16,9 @@ This skill teaches AI agents how to use Linkly AI's document search capabilities
 
 When installed, this skill enables AI agents to:
 
-- **Search** your local documents by keywords with relevance ranking
+- **Search** your local documents by keywords with relevance ranking, time windows, and path filters
+- **Find paths** for fuzzy or cross-language container names ("in my WeChat", "在 Notion 笔记里") by matching against the indexed file paths
+- **Explore** the knowledge base for an overview of themes, document types, and recent activity
 - **List libraries** to discover and search within specific knowledge bases
 - **Browse** document outlines to understand structure before diving in
 - **Grep** for specific text patterns with regex matching
@@ -27,10 +29,10 @@ When installed, this skill enables AI agents to:
 
 The skill supports two access modes:
 
-| Mode | When Used                      | How It Works                                            |
-| ---- | ------------------------------ | ------------------------------------------------------- |
-| CLI  | Agent has Bash/terminal access | Runs `linkly` CLI commands (preferred)                  |
-| MCP  | Agent has MCP tool access      | Calls search/outline/grep/read/list_libraries MCP tools |
+| Mode | When Used                      | How It Works                                                                                         |
+| ---- | ------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| CLI  | Agent has Bash/terminal access | Runs `linkly` CLI commands (preferred when both are available)                                       |
+| MCP  | Agent has MCP tool access      | Calls `search` / `find_paths` / `outline` / `grep` / `read` / `list_libraries` / `explore` MCP tools |
 
 ## Prerequisites
 

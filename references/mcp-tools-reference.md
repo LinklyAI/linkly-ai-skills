@@ -6,7 +6,7 @@ The Linkly AI MCP server exposes seven tools for document operations. These tool
 
 ## Response Metadata
 
-Every successful tool response carries the wallclock time so callers can compute relative dates ("last month", "this year") without relying on training cutoffs:
+Every successful tool response carries the wallclock time so callers can compute relative dates ("last 7 days", "after July 1, 2024", "in 2024") without relying on training cutoffs:
 
 - **Markdown** output ends with a footer block: `\n---\n[meta] now=<ISO 8601 UTC>` (e.g. `[meta] now=2026-05-07T14:43:14Z`).
 - **JSON** output (`output_format: "json"`) includes a top-level `_meta` object: `{ "now": "<ISO 8601 UTC>" }`.
@@ -61,20 +61,20 @@ Locate real folder paths in the indexed documents by fuzzy keyword matching on t
 
 ### Parameters
 
-| Parameter       | Type       | Required | Default      | Description                                                                                                                                                                                                                                                                                 |
-| --------------- | ---------- | -------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `patterns`      | `string[]` | Yes      | —            | Keywords to substring-match against file paths. Multiple keywords are OR-matched (each one wrapped as SQL `LIKE %keyword%`); pass cross-language or spelling variants in a single call (e.g. `["WeChat", "微信", "xinWeChat", "wxid"]`). Case-insensitive for ASCII; CJK matches literally. |
-| `library`       | `string`   | No       | —            | Restrict to a specific library by name. Use `list_libraries` to see available names.                                                                                                                                                                                                        |
-| `limit`         | `integer`  | No       | 10           | Maximum folder candidates to return (max 50).                                                                                                                                                                                                                                               |
-| `output_format` | `string`   | No       | `"markdown"` | `"markdown"` (default) or `"json"`.                                                                                                                                                                                                                                                         |
+| Parameter       | Type       | Required | Default      | Description                                                                                                                                                                                                                                                                                                                               |
+| --------------- | ---------- | -------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `patterns`      | `string[]` | Yes      | —            | Keywords to substring-match against file paths. Multiple keywords are OR-matched (each one wrapped as SQL `LIKE %keyword%`); pass cross-language or spelling variants in a single call (e.g. `["WeChat", "微信", "xinWeChat", "wxid"]`). Case-insensitive for ASCII; CJK matches literally. **Limits:** max 10 patterns, each ≤ 64 bytes. |
+| `library`       | `string`   | No       | —            | Restrict to a specific library by name. Use `list_libraries` to see available names.                                                                                                                                                                                                                                                      |
+| `limit`         | `integer`  | No       | 10           | Maximum folder candidates to return (max 50).                                                                                                                                                                                                                                                                                             |
+| `output_format` | `string`   | No       | `"markdown"` | `"markdown"` (default) or `"json"`.                                                                                                                                                                                                                                                                                                       |
 
 ### Response Fields (JSON mode)
 
-| Field         | Type      | Description                                                                               |
-| ------------- | --------- | ----------------------------------------------------------------------------------------- |
-| `total_files` | `number`  | Total files aggregated across all returned folder candidates (before `limit` truncation). |
-| `truncated`   | `boolean` | True when `limit` capped the directory list (more candidates exist than were returned).   |
-| `directories` | `array`   | Folder candidates, ordered by `file_count` descending (ties broken by path ascending).    |
+| Field         | Type      | Description                                                                                                                                                                                                  |
+| ------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `total_files` | `number`  | Total files matched and bucketed across **all** folder candidates — including any tail dropped by `limit`. When `truncated` is `true` this can exceed the sum of `file_count` across returned `directories`. |
+| `truncated`   | `boolean` | True when `limit` capped the directory list (more candidates exist than were returned).                                                                                                                      |
+| `directories` | `array`   | Folder candidates, ordered by `file_count` descending (ties broken by path ascending).                                                                                                                       |
 
 Each directory entry:
 
@@ -112,7 +112,7 @@ Response (JSON mode):
   "truncated": false,
   "directories": [
     {
-      "path": ".../com.tencent.xinWeChat/Data",
+      "path": ".../com.tencent.xinWeChat",
       "file_count": 940
     }
   ],

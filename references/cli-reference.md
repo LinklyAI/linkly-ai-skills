@@ -106,7 +106,7 @@ linkly search "weekly retro" --time-sort newest --limit 5
 linkly search "budget" --json
 ```
 
-Read the `[meta] now=<iso>` footer (Markdown output) or top-level `_meta.now` (JSON output) of any tool response to compute relative dates ("last month", "this year") rather than guessing the current date.
+Read the `[meta] now=<iso>` footer (Markdown output) or top-level `_meta.now` (JSON output) of any tool response to compute relative dates ("last 7 days", "after July 1, 2024", "in 2024") rather than guessing the current date.
 
 ### outline — Get document outlines
 

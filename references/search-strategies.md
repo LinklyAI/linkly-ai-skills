@@ -11,6 +11,25 @@ Linkly AI uses **BM25 + vector hybrid retrieval**. Understanding how both signal
 - **Pre-search path discovery**: when the user names a container by a fuzzy / cross-language word ("in my WeChat", "在 Notion 笔记里"), `find_paths` aggregates indexed paths by keyword and returns top folder candidates — pipe one as `path_glob` to scope the subsequent `search`. See ["Locate the container first"](#locate-the-container-first-with-find_paths) below.
 - **Time-aware filtering and sorting**: `search` accepts `modified_after` / `modified_before` (ISO 8601 UTC) for explicit windows and `time_sort` (`newest` / `oldest`) for relative ordering. See ["Constraining by time"](#constraining-by-time) below.
 
+## Enforcing AND across keywords
+
+`search` is OR-only at the BM25 level — `linkly search "auth migration"` returns documents matching `auth` **or** `migration`, ranked by overlap. When the user genuinely needs **all** terms to co-occur, chain `search` and `grep`:
+
+```bash
+# Step 1: search retrieves a candidate set scored by partial overlap.
+linkly search "auth migration" --limit 30
+
+# Step 2: grep filters that set down to docs that actually contain both.
+#   (loop over doc_ids — grep is single-doc; see references/cli-reference.md)
+for id in <ID1> <ID2> <ID3> ...; do
+  linkly grep "auth" "$id" --mode count > /dev/null && \
+  linkly grep "migration" "$id" --mode count > /dev/null && \
+  echo "$id matches both"
+done
+```
+
+For two terms a faster shortcut is to grep one (the rarer) right after `search`, since the BM25 ranking already biases toward documents matching multiple terms — most top-N results will already satisfy AND.
+
 ## Query Crafting Strategies
 
 ### Precise keywords — leverage BM25
@@ -114,7 +133,7 @@ The robust pattern is two-step:
 ```bash
 # 1. discover real path
 linkly find-paths --patterns WeChat,微信,wxid --limit 5
-# → top candidate ends with /com.tencent.xinWeChat/Data/.../xwechat_files (940 files)
+# → top candidate ends with /com.tencent.xinWeChat (940 files aggregated under it)
 
 # 2. scope the content search
 linkly search "购物订单 receipt" --path-glob "*xinWeChat*" --limit 10
@@ -127,6 +146,22 @@ linkly search "购物订单 receipt" --path-glob "*xinWeChat*" --limit 10
 - The query is purely about content/topic ("find resumes", "find AI papers about transformers") — call `search` directly.
 - The user is filtering only by file type ("all my PDFs") — use `linkly search "..." --type pdf` directly.
 
+**Common container patterns** — pre-baked variant sets you can pass straight to `--patterns`:
+
+| User says             | Suggested `--patterns`              | Typical real-path segment                          |
+| --------------------- | ----------------------------------- | -------------------------------------------------- |
+| WeChat / 微信         | `WeChat,微信,wxid,xinWeChat`        | `com.tencent.xinWeChat`, `wxid_*`                  |
+| Notion 笔记           | `Notion,notion`                     | `Notion`                                           |
+| iCloud / iCloud Drive | `iCloud,CloudDocs,Mobile Documents` | `Mobile Documents/com~apple~CloudDocs` (macOS 13+) |
+| OneDrive              | `OneDrive`                          | `OneDrive`, `OneDrive - <Tenant>`                  |
+| Google Drive          | `Google Drive,GoogleDrive,DriveFS`  | `CloudStorage/GoogleDrive-*`, `Google Drive`       |
+| Dropbox               | `Dropbox`                           | `Dropbox`                                          |
+| 飞书 / Lark           | `Lark,Feishu,飞书`                  | `Lark`, `Feishu`                                   |
+| 钉钉 / DingTalk       | `DingTalk,钉钉,dingtalk`            | `DingTalk`                                         |
+| Zotero                | `Zotero,zotero`                     | `Zotero/storage`                                   |
+
+The first column matches what users actually say; the third column is the real on-disk identifier `find_paths` is going to surface.
+
 ### Constraining by time
 
 `search` supports two complementary time mechanisms. They can be combined.
@@ -136,7 +171,7 @@ linkly search "购物订单 receipt" --path-glob "*xinWeChat*" --limit 10
 ```bash
 linkly search "quarterly report"  --modified-after 2024-07-01 --modified-before 2024-09-30  # Q3 2024
 linkly search "weekly retro"      --modified-after 2024-01-01 --modified-before 2024-12-31  # all of 2024
-linkly search "incident postmortem" --modified-before 2023-01-01                            # before 2023
+linkly search "incident postmortem" --modified-before 2022-12-31                            # everything before 2023
 ```
 
 **Sort (relative ordering)** — use `--time-sort newest` or `--time-sort oldest` for queries that ask for "the most recent / earliest" without a fixed window. The candidate set is selected by the same hybrid retrieval, then reordered by `modified_at` after dedup.
@@ -152,7 +187,7 @@ linkly search "first version of the design doc" --time-sort oldest --limit 5
 linkly search "release notes" --modified-after 2024-01-01 --modified-before 2024-12-31 --time-sort oldest
 ```
 
-**Computing relative dates** — when the user phrases the time as "last month", "this year", "in the last 30 days", read the `now` value from any prior tool response (Markdown footer `[meta] now=…` or JSON `_meta.now`) and do the date math from there. Don't guess the current date from the model's training cutoff.
+**Computing relative dates** — when the user phrases the time as "last 7 days", "in the last 30 days", "after July 1, 2024", read the `now` value from any prior tool response (Markdown footer `[meta] now=…` or JSON `_meta.now`) and do the date math from there. Don't guess the current date from the model's training cutoff. Phrases like "this year" or "this month" are ambiguous (calendar vs rolling window) — when the user uses them, ask a brief clarifying question or default to the calendar interpretation (Jan 1 of the current year through `now`).
 
 ### Scoped search with libraries
 

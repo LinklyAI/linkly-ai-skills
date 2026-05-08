@@ -40,7 +40,7 @@ See `references/mcp-tools-reference.md` for MCP parameter schemas and response f
 
 ### Step 0: Find Paths (when the user names a container by a fuzzy word)
 
-When the user names a folder/container by a fuzzy or cross-language word ("in my WeChat files", "在我的 Notion 笔记里") and you don't yet know the on-disk path, run `find_paths` first — pass several variants in a single call, then pipe a distinctive segment of any returned folder path into `linkly search` as `--path-glob`.
+When the user names a container by a fuzzy or cross-language word — folder, app, project, repo, or cloud drive (e.g. "in my WeChat", "in my Notion notes", "in the linkly-ai repo", "in my iCloud Drive") — and you don't yet know the on-disk path, run `find_paths` first. Pass several variants in a single call, then pipe a distinctive segment of any returned folder path into `linkly search` as `--path-glob`.
 
 ```bash
 linkly find-paths --patterns WeChat,微信,wxid --limit 5
@@ -49,7 +49,9 @@ linkly search "购物订单" --path-glob "*xinWeChat*"
 
 **Skip this step** for pure content queries ("find resumes"), file-type filters (use `search --type pdf` directly), or queries with no container intent.
 
-For aggregation behaviour, zero-result handling, and the full when-to-use matrix, see `references/search-strategies.md` ("Locate the container first") and `references/mcp-tools-reference.md` (`find_paths`).
+**Zero-directory fallback:** if `find_paths` returns 0 directories, the patterns may have only matched filenames, not directory segments — fall back to `linkly search` directly (without `--path-glob`); the `filename` BM25 field will still pick those up.
+
+For aggregation behaviour and the full when-to-use matrix, see `references/search-strategies.md` ("Locate the container first") and `references/mcp-tools-reference.md` (`find_paths`).
 
 ### Step 1: Search
 
@@ -62,6 +64,7 @@ linkly search "API design" --library my-research --limit 10
 linkly search "notes" --path-glob "*meeting-notes*"
 linkly search "Q3 report" --modified-after 2024-07-01 --modified-before 2024-09-30
 linkly search "weekly retro" --time-sort newest --limit 5
+linkly search "购物订单" --path-glob "*xinWeChat*" --time-sort newest --limit 5
 ```
 
 Search uses BM25 + vector hybrid retrieval (OR logic for keywords, semantic matching for meaning). For advanced query strategies, see `references/search-strategies.md`.
@@ -72,9 +75,13 @@ Search uses BM25 + vector hybrid retrieval (OR logic for keywords, semantic matc
 - Add `--type` filter when the user mentions a specific format.
 - Use `--library` only when the user explicitly specifies a library name.
 - Use `--path-glob` to filter by file path patterns ([SQLite GLOB](https://www.sqlite.org/lang_corefunc.html#glob) syntax, always case-sensitive). When the actual path is unknown, run Step 0 (`find_paths`) first.
-- For time scope: `--modified-after` / `--modified-before` (ISO 8601 UTC) for explicit windows like "in 2024" / "last month"; `--time-sort newest|oldest` for "most recent / earliest" without a fixed window. See ["Tool Response Metadata"](#tool-response-metadata) below for how to derive relative dates.
+- For time scope: `--modified-after` / `--modified-before` (ISO 8601 UTC) for explicit windows like "in 2024" / "after July 1, 2024"; `--time-sort newest|oldest` for "most recent / earliest" without a fixed window. See ["Tool Response Metadata"](#tool-response-metadata) below for how to derive relative dates.
 - Start with a small limit (5–10) to scan relevance before requesting more.
 - Each result includes a `doc_id` — save these for subsequent steps.
+
+**Don't:** guess `--path-glob` when the user names a fuzzy container — run `find_paths` (Step 0) first to get the real on-disk path.
+
+**Silent-drop check:** if you used `--modified-after` / `--modified-before` / `--time-sort` and the response has no `[meta] now=` footer (Markdown) or `_meta.now` field (JSON), the desktop app is below v0.4.1 and silently dropped your filter. Run `linkly status` to confirm and ask the user to update — see `references/troubleshooting.md` ("Desktop app version outdated").
 
 ### Step 2a: Outline (structural navigation)
 
@@ -118,14 +125,16 @@ linkly read <ID> --offset 50 --limit 100
 - For long documents: use outline to identify target sections, then read specific line ranges.
 - To paginate: advance `offset` by `limit` on each call (e.g., offset=1 limit=200, then offset=201 limit=200).
 
+**Don't:** call `read` without first running `search` to obtain a real `doc_id`. Document IDs are stable but never invented — guessing one returns "Document not found".
+
 ## Tool Response Metadata
 
-Every successful tool response carries `now` (ISO 8601 UTC) so you can compute relative dates ("last month", "this year") without guessing from training cutoff:
+Every successful tool response carries `now` (ISO 8601 UTC) so you can compute relative dates ("last 7 days", "after July 1, 2024", "in 2024") without guessing from training cutoff:
 
 - **Markdown / CLI**: trailing footer `[meta] now=<iso>`
 - **JSON**: top-level `_meta.now`
 
-Errors don't carry this. When the user phrases a relative date, take the most recent `now` you've seen and do the date math before passing `--modified-after` / `--modified-before` to `linkly search`. See `references/mcp-tools-reference.md` ("Response Metadata") for the exact format.
+Errors don't carry this. When the user phrases a relative date, take the most recent `now` you've seen and do the date math before passing `--modified-after` / `--modified-before` to `linkly search`. **First-call bootstrap:** if you have no prior tool response yet (e.g. the user opened with "find files from last month"), run a tiny `linkly search "anything" --limit 1` first purely to capture `now` from the meta footer, then issue the real query. See `references/mcp-tools-reference.md` ("Response Metadata") for the exact format.
 
 ## Library (Knowledge Base) Support
 

@@ -61,6 +61,7 @@ linkly doctor --remote
   1. Run `linkly status` to check if indexing is complete ("Watching" = ready).
   2. Try broader keywords or natural language queries.
   3. Remove `--type` or `--library` filters to search globally.
+  4. Confirm the user's target content is a supported document type (PDF, Markdown, DOCX, TXT, HTML, XLSX, PPTX). Files outside this list are not indexed even if they live under indexed folders — check by running `linkly explore` and looking at the document-type distribution.
 
 #### `Invalid modified_after` / `Invalid modified_before`
 
@@ -69,8 +70,8 @@ linkly doctor --remote
 
 #### `Invalid time_sort`
 
-- **Cause:** `time_sort` was set to something other than `default`, `newest`, or `oldest`.
-- **Fix:** Pass one of those three values, or omit `--time-sort` entirely (defaults to relevance ordering).
+- **Cause:** `time_sort` was set to a value other than `newest` or `oldest`.
+- **Fix:** Pass `newest` or `oldest`, or omit `--time-sort` entirely to use the default relevance ordering. (At the MCP layer the literal string `"default"` is also accepted as a no-op, but the CLI's `--time-sort` does not take it — just leave the flag off.)
 
 #### `find-paths` returns no folders
 
@@ -130,6 +131,8 @@ linkly self-update
 After updating, verify with `linkly --version` and retry.
 
 ### Desktop app version outdated
+
+> Forward-compatibility note (read when symptoms below appear). For routine diagnostics start with **First: Run `linkly doctor`** above — that will surface a version gap as part of its checklist.
 
 The opposite mismatch can also bite: the CLI is up to date but the desktop app on the other end is still on an older release whose MCP server doesn't yet expose the newer tools / parameters. Symptoms:
 
