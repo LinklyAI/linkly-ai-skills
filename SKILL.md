@@ -10,15 +10,23 @@ Linkly AI indexes documents on the user's local machine (PDF, Markdown, DOCX, TX
 
 ## Environment Detection
 
-Before executing any document operation, detect the available access mode:
+Before executing any document operation, detect what's available and pick a mode. CLI and MCP are **two independent access paths** — check both, don't treat MCP as a CLI fallback.
 
-### 1. Check for CLI (preferred)
+### 1. Check what's available
 
-Run `linkly --version` via Bash. If the command succeeds:
+Run both checks independently (skip a check if its prerequisite isn't there):
 
-- Run `linkly status` to verify the desktop app is connected.
-- If connected → use **CLI mode** for all operations.
-- If not connected → run `linkly doctor` to diagnose the issue. See `references/troubleshooting.md` for detailed guidance.
+- **CLI**: if Bash is available, run `linkly --version`. Success → CLI is installed. Then run `linkly status` to confirm the desktop app is reachable; if the status reports a connection problem, run `linkly doctor` (see `references/troubleshooting.md`).
+- **MCP**: check whether MCP tools named `search`, `find_paths`, `outline`, `grep`, `read`, `list_libraries`, and `explore` (from the `linkly-ai` MCP server) are accessible in the current environment.
+
+### 2. Pick a mode
+
+| Available            | Action                                                                                                                                                                                                                                                                                                                    |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Both CLI and MCP** | Prefer **CLI mode** — clearer error messages and exit codes are easier to surface back to the user.                                                                                                                                                                                                                       |
+| **CLI only**         | Use **CLI mode**.                                                                                                                                                                                                                                                                                                         |
+| **MCP only**         | Use **MCP mode**. This is the normal state for sandboxed agent environments such as Claude Code, Typeless, or Cursor with a restricted shell — the desktop app and MCP integration are fully configured but the CLI binary isn't installed inside the sandbox. Don't tell the user to install the CLI; MCP is sufficient. |
+| **Neither**          | If Bash works, recommend installing the CLI: [Install Linkly AI CLI](https://linkly.ai/docs/en/use-cli). Otherwise inform the user that Linkly AI requires either the CLI or the MCP integration and stop.                                                                                                                |
 
 The CLI supports three connection modes:
 
@@ -26,19 +34,7 @@ The CLI supports three connection modes:
 - **LAN**: Use `--endpoint <url> --token <token>` to connect to a Linkly AI instance on the local network.
 - **Remote**: Use `--remote` to connect via the `https://mcp.linkly.ai` tunnel. Requires prior setup: `linkly auth set-key <api-key>`.
 
-### 2. Check for MCP tools (fallback)
-
-If no Bash tool is available, check whether MCP tools named `search`, `find_paths`, `outline`, `grep`, `read`, `list_libraries`, and `explore` (from the `linkly-ai` MCP server) are accessible in the current environment.
-
-- If available → use **MCP Tools** for all operations.
-
-See `references/mcp-tools-reference.md` for full parameter schemas and response formats.
-
-### 3. CLI or MCP Tools not found
-
-If the CLI is not found, inform the user that the Linkly AI CLI is required and direct them to the installation guide: [Install Linkly AI CLI](https://linkly.ai/docs/en/use-cli).
-
-If neither Bash nor MCP tools are available (rare — e.g., a sandboxed environment with no shell access), inform the user of the prerequisites and stop.
+See `references/mcp-tools-reference.md` for MCP parameter schemas and response formats.
 
 ## Document Search Workflow
 
