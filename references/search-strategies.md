@@ -20,11 +20,15 @@ Linkly AI uses **BM25 + vector hybrid retrieval**. Understanding how both signal
 linkly search "auth migration" --limit 30
 
 # Step 2: grep filters that set down to docs that actually contain both.
-#   (loop over doc_ids — grep is single-doc; see references/cli-reference.md)
+#   `linkly grep` exits 0 even on zero matches (success = "the search ran"),
+#   so chaining with `&&` does NOT filter — read the JSON `total_matches`
+#   field instead. `jq` parses the per-doc count.
 for id in <ID1> <ID2> <ID3> ...; do
-  linkly grep "auth" "$id" --mode count > /dev/null && \
-  linkly grep "migration" "$id" --mode count > /dev/null && \
-  echo "$id matches both"
+  count_a=$(linkly grep "auth"      "$id" --mode count --json | jq -r '.total_matches // 0')
+  count_b=$(linkly grep "migration" "$id" --mode count --json | jq -r '.total_matches // 0')
+  if [ "$count_a" -gt 0 ] && [ "$count_b" -gt 0 ]; then
+    echo "$id matches both"
+  fi
 done
 ```
 

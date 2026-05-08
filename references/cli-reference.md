@@ -90,7 +90,7 @@ linkly search <QUERY> [OPTIONS]
 | `--path-glob <pat>`       | SQLite GLOB pattern to filter by file path. `*` matches any chars including `/`, `?` matches one char. When unknown, run `find-paths` first. |
 | `--modified-after <iso>`  | Inclusive lower bound on modification time (ISO 8601 UTC; bare date or RFC 3339)                                                             |
 | `--modified-before <iso>` | Inclusive upper bound on modification time (same format as `--modified-after`)                                                               |
-| `--time-sort <mode>`      | Reorder by modification time: `newest` or `oldest`. Omit (default) to keep relevance ordering.                                               |
+| `--time-sort <mode>`      | Reorder by modification time: `newest`, `oldest`, or `default`. `default` and omitting the flag are equivalent — both keep relevance order.  |
 | `--json`                  | Output structured JSON (global option)                                                                                                       |
 
 Examples:

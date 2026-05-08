@@ -61,7 +61,7 @@ linkly doctor --remote
   1. Run `linkly status` to check if indexing is complete ("Watching" = ready).
   2. Try broader keywords or natural language queries.
   3. Remove `--type` or `--library` filters to search globally.
-  4. Confirm the user's target content is a supported document type (PDF, Markdown, DOCX, TXT, HTML, XLSX, PPTX). Files outside this list are not indexed even if they live under indexed folders — check by running `linkly explore` and looking at the document-type distribution.
+  4. Confirm the user's target content is a supported document type (PDF, Markdown, DOCX, TXT, HTML, image). Files outside this list are not indexed even if they live under indexed folders — check by running `linkly explore` and looking at the document-type distribution.
 
 #### `Invalid modified_after` / `Invalid modified_before`
 
@@ -70,8 +70,8 @@ linkly doctor --remote
 
 #### `Invalid time_sort`
 
-- **Cause:** `time_sort` was set to a value other than `newest` or `oldest`.
-- **Fix:** Pass `newest` or `oldest`, or omit `--time-sort` entirely to use the default relevance ordering. (At the MCP layer the literal string `"default"` is also accepted as a no-op, but the CLI's `--time-sort` does not take it — just leave the flag off.)
+- **Cause:** `time_sort` was set to a value other than `default`, `newest`, or `oldest`.
+- **Fix:** Pass `default`, `newest`, or `oldest`. `default` and omitting the flag entirely are equivalent — both keep the hybrid relevance ordering.
 
 #### `find-paths` returns no folders
 
