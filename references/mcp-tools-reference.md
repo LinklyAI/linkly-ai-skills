@@ -214,7 +214,7 @@ Use node IDs (e.g. `"1.2"`, `"2"`) with the `expand` parameter to drill into spe
 
 ## grep
 
-Locate specific lines within a single document by regex pattern. Best for documents with `has_outline=false` where outline is unavailable. Use after `search` to pinpoint exact positions of names, dates, terms, identifiers, or any pattern — then use `read` with offset to see full context. Works on all document types (PDF, Markdown, DOCX, TXT, HTML). For searching across multiple documents, call grep once per document.
+Locate specific lines within a single document by regex pattern. Best for documents with `has_outline=false` where outline is unavailable. Use after `search` to pinpoint exact positions of names, dates, terms, identifiers, or any pattern — then use `read` with offset to see full context. Works on all document types (PDF, Markdown, DOCX, TXT, HTML). The `doc_id` parameter takes a single ID — to scan multiple documents, call grep once per `doc_id`.
 
 ### Parameters
 
