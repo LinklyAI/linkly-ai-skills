@@ -51,7 +51,7 @@ linkly find-paths --patterns WeChat,微信,wxid --limit 5
 linkly search "购物订单" --path-glob "*xinWeChat*"
 ```
 
-**Skip this step** for pure content queries ("find resumes"), file-type filters (use `search --path-glob "*.pdf"` directly), or queries with no container intent.
+**Skip this step** for pure content queries ("find resumes"), file-type filters (use `search --type pdf` directly), or queries with no container intent.
 
 For aggregation behaviour, zero-result handling, and the full when-to-use matrix, see `references/search-strategies.md` ("Locate the container first") and `references/mcp-tools-reference.md` (`find_paths`).
 
@@ -63,7 +63,7 @@ Find documents matching a query. Always start here — never guess document IDs.
 linkly search "query keywords" --limit 10
 linkly search "machine learning" --type pdf,md --limit 5
 linkly search "API design" --library my-research --limit 10
-linkly search "notes" --path-glob "*.md"
+linkly search "notes" --path-glob "*meeting-notes*"
 linkly search "Q3 report" --modified-after 2024-07-01 --modified-before 2024-09-30
 linkly search "weekly retro" --time-sort newest --limit 5
 ```

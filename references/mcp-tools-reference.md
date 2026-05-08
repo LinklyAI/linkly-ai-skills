@@ -93,7 +93,7 @@ Each directory entry:
 **When NOT to use:**
 
 - Pure content/topic queries ("find resumes", "find AI papers") — call `search` directly; its hybrid retrieval already covers title/filename/content/path.
-- Filtering by file type ("all PDFs") — call `search` with `path_glob="*.pdf"` directly.
+- Filtering by file type ("all PDFs") — call `search` with `doc_types=["pdf"]` directly. `path_glob` is path-pattern matching and would miss documents with absent or mismatched extensions.
 - Vague queries with no container intent ("find recent stuff") — call `search`.
 
 ### Example

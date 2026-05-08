@@ -125,7 +125,7 @@ linkly search "购物订单 receipt" --path-glob "*xinWeChat*" --limit 10
 **Skip this step when:**
 
 - The query is purely about content/topic ("find resumes", "find AI papers about transformers") — call `search` directly.
-- The user is filtering only by file type ("all my PDFs") — use `linkly search "..." --path-glob "*.pdf"` directly.
+- The user is filtering only by file type ("all my PDFs") — use `linkly search "..." --type pdf` directly.
 
 ### Constraining by time
 
@@ -177,12 +177,13 @@ Libraries are optional. **Default to global search** unless the user specifies o
 
 ### Filtering by file path
 
-Use `--path-glob` to filter results by file path patterns (SQLite GLOB syntax):
+Use `--path-glob` (CLI) / `path_glob` (MCP) to narrow results by **path or directory**, not by file type. For file-type filtering use `--type` / `doc_types` — `--path-glob "*.pdf"` is a string suffix match that misses documents with mismatched or missing extensions, while `--type pdf` filters on the parsed document type recorded at index time.
 
 ```bash
-linkly search "meeting notes" --path-glob "*2024*"       # files with "2024" in path
-linkly search "report" --path-glob "*.pdf"               # only PDFs
-linkly search "design" --path-glob "*projects/frontend*" # specific directory
+linkly search "meeting notes" --path-glob "*2024*"        # files with "2024" in path
+linkly search "design" --path-glob "*projects/frontend*"  # specific directory
+linkly search "release notes" --type pdf                  # type filter (correct)
+linkly search "release notes" --path-glob "*.pdf"         # ⚠ avoid: misses .PDF, .pdf.encrypted, mistyped extensions
 ```
 
 `--path-glob` and `--library` can be combined for precise scoping.

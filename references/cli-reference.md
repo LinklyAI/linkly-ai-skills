@@ -71,7 +71,7 @@ linkly find-paths --patterns Slack --json
 
 **When to use:** The user names a container by a fuzzy or cross-language word ("in my WeChat files", "在我的 Notion 笔记里") and you don't yet know the on-disk path. The tool returns folder candidates — take a distinctive segment of one of them (often the leaf name) and pass it to `linkly search --path-glob "*<segment>*"`.
 
-**When NOT to use:** Pure content queries (use `search` directly); file-type filters (use `search --path-glob "*.pdf"`).
+**When NOT to use:** Pure content queries (use `search` directly); file-type filters (use `search --type pdf` — `--path-glob` is path-pattern matching, not file-type filtering).
 
 **Aggregation note:** This is a "find folders" tool. Files whose patterns only match the filename segment (not any directory segment) are silently dropped. If you get zero folders despite expecting matches, fall back to `linkly search` directly without `--path-glob`.
 
