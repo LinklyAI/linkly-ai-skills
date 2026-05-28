@@ -28,13 +28,13 @@ Run both checks independently (skip a check if its prerequisite isn't there):
 | **MCP only**         | Use **MCP mode**. This is the normal state for sandboxed agent environments such as Claude Code, Typeless, or Cursor with a restricted shell — the desktop app and MCP integration are fully configured but the CLI binary isn't installed inside the sandbox. Don't tell the user to install the CLI; MCP is sufficient. |
 | **Neither**          | If Bash works, recommend installing the CLI: [Install Linkly AI CLI](https://linkly.ai/docs/en/use-cli). Otherwise inform the user that Linkly AI requires either the CLI or the MCP integration and stop.                                                                                                                |
 
-> **Cloud-only tasks:** when a request targets **only cloud libraries** and the desktop may be offline, prefer the `linkly-ai-cloud` MCP gateway over CLI `--remote`. The CLI's remote mode checks the desktop tunnel first and aborts if it's disconnected, whereas the gateway serves cloud content directly. If neither a connected desktop nor the `linkly-ai-cloud` gateway is available, the cloud task cannot be served — tell the user instead of retrying.
+> **Cloud vs local availability:** cloud-library tasks work even when the desktop is offline — both CLI `--remote` and the `linkly-ai-cloud` MCP gateway reach cloud content directly. Only **local** content needs the desktop online; a local / default-scope call made while the desktop is offline returns an error with reconnect guidance. If you have no path to Linkly at all (neither CLI nor an MCP connection), tell the user instead of retrying.
 
 The CLI supports three connection modes:
 
 - **Local** (default): Auto-discovers the desktop app via `~/.linkly/port`. Requires the app to be running locally.
 - **LAN**: Use `--endpoint <url> --token <token>` to connect to a Linkly AI instance on the local network.
-- **Remote**: Use `--remote` to connect via the `https://mcp.linkly.ai` tunnel, reaching both your local and linked cloud libraries. The CLI checks the tunnel first and aborts if the desktop is disconnected — so the desktop must be online even for cloud content (for desktop-independent cloud access, use the `linkly-ai-cloud` MCP gateway instead). Requires prior setup: `linkly auth set-key <api-key>`.
+- **Remote**: Use `--remote` to connect via the `https://mcp.linkly.ai` tunnel, reaching both your local and linked cloud libraries. Cloud libraries are served by the gateway and stay reachable even when the desktop is offline; only local / default-scope calls need the desktop online (an offline local call returns a gateway error with reconnect guidance, not a client-side abort). Requires prior setup: `linkly auth set-key <api-key>`.
 
 See `references/mcp-tools-reference.md` for MCP parameter schemas and response formats.
 
@@ -164,7 +164,7 @@ Call `list_libraries` to discover both kinds and their identifiers — it is the
 
 **Default scope:** when `library` is omitted, the search covers all your **local** indexed content only — **cloud libraries are never included by default**. To search a cloud library you must name it explicitly.
 
-**Reaching cloud libraries:** via the `linkly-ai-cloud` MCP gateway (e.g. an OAuth connector in ChatGPT / Claude.ai), the gateway serves cloud content directly — the desktop need not be online. Via the CLI's `--remote`, cloud libraries work too, but the CLI aborts if the desktop tunnel is disconnected, so the desktop must be online for that path.
+**Reaching cloud libraries:** the `linkly-ai-cloud` MCP gateway (e.g. an OAuth connector in ChatGPT / Claude.ai) and the CLI's `--remote` both serve cloud content directly — the desktop need not be online for cloud libraries. (Local content still requires the desktop online; an offline local call returns a gateway error with reconnect guidance.)
 
 ```bash
 linkly list-libraries

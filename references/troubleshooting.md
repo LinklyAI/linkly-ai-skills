@@ -48,7 +48,7 @@ linkly doctor --remote
 
 - **Cause:** The desktop app's remote tunnel is not connected.
 - **Fix:** Open Settings → MCP → Remote Access → Connect Tunnel. Ensure you have an API key configured.
-- **Note:** This only blocks access to **local** content. Linked **cloud** libraries are served by the gateway directly and stay searchable even while the tunnel is down — scope to one with `library="cloud://owner/slug"`.
+- **Note:** This only blocks access to **local** content. Linked **cloud** libraries are served by the gateway directly and stay searchable even while the tunnel is down — scope to one with `library="cloud://owner/slug"`. (Requires CLI ≥ v0.4.1; older CLIs aborted on a disconnected tunnel even for cloud-only queries.)
 
 #### "No documents indexed"
 
