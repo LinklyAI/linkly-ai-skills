@@ -43,7 +43,7 @@ build_zip() {
     LICENSE \
     -x "**/.DS_Store" "**/__pycache__/*" > /dev/null
 
-  print_ok "linkly-ai.zip ($(du -h "$ZIP_FILE" | cut -f1 | xargs))"
+  print_ok "linkly-skills-latest.zip ($(du -h "$ZIP_FILE" | cut -f1 | xargs))"
 }
 
 # ============================================================================
@@ -121,7 +121,7 @@ confirm_and_execute() {
   print_step "Step 4: Confirm"
   echo -e "  Version : ${BOLD}$CURRENT_VERSION -> $NEW_VERSION${NC}"
   echo -e "  Tag     : v$NEW_VERSION"
-  echo -e "  Asset   : linkly-ai.zip"
+  echo -e "  Asset   : linkly-ai-skills-v$NEW_VERSION.zip"
   echo -e "  Actions : bump version -> commit -> tag -> push -> gh release"
   echo ""
   read -r -p "  Type 'yes' to release: " response
