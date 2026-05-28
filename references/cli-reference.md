@@ -1,12 +1,14 @@
 # Linkly AI CLI Reference
 
-Command-line interface for Linkly AI — search local documents from the terminal.
+Command-line interface for Linkly AI — search your local documents (and, over `--remote`, your linked cloud libraries) from the terminal.
 
-The CLI connects to the Linkly AI desktop app's MCP server, giving fast access to indexed documents without leaving the terminal.
+The CLI connects to the Linkly AI desktop app's MCP server (locally or over LAN), or to the `mcp.linkly.ai` cloud gateway via `--remote`, giving fast access to indexed documents without leaving the terminal.
 
 ## Prerequisites
 
 The **Linkly AI desktop app** must be running with MCP server enabled. By default, the CLI automatically discovers the app via `~/.linkly/port`. Alternatively, use LAN mode (`--endpoint` + `--token`) or Remote mode (`--remote` with a saved API key).
+
+Remote mode reaches both your local libraries and your linked cloud libraries through the `mcp.linkly.ai` gateway, but it still requires the desktop tunnel to be connected — the CLI aborts if the tunnel is disconnected, even for cloud-only queries. For desktop-independent cloud access, connect an AI app directly to the `linkly-ai-cloud` MCP gateway instead of using the CLI.
 
 ## Installation
 
@@ -20,7 +22,7 @@ See the [CLI installation guide](https://linkly.ai/docs/en/use-cli) for platform
 linkly list-libraries
 ```
 
-Lists all knowledge libraries configured in the desktop app with document counts.
+Lists all knowledge libraries with document counts. Over `--remote` this includes both local libraries (`local://<id>`) and linked cloud libraries (`cloud://<owner>/<slug>`).
 
 | Option   | Description                            |
 | -------- | -------------------------------------- |
@@ -34,10 +36,10 @@ linkly explore [OPTIONS]
 
 Get a bird's-eye overview of all indexed documents or a specific library. Returns document type distribution, directory structure with file counts and median word counts, and top keywords with source attribution.
 
-| Option             | Description                                     |
-| ------------------ | ----------------------------------------------- |
-| `--library <name>` | Restrict overview to a specific library by name |
-| `--json`           | Output structured JSON (global option)          |
+| Option             | Description                                                                                                                               |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `--library <name>` | Restrict overview to one library: a local name / `local://<id>`, or `cloud://<owner>/<slug>` (over `--remote`). Omit = all local content. |
+| `--json`           | Output structured JSON (global option)                                                                                                    |
 
 Examples:
 
@@ -57,7 +59,7 @@ Locate real folder paths in the indexed documents by fuzzy keyword matching on t
 | Option              | Description                                                                                                                                                     |
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `--patterns <list>` | Keywords (comma-separated) to substring-match against file paths. Multiple keywords are OR-matched — pass cross-language or spelling variants in a single call. |
-| `--library <name>`  | Restrict to a specific library by name                                                                                                                          |
+| `--library <name>`  | Restrict to one library: a local name / `local://<id>`, or `cloud://<owner>/<slug>` (over `--remote`). Omit = all local content.                                |
 | `--limit <N>`       | Maximum folder candidates, 1–50 (default: 10)                                                                                                                   |
 | `--json`            | Output structured JSON (global option)                                                                                                                          |
 
@@ -81,17 +83,17 @@ linkly find-paths --patterns Slack --json
 linkly search <QUERY> [OPTIONS]
 ```
 
-| Option                    | Description                                                                                                                                  |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `<QUERY>`                 | Search keywords or phrases (required)                                                                                                        |
-| `--limit <N>`             | Maximum results, 1–50 (default: 20)                                                                                                          |
-| `--type <types>`          | Filter by document types, comma-separated (e.g. `pdf,md`)                                                                                    |
-| `--library <name>`        | Restrict search to a specific library by name                                                                                                |
-| `--path-glob <pat>`       | SQLite GLOB pattern to filter by file path. `*` matches any chars including `/`, `?` matches one char. When unknown, run `find-paths` first. |
-| `--modified-after <iso>`  | Inclusive lower bound on modification time (ISO 8601 UTC; bare date or RFC 3339)                                                             |
-| `--modified-before <iso>` | Inclusive upper bound on modification time (same format as `--modified-after`)                                                               |
-| `--time-sort <mode>`      | Reorder by modification time: `newest`, `oldest`, or `default`. `default` and omitting the flag are equivalent — both keep relevance order.  |
-| `--json`                  | Output structured JSON (global option)                                                                                                       |
+| Option                    | Description                                                                                                                                                                              |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `<QUERY>`                 | Search keywords or phrases (required)                                                                                                                                                    |
+| `--limit <N>`             | Maximum results, 1–50 (default: 20)                                                                                                                                                      |
+| `--type <types>`          | Filter by document types, comma-separated (e.g. `pdf,md`)                                                                                                                                |
+| `--library <name>`        | Restrict search to one library: a local name / `local://<id>`, or `cloud://<owner>/<slug>` (over `--remote`; cloud must be the two-segment `owner/slug` form). Omit = all local content. |
+| `--path-glob <pat>`       | SQLite GLOB pattern to filter by file path. `*` matches any chars including `/`, `?` matches one char. When unknown, run `find-paths` first.                                             |
+| `--modified-after <iso>`  | Inclusive lower bound on modification time (ISO 8601 UTC; bare date or RFC 3339)                                                                                                         |
+| `--modified-before <iso>` | Inclusive upper bound on modification time (same format as `--modified-after`)                                                                                                           |
+| `--time-sort <mode>`      | Reorder by modification time: `newest`, `oldest`, or `default`. `default` and omitting the flag are equivalent — both keep relevance order.                                              |
+| `--json`                  | Output structured JSON (global option)                                                                                                                                                   |
 
 Examples:
 
@@ -100,6 +102,7 @@ linkly search "machine learning"
 linkly search "API design" --limit 5
 linkly search "notes" --type pdf,md,docx
 linkly search "deep learning" --library my-research
+linkly search "design tokens" --remote --library "cloud://blueeon/design-system"
 linkly search "report" --path-glob "*2024*"
 linkly search "Q3 report" --modified-after 2024-07-01 --modified-before 2024-09-30
 linkly search "weekly retro" --time-sort newest --limit 5
@@ -107,6 +110,8 @@ linkly search "budget" --json
 ```
 
 Read the `[meta] now=<iso>` footer (Markdown output) or top-level `_meta.now` (JSON output) of any tool response to compute relative dates ("last 7 days", "after July 1, 2024", "in 2024") rather than guessing the current date.
+
+**Document IDs:** each search result's `doc_id` is an opaque string — pass it verbatim to `outline` / `grep` / `read`, never reshape or fabricate it. Local documents look like `local://<integer>` (older desktops return a bare integer, still accepted); cloud documents look like `cloud://<owner>/<slug>/<root-hash>/<path>`.
 
 ### outline — Get document outlines
 
@@ -246,11 +251,11 @@ linkly self-update
 
 `--endpoint` and `--token` are available on `search`, `grep`, `outline`, `read`, `status`, `doctor`, and `list-libraries` commands. `--remote` is available on the same commands (not on `mcp`, `auth`, or `self-update`).
 
-| Flag               | Scope  | Description                                                                                       |
-| ------------------ | ------ | ------------------------------------------------------------------------------------------------- |
-| `--endpoint <url>` | LAN    | Connect to a specific MCP endpoint (e.g. `http://192.168.1.100:60606/mcp`), requires `--token`    |
-| `--token <token>`  | LAN    | Bearer token for LAN authentication (required with `--endpoint`, conflicts with `--remote`)       |
-| `--remote`         | Remote | Connect via `https://mcp.linkly.ai` tunnel (conflicts with `--endpoint`, requires `auth set-key`) |
+| Flag               | Scope  | Description                                                                                                                                                             |
+| ------------------ | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--endpoint <url>` | LAN    | Connect to a specific MCP endpoint (e.g. `http://192.168.1.100:60606/mcp`), requires `--token`                                                                          |
+| `--token <token>`  | LAN    | Bearer token for LAN authentication (required with `--endpoint`, conflicts with `--remote`)                                                                             |
+| `--remote`         | Remote | Connect via the `https://mcp.linkly.ai` tunnel — reaches local + linked cloud libraries; requires the tunnel connected and `auth set-key` (conflicts with `--endpoint`) |
 
 ## Global Options
 
@@ -326,7 +331,9 @@ The CLI outputs plain text or structured JSON, making it composable with standar
 **Extract doc IDs and batch outline:**
 
 ```bash
-linkly search "architecture" --json | jq -r '.results[].doc_id' | xargs linkly outline
+linkly search "architecture" --json | jq -r '.results[].doc_id' | while IFS= read -r id; do
+  linkly outline "$id"
+done
 ```
 
 **Chain search → grep for two-stage filtering:**
@@ -335,7 +342,7 @@ linkly search "architecture" --json | jq -r '.results[].doc_id' | xargs linkly o
 # First narrow by semantics, then filter by exact keyword
 linkly search "deployment" --json \
   | jq -r '.results[].doc_id' \
-  | xargs -I{} linkly grep "docker\|kubernetes" {}
+  | while IFS= read -r id; do linkly grep "docker\|kubernetes" "$id"; done
 ```
 
 **Aggregate outline output into a single file:**
@@ -343,14 +350,8 @@ linkly search "deployment" --json \
 ```bash
 linkly search "API design" --json \
   | jq -r '.results[].doc_id' \
-  | while read id; do linkly outline "$id"; done \
+  | while IFS= read -r id; do linkly outline "$id"; done \
   > combined-outlines.txt
-```
-
-**Count document types in search results:**
-
-```bash
-linkly search "" --json | jq '.results[].type' | sort | uniq -c | sort -rn
 ```
 
 **Use `grep` on CLI output for further filtering:**

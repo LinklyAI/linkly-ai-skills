@@ -4,12 +4,12 @@ When Linkly AI is not working as expected, follow these steps based on your conn
 
 ## Step 0: Identify Your Mode
 
-| Mode             | How you're connected                                                             | Typical setup                                      |
-| ---------------- | -------------------------------------------------------------------------------- | -------------------------------------------------- |
-| **CLI (Local)**  | Running `linkly` commands in a terminal on the same machine as the desktop app   | Default — no extra flags needed                    |
-| **CLI (LAN)**    | Running `linkly` with `--endpoint` and `--token` flags                           | Connecting from another device on the same network |
-| **CLI (Remote)** | Running `linkly` with `--remote` flag                                            | Connecting via internet tunnel                     |
-| **MCP**          | AI tool (Claude, Cursor, etc.) connects directly to the desktop app's MCP server | Configured in the AI tool's MCP settings           |
+| Mode             | How you're connected                                                                                                                                    | Typical setup                                      |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| **CLI (Local)**  | Running `linkly` commands in a terminal on the same machine as the desktop app                                                                          | Default — no extra flags needed                    |
+| **CLI (LAN)**    | Running `linkly` with `--endpoint` and `--token` flags                                                                                                  | Connecting from another device on the same network |
+| **CLI (Remote)** | Running `linkly` with `--remote` flag                                                                                                                   | Connecting via internet tunnel                     |
+| **MCP**          | AI tool (Claude, Cursor, etc.) connects to the desktop's MCP server, or to the `mcp.linkly.ai` cloud gateway (which also serves linked cloud libraries) | Configured in the AI tool's MCP settings           |
 
 ## CLI Mode Troubleshooting
 
@@ -48,6 +48,7 @@ linkly doctor --remote
 
 - **Cause:** The desktop app's remote tunnel is not connected.
 - **Fix:** Open Settings → MCP → Remote Access → Connect Tunnel. Ensure you have an API key configured.
+- **Note:** This only blocks access to **local** content. Linked **cloud** libraries are served by the gateway directly and stay searchable even while the tunnel is down — scope to one with `library="cloud://owner/slug"`.
 
 #### "No documents indexed"
 
@@ -97,6 +98,7 @@ When using Linkly AI through an AI tool's MCP connection (Claude, Cursor, ChatGP
 - **Check:** Is the AI tool configured to connect to the correct MCP endpoint?
   - Local: `http://localhost:<port>/mcp` (port shown in Settings → MCP)
   - Tunnel: configured through the AI tool's connector settings
+- **Note:** A running desktop is required only for **local** content. If you only need a linked **cloud** library, the gateway serves it without the desktop — scope to it with `library="cloud://owner/slug"`.
 
 ### MCP tools return errors
 
@@ -113,7 +115,7 @@ When using Linkly AI through an AI tool's MCP connection (Claude, Cursor, ChatGP
 
 ### CLI version outdated
 
-The CLI evolves alongside the desktop app. An outdated CLI may be missing commands, parameters, or have incompatible argument syntax. Common symptoms:
+The CLI evolves alongside the desktop app. An outdated CLI may be missing commands, parameters, or have incompatible argument syntax. (The versions below are the **CLI's own** required versions; the separate **desktop** version thresholds are in "Desktop app version outdated" further down.) Common symptoms:
 
 - `error: unexpected argument '--library'` → CLI too old, missing library support
 - `error: unexpected argument '--remote'` → CLI below v0.2.0, missing remote mode
@@ -144,7 +146,7 @@ The opposite mismatch can also bite: the CLI is up to date but the desktop app o
 
 ### MCP schema out of sync
 
-When the desktop app updates its MCP tool definitions (e.g., adding `list_libraries` / `find_paths`, or new parameters like `library`/`path_glob`/`modified_after`/`time_sort` on `search`), connected AI tools may still cache the old schema. Symptoms:
+When the MCP tool definitions evolve (e.g., adding `list_libraries` / `find_paths`, new parameters like `library`/`path_glob`/`modified_after`/`time_sort` on `search`, or cloud-aware changes such as `cloud://owner/slug` library scoping and the `local://` / `cloud://` doc_id forms), connected AI tools may still cache the old schema. Symptoms:
 
 - New tools not visible in the AI tool (e.g. `find_paths` doesn't appear)
 - New parameters silently ignored or rejected as unknown (`modified_after`, `time_sort`, etc.)

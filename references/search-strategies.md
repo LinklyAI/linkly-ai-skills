@@ -143,6 +143,15 @@ linkly find-paths --patterns WeChat,微信,wxid --limit 5
 linkly search "购物订单 receipt" --path-glob "*xinWeChat*" --limit 10
 ```
 
+For a **cloud library**, scope `find_paths` to it (over `--remote`) and carry the returned `cloud://owner/slug` reference into the follow-up `search`:
+
+```bash
+linkly find-paths --patterns docs,guide --remote --library "cloud://blueeon/design-system"
+linkly search "onboarding" --remote --library "cloud://blueeon/design-system" --path-glob "*guides*"
+```
+
+(A flat cloud library with no sub-folders yields no candidates — search it directly instead.)
+
 **Aggregation caveat:** `find_paths` is a "find folders" tool. Files whose patterns only match the **filename** (not any directory segment) are dropped silently. If `find_paths` returns zero folders despite obvious filename matches, fall back to `linkly search` directly — it can still match against filenames via the `filename` BM25 field.
 
 **Skip this step when:**
@@ -195,7 +204,7 @@ linkly search "release notes" --modified-after 2024-01-01 --modified-before 2024
 
 ### Scoped search with libraries
 
-Libraries let users curate folders into named collections. Use `--library` to restrict search scope:
+Libraries scope a search to one knowledge domain. **Local** libraries (folder collections on the Desktop) are addressed by name or `local://<id>`; **cloud** libraries (linked via Linkly Web) are addressed `cloud://<owner>/<slug>` and are available in MCP mode (or via the CLI's `--remote`). Use the `library` parameter / `--library` to restrict search scope:
 
 ```bash
 linkly list-libraries                                    # see what's available
@@ -212,7 +221,7 @@ linkly search "transformer architecture" --library my-research --limit 10
 - General searches like "find my PDF about X" → global search is better
 - You're unsure which library → search globally, or ask the user
 
-Libraries are optional. **Default to global search** unless the user specifies otherwise.
+Libraries are optional. **Default to global search** (which covers your local content only — cloud libraries are never included unless named explicitly) unless the user specifies otherwise.
 
 ### Filtering by file path
 

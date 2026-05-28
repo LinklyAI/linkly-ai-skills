@@ -1,12 +1,12 @@
 ---
 name: linkly-ai
-description: "Search, browse, and read the user's local documents indexed by Linkly AI. This skill should be used when the user asks to 'search my documents', 'find files about a topic', 'read a local document', 'search my knowledge base', 'browse document outlines', 'list knowledge libraries', 'explore my documents', or any task involving searching, browsing, or reading locally stored documents (PDF, Markdown, DOCX, TXT, HTML). Also triggered by: 'linkly not working', 'can not connect to linkly', '搜索我的文档', '查找文件', '知识库搜索', '浏览文档大纲', '列出知识库', '连接不上', '故障排查'. Provides full-text search, structural outlines, and paginated reading via CLI or MCP tools."
+description: "Search, browse, and read the user's documents indexed by Linkly AI — both local documents and linked cloud libraries. This skill should be used when the user asks to 'search my documents', 'find files about a topic', 'read a local document', 'search my knowledge base', 'browse document outlines', 'list knowledge libraries', 'explore my documents', 'search a cloud library', or any task involving searching, browsing, or reading stored documents (PDF, Markdown, DOCX, TXT, HTML). Also triggered by: 'linkly not working', 'can not connect to linkly', 'cloud library', 'linked library', '搜索我的文档', '查找文件', '知识库搜索', '云端知识库', '浏览文档大纲', '列出知识库', '连接不上', '故障排查'. Provides full-text search, structural outlines, and paginated reading via CLI or MCP tools."
 license: Apache-2.0
 ---
 
-# Linkly AI — Local Document Search
+# Linkly AI — Document Search (Local + Cloud)
 
-Linkly AI indexes documents on the user's local machine (PDF, Markdown, DOCX, TXT, HTML, etc.) and exposes them through a progressive disclosure workflow: **search → grep or outline → read**.
+Linkly AI indexes documents on the user's local machine (PDF, Markdown, DOCX, TXT, HTML, etc.) and can also reach cloud libraries the user has linked via Linkly Web. It exposes them through a progressive disclosure workflow: **search → grep or outline → read**.
 
 ## Environment Detection
 
@@ -17,7 +17,7 @@ Before executing any document operation, detect what's available and pick a mode
 Run both checks independently (skip a check if its prerequisite isn't there):
 
 - **CLI**: if Bash is available, run `linkly --version`. Success → CLI is installed. Then run `linkly status` to confirm the desktop app is reachable; if the status reports a connection problem, run `linkly doctor` (see `references/troubleshooting.md`).
-- **MCP**: check whether MCP tools named `search`, `find_paths`, `outline`, `grep`, `read`, `list_libraries`, and `explore` (from the `linkly-ai` MCP server) are accessible in the current environment.
+- **MCP**: check whether MCP tools named `search`, `find_paths`, `outline`, `grep`, `read`, `list_libraries`, and `explore` are accessible in the current environment. They may come from the `linkly-ai` server (local Desktop MCP) or the `linkly-ai-cloud` server (the `mcp.linkly.ai` cloud gateway, which exposes both local and linked cloud libraries).
 
 ### 2. Pick a mode
 
@@ -28,11 +28,13 @@ Run both checks independently (skip a check if its prerequisite isn't there):
 | **MCP only**         | Use **MCP mode**. This is the normal state for sandboxed agent environments such as Claude Code, Typeless, or Cursor with a restricted shell — the desktop app and MCP integration are fully configured but the CLI binary isn't installed inside the sandbox. Don't tell the user to install the CLI; MCP is sufficient. |
 | **Neither**          | If Bash works, recommend installing the CLI: [Install Linkly AI CLI](https://linkly.ai/docs/en/use-cli). Otherwise inform the user that Linkly AI requires either the CLI or the MCP integration and stop.                                                                                                                |
 
+> **Cloud-only tasks:** when a request targets **only cloud libraries** and the desktop may be offline, prefer the `linkly-ai-cloud` MCP gateway over CLI `--remote`. The CLI's remote mode checks the desktop tunnel first and aborts if it's disconnected, whereas the gateway serves cloud content directly. If neither a connected desktop nor the `linkly-ai-cloud` gateway is available, the cloud task cannot be served — tell the user instead of retrying.
+
 The CLI supports three connection modes:
 
 - **Local** (default): Auto-discovers the desktop app via `~/.linkly/port`. Requires the app to be running locally.
 - **LAN**: Use `--endpoint <url> --token <token>` to connect to a Linkly AI instance on the local network.
-- **Remote**: Use `--remote` to connect via the `https://mcp.linkly.ai` tunnel. Requires prior setup: `linkly auth set-key <api-key>`.
+- **Remote**: Use `--remote` to connect via the `https://mcp.linkly.ai` tunnel, reaching both your local and linked cloud libraries. The CLI checks the tunnel first and aborts if the desktop is disconnected — so the desktop must be online even for cloud content (for desktop-independent cloud access, use the `linkly-ai-cloud` MCP gateway instead). Requires prior setup: `linkly auth set-key <api-key>`.
 
 See `references/mcp-tools-reference.md` for MCP parameter schemas and response formats.
 
@@ -40,7 +42,7 @@ See `references/mcp-tools-reference.md` for MCP parameter schemas and response f
 
 ### Step 0: Find Paths (when the user names a container by a fuzzy word)
 
-When the user names a container by a fuzzy or cross-language word — folder, app, project, repo, or cloud drive (e.g. "in my WeChat", "in my Notion notes", "in the linkly-ai repo", "in my iCloud Drive") — and you don't yet know the on-disk path, run `find_paths` first. Pass several variants in a single call, then pipe a distinctive segment of any returned folder path into `linkly search` as `--path-glob`.
+When the user names a container by a fuzzy or cross-language word — folder, app, project, repo, or cloud drive (e.g. "in my WeChat", "in my Notion notes", "in the linkly-ai repo", "in my iCloud Drive") — and you don't yet know the on-disk path, run `find_paths` first. Pass several variants in a single call, then pipe a distinctive segment of any returned folder path into `linkly search` as `--path-glob`. This also works inside a Linkly cloud library; candidates there carry a `cloud://owner/slug` reference to pass to the follow-up search's `library` (see `references/mcp-tools-reference.md`).
 
 ```bash
 linkly find-paths --patterns WeChat,微信,wxid --limit 5
@@ -77,7 +79,7 @@ Search uses BM25 + vector hybrid retrieval (OR logic for keywords, semantic matc
 - Use `--path-glob` to filter by file path patterns ([SQLite GLOB](https://www.sqlite.org/lang_corefunc.html#glob) syntax, always case-sensitive). When the actual path is unknown, run Step 0 (`find_paths`) first.
 - For time scope: `--modified-after` / `--modified-before` (ISO 8601 UTC) for explicit windows like "in 2024" / "after July 1, 2024"; `--time-sort newest|oldest|default` for "most recent / earliest" without a fixed window (`default` or omitting the flag both keep relevance ordering). See ["Tool Response Metadata"](#tool-response-metadata) below for how to derive relative dates.
 - Start with a small limit (5–10) to scan relevance before requesting more.
-- Each result includes a `doc_id` — save these for subsequent steps.
+- Each result includes a `doc_id` — save these verbatim for subsequent steps. They are opaque strings (e.g. `local://1044`, or `cloud://owner/slug/...` for cloud documents); never reshape or strip them.
 
 **Don't:** guess `--path-glob` when the user names a fuzzy container — run `find_paths` (Step 0) first to get the real on-disk path.
 
@@ -91,6 +93,8 @@ Get structural overviews of documents before reading.
 linkly outline <ID>
 linkly outline <ID1> <ID2> <ID3>
 ```
+
+**Don't mix backends:** a single `outline` call must contain only local IDs **or** only cloud IDs, never both. After a mixed local + cloud search, split the IDs into separate `outline` calls — mixing them returns a conflict error.
 
 **When to use:** The document has `has_outline: true` and is longer than ~50 lines.
 
@@ -138,21 +142,29 @@ Errors don't carry this. When the user phrases a relative date, take the most re
 
 ## Library (Knowledge Base) Support
 
-Libraries are user-curated collections of folders. They allow scoped searches within a specific knowledge domain.
+Libraries let you scope a search to one knowledge domain. There are **two kinds**:
+
+- **Local libraries** — user-curated collections of folders on the Desktop. Addressed as `local://<id>` (a plain library name also works, for backward compatibility).
+- **Cloud libraries** — libraries the user linked via Linkly Web, served by the cloud gateway. Addressed as `cloud://<owner>/<slug>` (the two-segment `owner/slug` form is required; a single segment is rejected).
+
+Call `list_libraries` to discover both kinds and their identifiers — it is the only way to learn a cloud library's `cloud://owner/slug`.
 
 ### When to use libraries
 
-- **User explicitly names a library:** "search in my-research library" → `--library my-research`
-- **User asks what libraries exist:** "what knowledge bases do I have?" → `linkly list-libraries`
+- **User explicitly names a local library:** "search in my-research library" → `--library my-research`
+- **User names a cloud library:** discover it with `list_libraries`, then scope with `library="cloud://<owner>/<slug>"`
+- **User asks what libraries exist:** "what knowledge bases do I have?" → `list_libraries` (lists both local and cloud)
 - **User is working within a known library context:** previous interactions already established a library scope → continue using it
 
 ### When NOT to use libraries
 
-- **General document search:** "search my documents for X" → search globally, no `--library`
-- **User doesn't mention a library:** default to global search across all indexed documents
+- **General document search:** "search my documents for X" → search globally, no `library`
+- **User doesn't mention a library:** default to global search
 - **Uncertain which library:** ask the user, or search globally first
 
-Libraries are an advanced, optional feature. **Default behavior is always global search.**
+**Default scope:** when `library` is omitted, the search covers all your **local** indexed content only — **cloud libraries are never included by default**. To search a cloud library you must name it explicitly.
+
+**Reaching cloud libraries:** via the `linkly-ai-cloud` MCP gateway (e.g. an OAuth connector in ChatGPT / Claude.ai), the gateway serves cloud content directly — the desktop need not be online. Via the CLI's `--remote`, cloud libraries work too, but the CLI aborts if the desktop tunnel is disconnected, so the desktop must be online for that path.
 
 ```bash
 linkly list-libraries
@@ -161,7 +173,7 @@ linkly search "deep learning" --library my-research --limit 10
 
 ## Explore (Overview)
 
-The `explore` tool provides a bird's-eye overview of all indexed documents or a specific library. It returns document type distribution, directory structure with file counts, top keywords with source attribution, and recent activity (directories with changes in the last 7 days) — without reading any document content.
+The `explore` tool provides a bird's-eye overview of all indexed documents or a specific library. It returns document type distribution, directory structure with file counts, top keywords with source attribution, and recent activity (directories with changes in the last 7 days) — without reading any document content. For a cloud library (`library="cloud://<owner>/<slug>"`), it also returns the library's README (if present) before the overview.
 
 ```bash
 linkly explore
@@ -184,7 +196,7 @@ After getting an overview, use the top keywords, directory names, and recent act
 When users report connection issues, search failures, or other problems with Linkly AI:
 
 1. **CLI mode:** Run `linkly doctor` to diagnose. It checks port file, HTTP connectivity, app status, and MCP round-trip. Share the output with the user and follow the advice printed for each failing check.
-2. **MCP mode:** If MCP tools are returning errors, check that the Linkly AI desktop app is running and the MCP server is enabled in Settings → MCP.
+2. **MCP mode:** For a failed **local** query, check that the Linkly AI desktop app is running and the MCP server is enabled (Settings → MCP) — or, in remote mode, that the tunnel is connected. A failed **cloud library** query is independent of the desktop; re-check the `cloud://owner/slug` id with `list_libraries`.
 
 For detailed troubleshooting steps, see `references/troubleshooting.md`.
 

@@ -4,19 +4,19 @@
 ![License](https://img.shields.io/badge/license-Apache--2.0-green)
 ![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey)
 
-[Agent Skills](https://agentskills.io) for [Linkly AI](https://linkly.ai) — search, browse, and read your local documents from any AI coding agent.
+[Agent Skills](https://agentskills.io) for [Linkly AI](https://linkly.ai) — search, browse, and read your local documents (and linked cloud libraries) from any AI coding agent.
 
-This skill teaches AI agents how to use Linkly AI's document search capabilities, enabling them to find and read your locally indexed documents (PDF, Markdown, DOCX, TXT, HTML, and more).
+This skill teaches AI agents how to use Linkly AI's document search capabilities, enabling them to find and read your locally indexed documents (PDF, Markdown, DOCX, TXT, HTML, and more) as well as cloud libraries you've linked via Linkly Web.
 
 ## What is Linkly AI?
 
-[Linkly AI](https://linkly.ai) is a desktop application that indexes documents on your computer and provides full-text search, structural outlines, and content reading through a local MCP server. Think of it as a local knowledge base that AI agents can query.
+[Linkly AI](https://linkly.ai) is a desktop application that indexes documents on your computer and provides full-text search, structural outlines, and content reading through a local MCP server. Through the `mcp.linkly.ai` cloud gateway it can also reach cloud libraries you've linked via Linkly Web. Think of it as a knowledge base — local and cloud — that AI agents can query.
 
 ## What Does This Skill Do?
 
 When installed, this skill enables AI agents to:
 
-- **Search** your local documents by keywords with relevance ranking, time windows, and path filters
+- **Search** your local documents (and linked cloud libraries) by keywords with relevance ranking, time windows, and path filters
 - **Find paths** for fuzzy or cross-language container names ("in my WeChat", "在 Notion 笔记里") by matching against the indexed file paths
 - **Explore** the knowledge base for an overview of themes, document types, and recent activity
 - **List libraries** to discover and search within specific knowledge bases
@@ -29,10 +29,10 @@ When installed, this skill enables AI agents to:
 
 The skill supports two access modes:
 
-| Mode | When Used                      | How It Works                                                                                         |
-| ---- | ------------------------------ | ---------------------------------------------------------------------------------------------------- |
-| CLI  | Agent has Bash/terminal access | Runs `linkly` CLI commands (preferred when both are available)                                       |
-| MCP  | Agent has MCP tool access      | Calls `search` / `find_paths` / `outline` / `grep` / `read` / `list_libraries` / `explore` MCP tools |
+| Mode | When Used                      | How It Works                                                                                                                                                                                                |
+| ---- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CLI  | Agent has Bash/terminal access | Runs `linkly` CLI commands (preferred when both are available)                                                                                                                                              |
+| MCP  | Agent has MCP tool access      | Calls `search` / `find_paths` / `outline` / `grep` / `read` / `list_libraries` / `explore` MCP tools — via the local server or the `mcp.linkly.ai` cloud gateway (which also serves linked cloud libraries) |
 
 ## Prerequisites
 
@@ -111,7 +111,7 @@ git clone https://github.com/LinklyAI/linkly-ai-skills.git ~/.agents/skills/link
 
 ### Claude.ai (web)
 
-Download `linkly-ai.zip` from the [Releases](https://github.com/LinklyAI/linkly-ai-skills/releases) page, then upload it in Claude.ai → Settings → Capabilities → Skills.
+Download the latest release's `.zip` asset from the [Releases](https://github.com/LinklyAI/linkly-ai-skills/releases) page, then upload it in Claude.ai → Settings → Capabilities → Skills.
 
 ### ClawHub (OpenClaw)
 
@@ -133,7 +133,7 @@ Any AI agent that supports the [Agent Skills](https://agentskills.io) open stand
 │   ├── search-strategies.md           # Advanced query crafting patterns
 │   └── troubleshooting.md             # Diagnosing and resolving issues
 └── scripts/
-    └── package.sh                     # Build linkly-ai.zip for upload
+    └── package.sh                     # Build the release .zip for upload
 ```
 
 | File                                | Purpose                                                            |
