@@ -76,7 +76,7 @@ Search uses BM25 + vector hybrid retrieval (OR logic for keywords, semantic matc
 - Both specific keywords and natural language sentences are effective queries.
 - Add `--type` filter when the user mentions a specific format.
 - Use `--library` only when the user explicitly specifies a library name.
-- Use `--path-glob` to filter by file path patterns ([SQLite GLOB](https://www.sqlite.org/lang_corefunc.html#glob) syntax, always case-sensitive). When the actual path is unknown, run Step 0 (`find_paths`) first.
+- Use `--path-glob` to filter by file path: the pattern is **substring-matched** against the path (it may appear anywhere — no leading/trailing `*` needed), always case-sensitive. `*` matches any chars (incl. `/`), `?` one char. A full directory path like `/Users/me/notes/` scopes to that directory. When the actual path is unknown, run Step 0 (`find_paths`) first.
 - For time scope: `--modified-after` / `--modified-before` (ISO 8601 UTC) for explicit windows like "in 2024" / "after July 1, 2024"; `--time-sort newest|oldest|default` for "most recent / earliest" without a fixed window (`default` or omitting the flag both keep relevance ordering). See ["Tool Response Metadata"](#tool-response-metadata) below for how to derive relative dates.
 - Start with a small limit (5–10) to scan relevance before requesting more.
 - Each result includes a `doc_id` — save these verbatim for subsequent steps. They are opaque strings (e.g. `local://1044`, or `cloud://owner/slug/...` for cloud documents); never reshape or strip them.
