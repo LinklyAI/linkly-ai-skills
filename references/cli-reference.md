@@ -71,7 +71,7 @@ linkly find-paths --patterns Notion,notion --library my-knowledge --limit 5
 linkly find-paths --patterns Slack --json
 ```
 
-**When to use:** The user names a container by a fuzzy or cross-language word ("in my WeChat files", "在我的 Notion 笔记里") and you don't yet know the on-disk path. The tool returns folder candidates — take a distinctive segment of one of them (often the leaf name) and pass it to `linkly search --path-glob "*<segment>*"`.
+**When to use:** The user names a container by a fuzzy or cross-language word ("in my WeChat files", "在我的 Notion 笔记里") and you don't yet know the on-disk path. The tool returns folder candidates — take a distinctive segment of one of them (often the leaf name) and pass it to `linkly search --path-glob "*<segment>*"`. To scope to a whole folder, the JSON output's `path_glob` field is a ready-to-use value (already glob-quoted, so a folder name with `* ? [` still matches literally) — copy it verbatim.
 
 **When NOT to use:** Pure content queries (use `search` directly); file-type filters (use `search --type pdf` — `--path-glob` is path-pattern matching, not file-type filtering).
 
@@ -83,17 +83,17 @@ linkly find-paths --patterns Slack --json
 linkly search <QUERY> [OPTIONS]
 ```
 
-| Option                    | Description                                                                                                                                                                              |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `<QUERY>`                 | Search keywords or phrases (required)                                                                                                                                                    |
-| `--limit <N>`             | Maximum results, 1–50 (default: 20)                                                                                                                                                      |
-| `--type <types>`          | Filter by document types, comma-separated (e.g. `pdf,md`)                                                                                                                                |
-| `--library <name>`        | Restrict search to one library: a local name / `local://<id>`, or `cloud://<owner>/<slug>` (over `--remote`; cloud must be the two-segment `owner/slug` form). Omit = all local content. |
-| `--path-glob <pat>`       | Glob **substring-matched** against the file path (no leading/trailing `*` needed). `*` matches any chars including `/`, `?` one char. Full dir path `/Users/me/notes/` scopes to that dir. When unknown, run `find-paths` first.                                             |
-| `--modified-after <iso>`  | Inclusive lower bound on modification time (ISO 8601 UTC; bare date or RFC 3339)                                                                                                         |
-| `--modified-before <iso>` | Inclusive upper bound on modification time (same format as `--modified-after`)                                                                                                           |
-| `--time-sort <mode>`      | Reorder by modification time: `newest`, `oldest`, or `default`. `default` and omitting the flag are equivalent — both keep relevance order.                                              |
-| `--json`                  | Output structured JSON (global option)                                                                                                                                                   |
+| Option                    | Description                                                                                                                                                                                                                      |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `<QUERY>`                 | Search keywords or phrases (required)                                                                                                                                                                                            |
+| `--limit <N>`             | Maximum results, 1–50 (default: 20)                                                                                                                                                                                              |
+| `--type <types>`          | Filter by document types, comma-separated (e.g. `pdf,md`)                                                                                                                                                                        |
+| `--library <name>`        | Restrict search to one library: a local name / `local://<id>`, or `cloud://<owner>/<slug>` (over `--remote`; cloud must be the two-segment `owner/slug` form). Omit = all local content.                                         |
+| `--path-glob <pat>`       | Glob **substring-matched** against the file path (no leading/trailing `*` needed). `*` matches any chars including `/`, `?` one char. Full dir path `/Users/me/notes/` scopes to that dir. When unknown, run `find-paths` first. |
+| `--modified-after <iso>`  | Inclusive lower bound on modification time (ISO 8601 UTC; bare date or RFC 3339)                                                                                                                                                 |
+| `--modified-before <iso>` | Inclusive upper bound on modification time (same format as `--modified-after`)                                                                                                                                                   |
+| `--time-sort <mode>`      | Reorder by modification time: `newest`, `oldest`, or `default`. `default` and omitting the flag are equivalent — both keep relevance order.                                                                                      |
+| `--json`                  | Output structured JSON (global option)                                                                                                                                                                                           |
 
 Examples:
 

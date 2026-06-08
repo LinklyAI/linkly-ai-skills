@@ -42,7 +42,7 @@ See `references/mcp-tools-reference.md` for MCP parameter schemas and response f
 
 ### Step 0: Find Paths (when the user names a container by a fuzzy word)
 
-When the user names a container by a fuzzy or cross-language word — folder, app, project, repo, or cloud drive (e.g. "in my WeChat", "in my Notion notes", "in the linkly-ai repo", "in my iCloud Drive") — and you don't yet know the on-disk path, run `find_paths` first. Pass several variants in a single call, then pipe a distinctive segment of any returned folder path into `linkly search` as `--path-glob`. This also works inside a Linkly cloud library; candidates there carry a `cloud://owner/slug` reference to pass to the follow-up search's `library` (see `references/mcp-tools-reference.md`).
+When the user names a container by a fuzzy or cross-language word — folder, app, project, repo, or cloud drive (e.g. "in my WeChat", "in my Notion notes", "in the linkly-ai repo", "in my iCloud Drive") — and you don't yet know the on-disk path, run `find_paths` first. Pass several variants in a single call, then pipe a distinctive segment of any returned folder path into `linkly search` as `--path-glob` (or, to scope to a whole folder, copy that candidate's `path_glob` field verbatim — it is already glob-quoted, so a folder name with `* ? [` still matches literally). This also works inside a Linkly cloud library; candidates there carry a `cloud://owner/slug` reference to pass to the follow-up search's `library` (see `references/mcp-tools-reference.md`).
 
 ```bash
 linkly find-paths --patterns WeChat,微信,wxid --limit 5

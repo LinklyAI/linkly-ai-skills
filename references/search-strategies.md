@@ -132,7 +132,7 @@ When the user describes a target by a fuzzy or cross-language container name ("f
 The robust pattern is two-step:
 
 1. **Discover the path with `find_paths`** — pass several variants in a single call (translation pairs, casing, real-app names if known) so they're OR-matched in one round-trip.
-2. **Scope the actual content `search`** — take a distinctive segment of any returned folder path (often the leaf or a unique sub-segment) and pass it as `--path-glob "*<segment>*"`. The GLOB is substring-matched, so a partial segment works as well as a full prefix.
+2. **Scope the actual content `search`** — take a distinctive segment of any returned folder path (often the leaf or a unique sub-segment) and pass it as `--path-glob "*<segment>*"`. The GLOB is substring-matched, so a partial segment works as well as a full prefix. To scope to the whole folder, copy that candidate's `path_glob` field verbatim instead — it is already glob-quoted, so a folder name containing `* ? [` still matches literally.
 
 ```bash
 # 1. discover real path
