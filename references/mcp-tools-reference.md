@@ -127,7 +127,8 @@ Response (JSON mode):
   "truncated": false,
   "directories": [
     {
-      "path": ".../com.tencent.xinWeChat",
+      "path": "/Users/me/Library/Containers/com.tencent.xinWeChat",
+      "path_glob": "/Users/me/Library/Containers/com.tencent.xinWeChat",
       "file_count": 940
     }
   ],
@@ -169,7 +170,7 @@ Each result item:
 | ------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `doc_id`      | `string`   | Opaque document identifier — pass through verbatim to `outline` / `grep` / `read`; never fabricate or reshape it. Local documents take the form `local://<integer>`, cloud documents the form `cloud://<owner>/<slug>/<root-hash>/<path>`. Bare integer IDs from older desktops are still accepted. |
 | `title`       | `string`   | Document title                                                                                                                                                                                                                                                                                      |
-| `path`        | `string`   | Shortened file path                                                                                                                                                                                                                                                                                 |
+| `path`        | `string`   | Full absolute file path                                                                                                                                                                                                                                                                             |
 | `relevance`   | `number`   | Hybrid (BM25 + vector) relevance score, rendered to 2 decimals; higher = more relevant. Not normalized to a fixed range — use it for ordering, not as a 0–1 threshold.                                                                                                                              |
 | `word_count`  | `number?`  | Total word count                                                                                                                                                                                                                                                                                    |
 | `total_lines` | `number?`  | Total line count                                                                                                                                                                                                                                                                                    |
@@ -202,7 +203,7 @@ Each document object:
 | ------------------- | --------- | ---------------------------------------------------------------- |
 | `doc_id`            | `string`  | Document identifier                                              |
 | `title`             | `string`  | Document title                                                   |
-| `path`              | `string`  | Shortened file path                                              |
+| `path`              | `string`  | Full absolute file path                                          |
 | `word_count`        | `number?` | Total word count                                                 |
 | `total_lines`       | `number?` | Total line count                                                 |
 | `has_outline`       | `boolean` | Whether a parsed outline exists                                  |
@@ -262,7 +263,7 @@ Each result item:
 | ------------- | -------- | ----------------------------------------------------- |
 | `doc_id`      | `string` | Document identifier                                   |
 | `title`       | `string` | Document title                                        |
-| `path`        | `string` | Shortened file path                                   |
+| `path`        | `string` | Full absolute file path                               |
 | `match_count` | `number` | Number of matches in this document                    |
 | `matches`     | `array`  | List of match objects (only in `content` output_mode) |
 
@@ -305,7 +306,7 @@ Read document content by ID with line-based pagination.
 | ------------- | --------- | ------------------------------------------------------------------------------- |
 | `doc_id`      | `string`  | Document identifier                                                             |
 | `title`       | `string`  | Document title                                                                  |
-| `path`        | `string`  | Shortened file path                                                             |
+| `path`        | `string`  | Full absolute file path                                                         |
 | `word_count`  | `number?` | Total word count                                                                |
 | `author`      | `string?` | Document author or summary                                                      |
 | `content`     | `string`  | Content with line numbers (prefixed)                                            |

@@ -214,9 +214,10 @@ Each check reports pass/fail with actionable advice on failures. Use this as the
 
 ```bash
 linkly mcp
+linkly mcp --endpoint http://192.168.1.100:60606/mcp   # bridge to a LAN desktop instead of localhost
 ```
 
-Runs the CLI as a stdio MCP server for integration with Claude Desktop, Cursor, or other MCP clients.
+Runs the CLI as a stdio MCP server for integration with Claude Desktop, Cursor, or other MCP clients. Only local and LAN modes are supported: `--endpoint` switches the upstream desktop, while `--token` and `--remote` are not accepted.
 
 Claude Desktop configuration (`claude_desktop_config.json`):
 
@@ -251,7 +252,7 @@ linkly self-update
 
 ## Connection Options
 
-`--endpoint` and `--token` are available on `search`, `grep`, `outline`, `read`, `status`, `doctor`, and `list-libraries` commands. `--remote` is available on the same commands (not on `mcp`, `auth`, or `self-update`).
+`--endpoint` and `--token` are available on `search`, `grep`, `outline`, `read`, `status`, `doctor`, and `list-libraries` commands; `mcp` also accepts `--endpoint` for LAN bridging (but not `--token`). `--remote` is available on the same commands (not on `mcp`, `auth`, or `self-update`).
 
 | Flag               | Scope  | Description                                                                                                                                                                            |
 | ------------------ | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
