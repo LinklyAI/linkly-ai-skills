@@ -62,7 +62,7 @@ linkly doctor --remote
   1. Run `linkly status` to check if indexing is complete ("Watching" = ready).
   2. Try broader keywords or natural language queries.
   3. Remove `--type` or `--library` filters to search globally.
-  4. Confirm the user's target content is a supported document type (PDF, Markdown, DOCX, TXT, HTML, image). Files outside this list are not indexed even if they live under indexed folders — check by running `linkly explore` and looking at the document-type distribution.
+  4. Confirm the user's target content is a supported document type (PDF, Markdown, DOCX, PPTX, TXT, HTML, image). Files outside this list are not indexed even if they live under indexed folders — check by running `linkly explore` and looking at the document-type distribution.
 
 #### `Invalid modified_after` / `Invalid modified_before`
 

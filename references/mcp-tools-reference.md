@@ -147,7 +147,7 @@ Search indexed documents by keywords or phrases — across all your local conten
 | ----------------- | ---------- | -------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `query`           | `string`   | Yes      | —           | Search keywords or phrases                                                                                                                                                                                                                                                                                                                                          |
 | `limit`           | `integer`  | No       | 20          | Maximum results to return (1–50)                                                                                                                                                                                                                                                                                                                                    |
-| `doc_types`       | `string[]` | No       | —           | Filter by document types (e.g. `["pdf", "md"]`)                                                                                                                                                                                                                                                                                                                     |
+| `doc_types`       | `string[]` | No       | —           | Filter by document types (e.g. `["pdf", "md", "pptx"]`)                                                                                                                                                                                                                                                                                                             |
 | `library`         | `string`   | No       | —           | Scope search to one library — `local://<id>` (local) or `cloud://<owner>/<slug>` (cloud; must be the two-segment `owner/slug` form, a single segment is rejected). A plain string is treated as a local library name (backward-compatible). Omit = all **local** content (cloud libraries are not included by default). Use `list_libraries` to discover libraries. |
 | `path_glob`       | `string`   | No       | —           | Glob **substring-matched** against the file path — may appear anywhere, no leading/trailing `*` needed. `*` matches any chars including `/`, `?` one char. Always case-sensitive. A full directory path (`/Users/me/notes/`) scopes to that dir. When the actual path is unknown, run `find_paths` first.                                                           |
 | `modified_after`  | `string`   | No       | —           | Inclusive lower bound on modification time. Accepts ISO 8601 UTC: a bare date `"2024-01-01"` (expanded to `00:00:00Z`) or a full RFC 3339 datetime `"2024-01-01T00:00:00Z"`.                                                                                                                                                                                        |
@@ -229,7 +229,7 @@ Use node IDs (e.g. `"1.2"`, `"2"`) with the `expand` parameter to drill into spe
 
 ## grep
 
-Locate specific lines within a single document by regex pattern. Best for documents with `has_outline=false` where outline is unavailable. Use after `search` to pinpoint exact positions of names, dates, terms, identifiers, or any pattern — then use `read` with offset to see full context. Works on all document types (PDF, Markdown, DOCX, TXT, HTML). The `doc_id` parameter takes a single ID — to scan multiple documents, call grep once per `doc_id`.
+Locate specific lines within a single document by regex pattern. Best for documents with `has_outline=false` where outline is unavailable. Use after `search` to pinpoint exact positions of names, dates, terms, identifiers, or any pattern — then use `read` with offset to see full context. Works on all document types (PDF, Markdown, DOCX, PPTX, TXT, HTML). The `doc_id` parameter takes a single ID — to scan multiple documents, call grep once per `doc_id`.
 
 ### Parameters
 
@@ -327,13 +327,14 @@ Line numbers are right-aligned and tab-separated from the content.
 
 ## Supported Document Types
 
-| Type     | Extensions                               | Outline Support |
-| -------- | ---------------------------------------- | --------------- |
-| Markdown | `.md`, `.mdx`                            | Yes (parsed)    |
-| PDF      | `.pdf`                                   | No              |
-| Word     | `.docx`                                  | Yes (parsed)    |
-| Text     | `.txt`                                   | No              |
-| HTML     | `.html`, `.htm`                          | No              |
-| Image    | `.png`, `.jpg`, `.jpeg`, `.bmp`, `.webp` | No (OCR text)   |
+| Type       | Extensions                               | Outline Support      |
+| ---------- | ---------------------------------------- | -------------------- |
+| Markdown   | `.md`, `.mdx`                            | Yes (parsed)         |
+| PDF        | `.pdf`                                   | No                   |
+| Word       | `.docx`                                  | Yes (parsed)         |
+| PowerPoint | `.pptx`                                  | Yes (slide outlines) |
+| Text       | `.txt`                                   | No                   |
+| HTML       | `.html`, `.htm`                          | No                   |
+| Image      | `.png`, `.jpg`, `.jpeg`, `.bmp`, `.webp` | No (OCR text)        |
 
 For document types without outline support, `has_outline` is always `false` in search results. Use the `read` tool with pagination to browse these documents.
