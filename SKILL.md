@@ -1,12 +1,12 @@
 ---
 name: linkly-ai
-description: "Search, browse, and read the user's documents indexed by Linkly AI — both local documents and linked cloud libraries. This skill should be used when the user asks to 'search my documents', 'find files about a topic', 'read a local document', 'search my knowledge base', 'browse document outlines', 'list knowledge libraries', 'explore my documents', 'search a cloud library', or any task involving searching, browsing, or reading stored documents (PDF, Markdown, DOCX, PPTX, TXT, HTML). Also triggered by: 'linkly not working', 'can not connect to linkly', 'cloud library', 'linked library', '搜索我的文档', '查找文件', '知识库搜索', '云端知识库', '浏览文档大纲', '列出知识库', '连接不上', '故障排查'. Provides full-text search, structural outlines, and paginated reading via CLI or MCP tools."
+description: "Search, browse, and read the user's documents indexed by Linkly AI — both local documents and linked cloud libraries. This skill should be used when the user asks to 'search my documents', 'find files about a topic', 'read a local document', 'search my knowledge base', 'browse document outlines', 'list knowledge libraries', 'explore my documents', 'search a cloud library', or any task involving searching, browsing, or reading stored documents (PDF, Markdown, DOCX, PPTX, EPUB, TXT, HTML). Also triggered by: 'linkly not working', 'can not connect to linkly', 'cloud library', 'linked library', '搜索我的文档', '查找文件', '知识库搜索', '云端知识库', '浏览文档大纲', '列出知识库', '连接不上', '故障排查'. Provides full-text search, structural outlines, and paginated reading via CLI or MCP tools."
 license: Apache-2.0
 ---
 
 # Linkly AI — Document Search (Local + Cloud)
 
-Linkly AI indexes documents on the user's local machine (PDF, Markdown, DOCX, PPTX, TXT, HTML, etc.) and can also reach cloud libraries the user has linked via Linkly Web. It exposes them through a progressive disclosure workflow: **search → grep or outline → read**.
+Linkly AI indexes documents on the user's local machine (PDF, Markdown, DOCX, PPTX, EPUB, TXT, HTML, etc.) and can also reach cloud libraries the user has linked via Linkly Web. It exposes them through a progressive disclosure workflow: **search → grep or outline → read**.
 
 ## Environment Detection
 
