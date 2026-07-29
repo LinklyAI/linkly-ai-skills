@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://linkly.ai/docs
+    about: Guides, integration walkthroughs, and troubleshooting.
+  - name: Community
+    url: https://linkly.ai/docs/en/community
+    about: Every official channel — connect with other users and follow updates.

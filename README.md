@@ -157,6 +157,13 @@ This skill follows the [Agent Skills](https://agentskills.io) open standard and 
 
 Contributions are welcome! Please open an issue or submit a pull request on [GitHub](https://github.com/LinklyAI/linkly-ai-skills).
 
+## Community
+
+- [Documentation](https://linkly.ai/docs) — guides, integrations, and troubleshooting
+- [Community](https://linkly.ai/docs/en/community) — every official channel in one place
+- [GitHub Issues](https://github.com/LinklyAI/linkly-ai-skills/issues) — bugs and feature requests
+- [YouTube](https://www.youtube.com/@LinklyAI) · [X](https://x.com/linkly_ai)
+
 ## License
 
 [Apache-2.0](LICENSE)
