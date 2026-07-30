@@ -138,6 +138,86 @@ Response (JSON mode):
 
 The follow-up `search` call would then use `path_glob: "*xinWeChat*"` to scope the actual content query.
 
+## list
+
+List the entries of a known container WITHOUT full-text matching — the enumeration counterpart to `search` (search = find by content; list = enumerate by container). Tool boundaries: `explore` = global overview → `find_paths` = FIND a directory → `list` = LIST files in a known container → `outline`/`read` = read content.
+
+### Parameters
+
+| Parameter         | Type       | Required             | Default                                    | Description                                                                                                                                                                                                                                                     |
+| ----------------- | ---------- | -------------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `scope`           | `string`   | **Yes**              | —                                          | `"folder"` (indexed files under a local disk directory; omit `path` to sweep all watched roots) \| `"library"` (one library's files; requires `library`) \| `"notes"` (local markdown card notes).                                                            |
+| `library`         | `string`   | For `scope=library`  | —                                          | `local://<id>` / plain local name (rides the Desktop tunnel) or `cloud://<owner>/<slug>` (served by the gateway, works even when Desktop is offline). Call `list_libraries` first.                                                                              |
+| `path`            | `string`   | No                   | —                                          | For `folder` and **local** libraries: an absolute disk path (must fall inside watched roots / the library's folders). For **cloud** libraries: a RELATIVE directory prefix as returned by `find_paths`. An ADDRESS, not a pattern — no globs.                    |
+| `doc_types`       | `string[]` | No                   | —                                          | Filter by document types (folder/library scopes only). `tags` is the notes-only counterpart.                                                                                                                                                                    |
+| `tags`            | `string[]` | No                   | —                                          | Notes only: AND-match on note tags (leading `#` stripped, ASCII lowercased). Other scopes reject it.                                                                                                                                                            |
+| `modified_after`  | `string`   | No                   | —                                          | ISO 8601 inclusive lower bound on modification time (folder/library scopes).                                                                                                                                                                                    |
+| `modified_before` | `string`   | No                   | —                                          | Same format, inclusive upper bound.                                                                                                                                                                                                                             |
+| `sort`            | `string`   | No                   | `"recent"`                                 | `"recent"` (folder/library anchor on `modified_at`; notes on `created_at` — newest first: **sorting is the truncation policy**) \| `"oldest"` \| `"name"` (basename A → Z; local only — rejected for cloud libraries). Page order equals sort direction.       |
+| `snippet`         | `boolean`  | No                   | notes: `true`; folder/library: `false`     | Per-item snippet. Notes: first ~200 chars of the body. Folder/library: from the indexed abstract (no disk reads). While enabled, `limit` is capped at 50.                                                                                                       |
+| `limit`           | `integer`  | No                   | 50                                         | Max items (up to 200; 50 while `snippet` is enabled).                                                                                                                                                                                                           |
+| `offset`          | `integer`  | No                   | 0                                          | Pagination offset in sort order; page with `has_more`.                                                                                                                                                                                                          |
+| `output_format`   | `string`   | No                   | notes: `"json"`; folder/library: `"markdown"` | Notes default to JSON because each item is a CAS handle (`note_id` + `version`) for `note_save`.                                                                                                                                                             |
+
+### Response Fields (JSON mode)
+
+| Field        | Type             | Description                                                                                                                                                                                    |
+| ------------ | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `scope`      | `string`         | Echo of the requested scope.                                                                                                                                                                   |
+| `target`     | `string`         | What was listed: the directory path, the library reference, or `all watched roots (N): …`.                                                                                                    |
+| `total`      | `number \| null` | Full filtered count for local scopes. **`null` for cloud libraries** (unknown) — paginate by `has_more`; if you need the full picture and `has_more` stays true, switch to `search` with the `library` filter. |
+| `items`      | `array`          | See below. Page order equals sort direction.                                                                                                                                                   |
+| `readme`     | `object`         | Present only when a listed **local** directory (explicit `path`) contains a README-style file: `{ doc_id, path, word_count, total_lines, skip_reason }` — a pointer, not inlined content. When present and you need to understand the folder's purpose, `read` it first. |
+| `offset` / `limit` / `has_more` | —  | Pagination echo + whether more items exist past this page.                                                                                                                                     |
+
+Each item: `doc_id` (for `read`/`grep`/`outline`; null for a not-yet-indexed note), `title` (null for machine-named notes), `path` (absolute for local scopes; root-relative for cloud), `doc_type`, `word_count`, `total_lines`, `has_outline`, `modified_at` (Unix ms; filesystem mtime), `keywords`, `snippet`, `skip_reason` (non-null = content not readable — don't `read` it). Notes items additionally carry `note_id`, `version` (the CAS pair for `note_save` mode="edit"), `created_at`, `tags`, `source`/`updated_by` provenance, and `indexed`.
+
+**When to use:** the user asks "what's in this folder / library / my notes" — a known container, wanting an enumeration (with paging), not a relevance ranking. Typical chain: `find_paths` → `list` → `outline`/`read`.
+
+**When NOT to use:**
+
+- Content/topic queries — `search` (list does no full-text matching).
+- Finding a folder by fuzzy name — `find_paths` (list's `path` is an address, not a pattern).
+- "Which libraries do I have" — `list_libraries`.
+
+### Example
+
+Call:
+
+```json
+{ "scope": "folder", "path": "/Users/me/Docs/Reports", "doc_types": ["pdf"], "limit": 20 }
+```
+
+Response (JSON mode, abridged):
+
+```json
+{
+  "scope": "folder",
+  "target": "/Users/me/Docs/Reports",
+  "total": 512,
+  "items": [
+    {
+      "doc_id": "local://4471",
+      "title": "2026 Q1 Report",
+      "path": "/Users/me/Docs/Reports/2026/q1.pdf",
+      "doc_type": "pdf",
+      "word_count": 8200,
+      "total_lines": 640,
+      "has_outline": true,
+      "modified_at": 1753800000000,
+      "keywords": ["revenue"],
+      "snippet": null,
+      "skip_reason": null
+    }
+  ],
+  "readme": { "doc_id": "local://4470", "path": "/Users/me/Docs/Reports/README.md", "word_count": 348, "total_lines": 40, "skip_reason": null },
+  "offset": 0,
+  "limit": 20,
+  "has_more": true,
+  "_meta": { "now": "2026-07-30T02:00:00Z" }
+}
+```
+
 ## search
 
 Search indexed documents by keywords or phrases — across all your local content, or scoped to a specific local or cloud library.
