@@ -18,6 +18,7 @@ When installed, this skill enables AI agents to:
 
 - **Search** your local documents (and linked cloud libraries) by keywords with relevance ranking, time windows, and path filters
 - **Find paths** for fuzzy or cross-language container names ("in my WeChat", "在 Notion 笔记里") by matching against the indexed file paths
+- **List** the files of a known container — a disk folder, a library, or your notes — as a paged enumeration without inventing a search query (MCP only for now)
 - **Explore** the knowledge base for an overview of themes, document types, and recent activity
 - **List libraries** to discover and search within specific knowledge bases
 - **Browse** document outlines to understand structure before diving in
@@ -32,7 +33,7 @@ The skill supports two access modes:
 | Mode | When Used                      | How It Works                                                                                                                                                                                                |
 | ---- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | CLI  | Agent has Bash/terminal access | Runs `linkly` CLI commands (preferred when both are available)                                                                                                                                              |
-| MCP  | Agent has MCP tool access      | Calls `search` / `find_paths` / `outline` / `grep` / `read` / `list_libraries` / `explore` MCP tools — via the local server or the `mcp.linkly.ai` cloud gateway (which also serves linked cloud libraries) |
+| MCP  | Agent has MCP tool access      | Calls `search` / `find_paths` / `list` / `outline` / `grep` / `read` / `list_libraries` / `explore` MCP tools — via the local server or the `mcp.linkly.ai` cloud gateway (which also serves linked cloud libraries) |
 
 ## Prerequisites
 

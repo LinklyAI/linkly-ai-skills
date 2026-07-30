@@ -1,6 +1,6 @@
 # Linkly AI MCP Tools Reference
 
-The Linkly AI MCP server exposes seven tools for document operations. Local documents require the Linkly AI desktop app to be running with its MCP server enabled; linked cloud libraries are served directly by the cloud gateway and stay reachable even when the desktop is offline.
+The Linkly AI MCP server exposes eight tools for document operations. Local documents require the Linkly AI desktop app to be running with its MCP server enabled; linked cloud libraries are served directly by the cloud gateway and stay reachable even when the desktop is offline.
 
 **Server name:** `linkly-ai` (local Desktop MCP) or `linkly-ai-cloud` (the cloud gateway at `mcp.linkly.ai`, which exposes both your local libraries — via the desktop tunnel — and your linked cloud libraries).
 
@@ -94,7 +94,7 @@ Each directory entry:
 | Field        | Type     | Description                                                                                                                                                                                                                                                                                                                                              |
 | ------------ | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `library`    | `string` | Present for **cloud** results: the source library as `cloud://<owner>/<slug>`. Pass it to a follow-up `search` as `library`. Omitted for local results.                                                                                                                                                                                                  |
-| `path`       | `string` | Folder path (full absolute path).                                                                                                                                                                                                                                                                                                                        |
+| `path`       | `string` | Folder path (full absolute path; root-relative for cloud results).                                                                                                                                                                                                                                                                                       |
 | `path_glob`  | `string` | `path` quoted into a ready-to-use `path_glob` pattern: any glob metacharacters (`* ? [`) in the folder name are escaped so it matches that folder **literally** (not as a glob that would catch sibling dirs). Equals `path` when the name has no metacharacters. Prefer copying this verbatim into a follow-up `search` when you want the whole folder. |
 | `file_count` | `number` | Number of indexed files inside this folder whose path matched any of the `patterns`.                                                                                                                                                                                                                                                                     |
 
@@ -116,7 +116,7 @@ Each directory entry:
 Call:
 
 ```json
-{ "patterns": ["WeChat", "微信", "wxid"], "limit": 5 }
+{ "patterns": ["WeChat", "微信", "wxid"], "limit": 5, "output_format": "json" }
 ```
 
 Response (JSON mode):
@@ -165,12 +165,14 @@ List the entries of a known container WITHOUT full-text matching — the enumera
 | ------------ | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `scope`      | `string`         | Echo of the requested scope.                                                                                                                                                                   |
 | `target`     | `string`         | What was listed: the directory path, the library reference, or `all watched roots (N): …`.                                                                                                    |
-| `total`      | `number \| null` | Full filtered count for local scopes. **`null` for cloud libraries** (unknown) — paginate by `has_more`; if you need the full picture and `has_more` stays true, switch to `search` with the `library` filter. |
+| `total`      | `number \| null` | Full filtered count for local scopes. **`null` for cloud libraries** (unknown) — paginate by `has_more`; if you need the full picture and `has_more` stays true, switch to `search` with the `library` filter. Exception: an empty first page (`offset=0`, zero items) returns `total: 0` even for cloud — with a `hint` when a `path` prefix was given, since cloud cannot tell a missing prefix from an empty directory. |
 | `items`      | `array`          | See below. Page order equals sort direction.                                                                                                                                                   |
 | `readme`     | `object`         | Present only when a listed **local** directory (explicit `path`) contains a README-style file: `{ doc_id, path, word_count, total_lines, skip_reason }` — a pointer, not inlined content. When present and you need to understand the folder's purpose, `read` it first. |
+| `available_tags` | `string[]`   | **Notes scope only.** Existing tags across all notes (top 50 by usage, same snapshot as this page) — reuse them as the `tags` filter instead of guessing tag names.                            |
+| `available_tags_hint` | `string`  | **Notes scope only.** Fixed usage guidance for `available_tags` (reuse for filtering; never add tags on your own initiative in `note_save`).                                                   |
 | `offset` / `limit` / `has_more` | —  | Pagination echo + whether more items exist past this page.                                                                                                                                     |
 
-Each item: `doc_id` (for `read`/`grep`/`outline`; null for a not-yet-indexed note), `title` (null for machine-named notes), `path` (absolute for local scopes; root-relative for cloud), `doc_type`, `word_count`, `total_lines`, `has_outline`, `modified_at` (Unix ms; filesystem mtime), `keywords`, `snippet`, `skip_reason` (non-null = content not readable — don't `read` it). Notes items additionally carry `note_id`, `version` (the CAS pair for `note_save` mode="edit"), `created_at`, `tags`, `source`/`updated_by` provenance, and `indexed`.
+Each item: `doc_id` (for `read`/`grep`/`outline`; null for a not-yet-indexed note), `title` (null for machine-named notes), `path` (absolute for local scopes; root-relative for cloud), `doc_type`, `word_count`, `total_lines`, `has_outline`, `modified_at` (Unix ms; filesystem mtime locally / D1 mtime in cloud — nullable for cloud), `keywords`, `snippet`, `skip_reason` (non-null = content not readable — don't `read` it). Notes items additionally carry `note_id`, `version` (the CAS pair for `note_save` mode="edit"), `created_at`, `tags`, `source`/`agent`/`updated_by` provenance (`agent` is null unless the note came from an agent), and `indexed`.
 
 **When to use:** the user asks "what's in this folder / library / my notes" — a known container, wanting an enumeration (with paging), not a relevance ranking. Typical chain: `find_paths` → `list` → `outline`/`read`.
 
@@ -185,7 +187,7 @@ Each item: `doc_id` (for `read`/`grep`/`outline`; null for a not-yet-indexed not
 Call:
 
 ```json
-{ "scope": "folder", "path": "/Users/me/Docs/Reports", "doc_types": ["pdf"], "limit": 20 }
+{ "scope": "folder", "path": "/Users/me/Docs/Reports", "doc_types": ["pdf"], "limit": 20, "output_format": "json" }
 ```
 
 Response (JSON mode, abridged):
@@ -250,7 +252,7 @@ Each result item:
 | ------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `doc_id`      | `string`   | Opaque document identifier — pass through verbatim to `outline` / `grep` / `read`; never fabricate or reshape it. Local documents take the form `local://<integer>`, cloud documents the form `cloud://<owner>/<slug>/<root-hash>/<path>`. Bare integer IDs from older desktops are still accepted. |
 | `title`       | `string`   | Document title                                                                                                                                                                                                                                                                                      |
-| `path`        | `string`   | Full absolute file path                                                                                                                                                                                                                                                                             |
+| `path`        | `string`   | Full absolute file path (root-relative for cloud results)                                                                                                                                                                                                                                           |
 | `relevance`   | `number`   | Hybrid (BM25 + vector) relevance score, rendered to 2 decimals; higher = more relevant. Not normalized to a fixed range — use it for ordering, not as a 0–1 threshold.                                                                                                                              |
 | `word_count`  | `number?`  | Total word count                                                                                                                                                                                                                                                                                    |
 | `total_lines` | `number?`  | Total line count                                                                                                                                                                                                                                                                                    |
