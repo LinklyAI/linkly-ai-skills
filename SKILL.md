@@ -71,7 +71,7 @@ linkly search "weekly retro" --time-sort newest --limit 5
 linkly search "购物订单" --path-glob "*xinWeChat*" --time-sort newest --limit 5
 ```
 
-Search uses BM25 + vector hybrid retrieval (OR logic for keywords, semantic matching for meaning). For advanced query strategies, see `references/search-strategies.md`.
+Search uses BM25 + vector hybrid retrieval when the active backend can apply the requested constraints before ANN Top-K. If it cannot (currently cloud search with path, type, or time filters), it uses winner-first BM25 so filtered-out rows cannot consume the ANN candidate window. Unfiltered search retains semantic vector matching. For advanced query strategies, see `references/search-strategies.md`.
 
 **Tips:**
 
