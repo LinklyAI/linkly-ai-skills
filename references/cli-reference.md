@@ -224,6 +224,9 @@ Every response carries `available_tags` — the tags actually in use across all 
 ```bash
 linkly note-save --mode create --content "..." [--tags <tags>]
 linkly note-save --mode edit --note-id <uuid> --base-version <version> --tags <tags> --content "..."
+
+# Long bodies are easier to pipe in than to quote:
+some-command | linkly note-save --mode create --content - --tags research
 ```
 
 **This is the only write command.** It creates or rewrites one of the user's local Markdown notes.
@@ -231,7 +234,7 @@ linkly note-save --mode edit --note-id <uuid> --base-version <version> --tags <t
 | Option                  | Description                                                                                                                                                                        |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `--mode <mode>`         | **Required.** `create` writes a new note; `edit` rewrites an existing one. `edit` requires `--note-id`, `--base-version` and `--tags` together.                                    |
-| `--content <markdown>`  | **Required.** Body without YAML front matter. Restricted Markdown subset — see below.                                                                                              |
+| `--content <markdown>`  | **Required.** Body without YAML front matter. Restricted Markdown subset — see below. Pass `-` to read the body from stdin, which avoids shell-quoting a long note.                |
 | `--note-id <uuid>`      | Note UUID. Required for `edit`; on `create` an already-existing id is rejected as `NOTE_DUPLICATE_ID`.                                                                             |
 | `--base-version <hash>` | The note's current version (sha256 of the raw file), from `linkly list --scope notes`. Required for `edit`. A stale value returns `NOTE_VERSION_CONFLICT` with the actual version. |
 | `--tags <tags>`         | Comma-separated. Optional on `create`; **required on `edit`, where it is the full replacement set** — omitting a previously present tag removes it.                                |
