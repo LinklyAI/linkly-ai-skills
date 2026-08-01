@@ -188,7 +188,9 @@ The CLI evolves alongside the desktop app. An outdated CLI may be missing comman
 - `error: unexpected argument '--remote'` → CLI below v0.2.0, missing remote mode
 - `error: unexpected argument '--modified-after'` / `--modified-before` / `--time-sort` → CLI below v0.4.0, missing search time filters
 - `error: unrecognized subcommand 'find-paths'` → CLI below v0.4.0, missing the find_paths command
-- `error: unexpected argument '--scope'` / `--tags` / `--image-text`, or `error: unrecognized subcommand 'note-save'` / `'list'` → CLI predates note support
+- `error: unexpected argument '--scope'` / `--tags` / `--image-text`, or `error: unrecognized subcommand 'note-save'` / `'list'` / `'completions'` → CLI below v0.6.0, missing note support, referenced-image detail and shell completions
+- `error: unexpected argument '--exit-code'` → CLI below v0.6.0; without it an empty result is indistinguishable from a failure by exit code alone
+- `linkly read` or `linkly grep` rejects a second document ID, or `-` is treated as a literal ID → CLI below v0.6.0, missing batch and stdin input
 - `linkly doctor` not recognized → CLI needs updating
 - Commands fail silently or return unexpected errors after a desktop app update
 
