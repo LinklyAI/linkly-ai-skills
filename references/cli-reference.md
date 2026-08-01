@@ -318,6 +318,26 @@ linkly auth logout
 
 Linkly AI CLI authenticates with an API key rather than a browser sign-in, so it works in headless and agent environments.
 
+### completions — Shell completion script
+
+```bash
+linkly completions <SHELL>
+```
+
+Prints a completion script to stdout. Supported shells: `bash`, `zsh`, `fish`, `powershell`, `elvish`.
+
+| Shell      | Install                                                             |
+| ---------- | ------------------------------------------------------------------- |
+| bash       | `linkly completions bash > /usr/local/etc/bash_completion.d/linkly` |
+| zsh        | `linkly completions zsh > "${fpath[1]}/_linkly"`                    |
+| fish       | `linkly completions fish > ~/.config/fish/completions/linkly.fish`  |
+| powershell | `linkly completions powershell \| Out-String \| Invoke-Expression`  |
+| elvish     | `linkly completions elvish > ~/.config/elvish/lib/linkly.elv`       |
+
+Open a new shell afterwards. For zsh, `compinit` must already be running (it is under oh-my-zsh); a bare zsh needs `autoload -Uz compinit && compinit` in `~/.zshrc` first.
+
+The script is **static**: it completes subcommands, flags, and fixed value sets (`--image-text`, `--mode`, `--sort`, `--time-sort`). It never starts a process or contacts the desktop app, so it can't stall your prompt and works with Linkly AI closed. Values that are open-ended — `--scope`, `--library`, `--tags`, document IDs — complete to nothing rather than falling back to filenames.
+
 ### self-update — Update CLI
 
 ```bash
