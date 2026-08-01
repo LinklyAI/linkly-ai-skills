@@ -8,7 +8,7 @@ The CLI connects to the Linkly AI desktop app's MCP server (locally or over LAN)
 
 For **local** documents, the **Linkly AI desktop app** must be running with its MCP server enabled (the CLI auto-discovers it via `~/.linkly/port`). Use LAN mode (`--endpoint` + `--token`) or Remote mode (`--remote` with a saved API key) to connect over the network. Linked **cloud** libraries reached via `--remote` do not require the desktop to be online — see below.
 
-Remote mode reaches both your local libraries and your linked cloud libraries through the `mcp.linkly.ai` gateway. Cloud libraries are served even when the desktop tunnel is disconnected; only local / default-scope calls need the desktop online — an offline local call returns a gateway error (`-32000`) with reconnect guidance rather than a client-side abort.
+Remote mode reaches both your local libraries and your linked cloud libraries through the `mcp.linkly.ai` gateway. Linked cloud libraries are served even when the desktop tunnel is disconnected; local / default-scope calls additionally need the desktop online and its tunnel connected. Reaching **local** content over the tunnel is a Pro feature — on a Free plan those calls return `-32000` telling you the tunnel requires Pro, while linked cloud libraries stay available on all plans.
 
 ## Installation
 
@@ -87,12 +87,14 @@ linkly search <QUERY> [OPTIONS]
 | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `<QUERY>`                 | Search keywords or phrases (required)                                                                                                                                                                                            |
 | `--limit <N>`             | Maximum results, 1–50 (default: 20)                                                                                                                                                                                              |
-| `--type <types>`          | Filter by document types, comma-separated (e.g. `pdf,md`)                                                                                                                                                                        |
+| `--type <types>`          | Filter by document type name, comma-separated — `pdf`, `docx`, `pptx`, `epub`, `md`, `txt`, `html`, `image`, `audio`, `video` (e.g. `pdf,md`). Type name, not extension.                                                         |
 | `--library <name>`        | Restrict search to one library: a local name / `local://<id>`, or `cloud://<owner>/<slug>` (over `--remote`; cloud must be the two-segment `owner/slug` form). Omit = all local content.                                         |
 | `--path-glob <pat>`       | Glob **substring-matched** against the file path (no leading/trailing `*` needed). `*` matches any chars including `/`, `?` one char. Full dir path `/Users/me/notes/` scopes to that dir. When unknown, run `find-paths` first. |
 | `--modified-after <iso>`  | Inclusive lower bound on modification time (ISO 8601 UTC; bare date or RFC 3339)                                                                                                                                                 |
 | `--modified-before <iso>` | Inclusive upper bound on modification time (same format as `--modified-after`)                                                                                                                                                   |
 | `--time-sort <mode>`      | Reorder by modification time: `newest`, `oldest`, or `default`. `default` and omitting the flag are equivalent — both keep relevance order.                                                                                      |
+| `--scope <scope>`         | `folder` (default) searches all indexed content; `notes` restricts results to the user's local Markdown card notes and **ignores `--library` and `--path-glob`**.                                                                |
+| `--tags <tags>`           | Comma-separated note tags; returns only documents carrying **all** of them (AND). Leading `#` is stripped and ASCII lowercased. Most useful with `--scope notes`.                                                                |
 | `--json`                  | Output structured JSON (global option)                                                                                                                                                                                           |
 
 Examples:
@@ -106,6 +108,9 @@ linkly search "design tokens" --remote --library "cloud://blueeon/design-system"
 linkly search "report" --path-glob "*2024*"
 linkly search "Q3 report" --modified-after 2024-07-01 --modified-before 2024-09-30
 linkly search "weekly retro" --time-sort newest --limit 5
+linkly search "standup recording" --type audio,video
+linkly search "quarterly planning" --scope notes
+linkly search "meeting" --scope notes --tags work
 linkly search "budget" --json
 ```
 
@@ -169,20 +174,75 @@ linkly grep "function\s+\w+" 1044 -A 5 --json
 linkly read <ID> [OPTIONS]
 ```
 
-| Option         | Description                            |
-| -------------- | -------------------------------------- |
-| `<ID>`         | Document ID from search (required)     |
-| `--offset <N>` | Starting line number, 1-based          |
-| `--limit <N>`  | Number of lines to read, max 500       |
-| `--json`       | Output structured JSON (global option) |
+| Option                  | Description                                                                                                                                                                                                                    |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `<ID>`                  | Document ID from search (required)                                                                                                                                                                                             |
+| `--offset <N>`          | Starting line number, 1-based                                                                                                                                                                                                  |
+| `--limit <N>`           | Number of lines to read, max 500                                                                                                                                                                                               |
+| `--image-text <detail>` | Detail for the referenced-images block: `none` (mapping only), `abstract` (default — plus excerpt and word count), `full` (plus inline OCR text; 2000 chars per image, 20000 total, over-budget images degrade to `abstract`). |
+| `--json`                | Output structured JSON (global option)                                                                                                                                                                                         |
 
 Examples:
 
 ```bash
 linkly read 1044
 linkly read 1044 --offset 50 --limit 100
+linkly read 1044 --image-text full
 linkly read 1044 --json
 ```
+
+### list — Enumerate a container
+
+```bash
+linkly list --scope notes [OPTIONS]
+```
+
+Lists and paginates the contents of a container. Does **no** full-text matching — to find notes by content use `linkly search --scope notes`.
+
+| Option            | Description                                                                                                 |
+| ----------------- | ----------------------------------------------------------------------------------------------------------- |
+| `--scope <scope>` | **Required.** Container to list. Currently only `notes` (the user's local Markdown card notes) is accepted. |
+| `--tags <tags>`   | Comma-separated tags; returns only items carrying **all** of them (AND).                                    |
+| `--limit <N>`     | Maximum items (default 50, max 200; capped at 50 while snippets are on)                                     |
+| `--offset <N>`    | Pagination offset in sort order (default 0). Use `has_more` to decide whether to fetch the next page.       |
+| `--sort <order>`  | `recent` (default, newest first by creation time), `oldest`, or `name` (basename A → Z)                     |
+| `--no-snippet`    | Omit per-item snippets; allows limits above 50                                                              |
+| `--json`          | Output structured JSON (global option; the default for `--scope notes`)                                     |
+
+Examples:
+
+```bash
+linkly list --scope notes
+linkly list --scope notes --tags project,urgent
+linkly list --scope notes --sort name --limit 100 --no-snippet
+```
+
+Every response carries `available_tags` — the tags actually in use across all notes (top 50 by usage). Reuse those values rather than inventing new ones. Each item also carries `note_id` and `version`, which together are the handle needed by `note-save --mode edit`.
+
+### note-save — Create or rewrite a note
+
+```bash
+linkly note-save --mode create --content "..." [--tags <tags>]
+linkly note-save --mode edit --note-id <uuid> --base-version <version> --tags <tags> --content "..."
+```
+
+**This is the only write command.** It creates or rewrites one of the user's local Markdown notes.
+
+| Option                  | Description                                                                                                                                                                        |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--mode <mode>`         | **Required.** `create` writes a new note; `edit` rewrites an existing one. `edit` requires `--note-id`, `--base-version` and `--tags` together.                                    |
+| `--content <markdown>`  | **Required.** Body without YAML front matter. Restricted Markdown subset — see below.                                                                                              |
+| `--note-id <uuid>`      | Note UUID. Required for `edit`; on `create` an already-existing id is rejected as `NOTE_DUPLICATE_ID`.                                                                             |
+| `--base-version <hash>` | The note's current version (sha256 of the raw file), from `linkly list --scope notes`. Required for `edit`. A stale value returns `NOTE_VERSION_CONFLICT` with the actual version. |
+| `--tags <tags>`         | Comma-separated. Optional on `create`; **required on `edit`, where it is the full replacement set** — omitting a previously present tag removes it.                                |
+
+**Content whitelist.** Allowed: paragraphs, line breaks, bold, strikethrough, ordered and unordered lists, plain text. Rejected with `NOTE_INVALID_INPUT`: headings, italics, blockquotes, inline code, code blocks, links, images, raw HTML, thematic breaks, tables, task lists, footnotes. Inline `#tags` in the body stay plain text and are not extracted — use `--tags`.
+
+**Tag policy.** Do not add tags on your own initiative; pass only tags the user explicitly asked for.
+
+**Never write YAML front matter** — the server owns all metadata (`note_id`, timestamps, source, tags).
+
+Error codes: `NOTE_INVALID_INPUT`, `NOTE_NOT_FOUND`, `NOTE_DUPLICATE_ID`, `NOTE_VERSION_CONFLICT`, `NOTE_OUTSIDE_ROOT`, `NOTE_PARSE_ERROR`, `NOTE_IO_ERROR`.
 
 ### status — Check connection status
 
@@ -215,9 +275,16 @@ Each check reports pass/fail with actionable advice on failures. Use this as the
 ```bash
 linkly mcp
 linkly mcp --endpoint http://192.168.1.100:60606/mcp   # bridge to a LAN desktop instead of localhost
+linkly mcp --remote                                    # bridge through the cloud gateway (local + cloud libraries)
 ```
 
-Runs the CLI as a stdio MCP server for integration with Claude Desktop, Cursor, or other MCP clients. Only local and LAN modes are supported: `--endpoint` switches the upstream desktop, while `--token` and `--remote` are not accepted.
+Runs the CLI as a stdio MCP server for integration with Claude Desktop, Cursor, or other MCP clients. The bridge is a transparent passthrough — whatever tools the upstream exposes are forwarded as-is.
+
+**Choose the upstream deliberately, because it decides what the MCP client can reach:**
+
+- default (no flag) — the local desktop. Local content only; `cloud://` references are rejected.
+- `--endpoint <url>` — a desktop on the LAN. Same content boundary as local.
+- `--remote` — the `mcp.linkly.ai` gateway. Reaches local content (through the desktop tunnel) **and** linked cloud libraries. Requires `linkly auth set-key` first.
 
 Claude Desktop configuration (`claude_desktop_config.json`):
 
@@ -232,17 +299,21 @@ Claude Desktop configuration (`claude_desktop_config.json`):
 }
 ```
 
-### auth set-key — Save API key for remote access
+### auth — Manage credentials
 
 ```bash
 linkly auth set-key <API_KEY>
+linkly auth status
+linkly auth logout
 ```
 
-| Option      | Description                                                                     |
-| ----------- | ------------------------------------------------------------------------------- |
-| `<API_KEY>` | API key from linkly.ai dashboard (format: `lkai_<32-char hex>`, 37 chars total) |
+| Command   | Description                                                                                                                                |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `set-key` | Save an API key from the linkly.ai dashboard (format: `lkai_<32-char hex>`, 37 chars total) to `~/.linkly/credentials.json` for `--remote` |
+| `status`  | Show which key is in use, whether it is valid, and the account's plan                                                                      |
+| `logout`  | Remove the stored credentials                                                                                                              |
 
-Saves the key to `~/.linkly/credentials.json` for use with `--remote`.
+Linkly AI CLI authenticates with an API key rather than a browser sign-in, so it works in headless and agent environments.
 
 ### self-update — Update CLI
 
@@ -252,13 +323,23 @@ linkly self-update
 
 ## Connection Options
 
-`--endpoint` and `--token` are available on `search`, `grep`, `outline`, `read`, `status`, `doctor`, and `list-libraries` commands; `mcp` also accepts `--endpoint` for LAN bridging (but not `--token`). `--remote` is available on the same commands (not on `mcp`, `auth`, or `self-update`).
+`--endpoint` and `--token` are available on the document commands (`search`, `grep`, `outline`, `read`, `list`, `note-save`, `list-libraries`, `explore`, `find-paths`) plus `status` and `doctor`; `mcp` accepts `--endpoint` for LAN bridging (but not `--token`). `--remote` is available on those same commands and on `mcp`; it is not accepted by `auth` or `self-update`.
 
 | Flag               | Scope  | Description                                                                                                                                                                            |
 | ------------------ | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `--endpoint <url>` | LAN    | Connect to a specific MCP endpoint (e.g. `http://192.168.1.100:60606/mcp`), requires `--token`                                                                                         |
 | `--token <token>`  | LAN    | Bearer token for LAN authentication (required with `--endpoint`, conflicts with `--remote`)                                                                                            |
 | `--remote`         | Remote | Connect via `https://mcp.linkly.ai` — reaches local + linked cloud libraries (cloud works even when the desktop tunnel is down); requires `auth set-key` (conflicts with `--endpoint`) |
+
+## Exit Codes
+
+| Code | Meaning                                                                        |
+| ---- | ------------------------------------------------------------------------------ |
+| `0`  | The command ran and produced at least one result                               |
+| `1`  | The command ran successfully but found nothing (no search hits, no matches)    |
+| `2`  | The command failed (connection, authentication, invalid arguments, tool error) |
+
+This makes `&&` chaining work as expected — `linkly search "x" && echo found` only fires when there really was a hit. Scripts that need to distinguish "no results" from "broken" should check for `1` versus `2` rather than parsing output.
 
 ## Global Options
 

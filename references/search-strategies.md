@@ -175,6 +175,51 @@ linkly search "onboarding" --remote --library "cloud://blueeon/design-system" --
 
 The first column matches what users actually say; the third column is the real on-disk identifier `find_paths` is going to surface.
 
+### Searching the user's notes
+
+Notes are short local Markdown cards. Two different tools reach them, and picking the wrong one wastes a round-trip:
+
+| The user wants                     | Use                                                                |
+| ---------------------------------- | ------------------------------------------------------------------ |
+| To browse, or to filter by tag     | `linkly list --scope notes [--tags ...]` — enumerates, no matching |
+| To find notes mentioning something | `linkly search "<query>" --scope notes` — full-text                |
+
+```bash
+linkly list --scope notes --tags project           # "show my project notes"
+linkly search "onboarding checklist" --scope notes  # "did I write anything about onboarding?"
+```
+
+⚠️ **`--scope notes` ignores `--library` and `--path-glob`.** Passing them together doesn't error — the path/library filter is silently dropped, and you get results from the whole notes folder. If you need both a path filter and note content, search without `--scope` and filter the results yourself.
+
+Start from `list` when the user's phrasing is about the notes themselves ("my notes", "notes tagged X", "recent notes"); start from `search` when it's about a topic. `list` responses carry `available_tags`, which is the reliable way to learn what tag vocabulary the user actually uses — guessing tag names produces empty results.
+
+### Searching derived text (OCR and transcripts)
+
+Several document types have no literal text in the file — Linkly indexes text _derived_ from them, and that changes how queries behave:
+
+- **Images and scanned PDFs** are indexed from OCR output. Search matches recognized text, so expect OCR-typical noise: split words, confused characters, missing punctuation. Prefer distinctive multi-word phrases over exact strings, and drop punctuation from the query.
+- **Audio and video** are indexed from transcripts. Search matches what was _said_, so query with spoken phrasing rather than document phrasing ("we decided to postpone" rather than "decision: postponed"). `outline` on these returns chapters and time spans (`HH:MM:SS`) instead of headings — use it to jump to the right moment, then `read` that range.
+
+```bash
+linkly search "quarterly revenue slide" --type image      # scanned/photographed content
+linkly search "we should postpone the launch" --type audio,video
+linkly outline <MEDIA_ID>                                 # chapters + time spans
+```
+
+If media searches return nothing at all, transcription may simply be switched off — it is opt-in per media kind in Desktop Settings → Indexing. Check that before concluding the content isn't there.
+
+To pull the text out of images _referenced by_ another document (a clipped article, a report with screenshots), don't search for the images separately — read the host document with `--image-text full`.
+
+### When a document is searchable but unreadable
+
+Some documents appear in search results (their filename and path are indexed) but have no readable body. `read` and `grep` then fail with an explicit reason:
+
+- a cloud-storage placeholder that was never downloaded locally
+- a media file with no audio track, or one whose transcription failed
+- a file whose signature doesn't match its extension (a stub or renamed file)
+
+**This is a terminal state, not a transient error.** Relay the reason to the user — for cloud placeholders, that they should download the file in their cloud client and wait for indexing. Do **not** re-run `search` and retry the read: the `doc_id` is valid and stable, the text simply doesn't exist yet.
+
 ### Constraining by time
 
 `search` supports two complementary time mechanisms. They can be combined.
@@ -218,10 +263,10 @@ linkly search "transformer architecture" --library my-research --limit 10
 
 **When NOT to use:**
 
-- General searches like "find my PDF about X" → global search is better
-- You're unsure which library → search globally, or ask the user
+- General searches like "find my PDF about X" → omit `--library`
+- You're unsure which library → omit it and search the user's local content, or ask
 
-Libraries are optional. **Default to global search** (which covers your local content only — cloud libraries are never included unless named explicitly) unless the user specifies otherwise.
+Libraries are optional — **omit `--library` by default**. But be precise about what that means: omitting it searches all of the user's **local** indexed content, not "everything". Cloud libraries are a separate tier that is never included implicitly; each one must be named explicitly, one search per library. A query that comes back empty therefore has two possible meanings — the content genuinely isn't indexed, or it lives in a cloud library you never searched. Don't report the first when you haven't ruled out the second.
 
 ### Filtering by file path
 

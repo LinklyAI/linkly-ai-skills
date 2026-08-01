@@ -6,11 +6,11 @@
 
 [Agent Skills](https://agentskills.io) for [Linkly AI](https://linkly.ai) — search, browse, and read your local documents (and linked cloud libraries) from any AI coding agent.
 
-This skill teaches AI agents how to use Linkly AI's document search capabilities, enabling them to find and read your locally indexed documents (PDF, Markdown, DOCX, PPTX, EPUB, TXT, HTML, and more) as well as cloud libraries you've linked via Linkly Web.
+This skill teaches AI agents how to use Linkly AI's document search capabilities, enabling them to find and read your locally indexed documents (PDF, Markdown, DOCX, PPTX, EPUB, TXT, HTML, images, audio, video) as well as cloud libraries you've linked via Linkly Web — and to capture short Markdown notes back into your library.
 
 ## What is Linkly AI?
 
-[Linkly AI](https://linkly.ai) is a desktop application that indexes documents on your computer and provides full-text search, structural outlines, and content reading through a local MCP server. Through the `mcp.linkly.ai` cloud gateway it can also reach cloud libraries you've linked via Linkly Web. Think of it as a knowledge base — local and cloud — that AI agents can query.
+[Linkly AI](https://linkly.ai) is a desktop application that indexes documents on your computer and provides full-text search, structural outlines, content reading, and local note capture through a local MCP server. Through the `mcp.linkly.ai` cloud gateway it can also reach cloud libraries you've linked via Linkly Web. Think of it as a knowledge base — local and cloud — that AI agents can query.
 
 ## What Does This Skill Do?
 
@@ -22,17 +22,18 @@ When installed, this skill enables AI agents to:
 - **List libraries** to discover and search within specific knowledge bases
 - **Browse** document outlines to understand structure before diving in
 - **Grep** for specific text patterns with regex matching
-- **Read** document content with line-based pagination
+- **Read** document content with line-based pagination, including OCR text from referenced images
+- **List and write notes** — browse your local Markdown notes by tag, and save new ones
 - **Diagnose issues** with `linkly doctor` when things aren't working
 - **Auto-detect** whether to use CLI commands or MCP tools based on the environment
 - **Guide setup** if Linkly AI is not yet installed
 
 The skill supports two access modes:
 
-| Mode | When Used                      | How It Works                                                                                                                                                                                                |
-| ---- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| CLI  | Agent has Bash/terminal access | Runs `linkly` CLI commands (preferred when both are available)                                                                                                                                              |
-| MCP  | Agent has MCP tool access      | Calls `search` / `find_paths` / `outline` / `grep` / `read` / `list_libraries` / `explore` MCP tools — via the local server or the `mcp.linkly.ai` cloud gateway (which also serves linked cloud libraries) |
+| Mode | When Used                      | How It Works                                                                                                                                                                                                                       |
+| ---- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CLI  | Agent has Bash/terminal access | Runs `linkly` CLI commands (preferred when both are available)                                                                                                                                                                     |
+| MCP  | Agent has MCP tool access      | Calls `search` / `find_paths` / `outline` / `grep` / `read` / `list` / `list_libraries` / `explore` / `note_save` MCP tools — via the local server or the `mcp.linkly.ai` cloud gateway (which also serves linked cloud libraries) |
 
 ## Prerequisites
 

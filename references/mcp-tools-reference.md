@@ -1,6 +1,6 @@
 # Linkly AI MCP Tools Reference
 
-The Linkly AI MCP server exposes seven tools for document operations. Local documents require the Linkly AI desktop app to be running with its MCP server enabled; linked cloud libraries are served directly by the cloud gateway and stay reachable even when the desktop is offline.
+The Linkly AI MCP server exposes nine tools: seven read-only document tools (`list_libraries`, `explore`, `find_paths`, `search`, `outline`, `grep`, `read`), one enumeration tool (`list`), and one write tool (`note_save`). Local documents require the Linkly AI desktop app to be running with its MCP server enabled; linked cloud libraries are served directly by the cloud gateway and stay reachable even when the desktop is offline.
 
 **Server name:** `linkly-ai` (local Desktop MCP) or `linkly-ai-cloud` (the cloud gateway at `mcp.linkly.ai`, which exposes both your local libraries — via the desktop tunnel — and your linked cloud libraries).
 
@@ -28,13 +28,16 @@ Returns a Markdown document with up to three sections — **Local libraries**, *
 ```
 ## Local libraries
 
-### Libraries
-- **my-research**: AI and ML papers (42 docs, 3 folders)
+- **my-research** ("AI Research"): AI and ML papers (42 docs, 3 folders)
 - **work-notes**: Daily work logs (128 docs, 1 folders)
 
 ## Cloud libraries (1)
 
-- **cloud://blueeon/design-system** (15 docs): Public design system docs
+> You are signed in as @blueeon. Libraries under cloud://blueeon/ are your own;
+> any other username belongs to someone else. Each entry below is tagged
+> [yours] (you own it) or [shared] (linked from another user).
+
+- **cloud://blueeon/design-system** (15 docs) [yours]: Public design system docs
 
 ## Default search scope
 
@@ -42,6 +45,8 @@ When the `library` parameter is omitted, search and explore cover ALL your
 local indexed content. To search a cloud library, specify it explicitly via
 `library="cloud://owner/slug"`.
 ```
+
+A library may carry a display title in addition to its identifier; when set it appears in quotes after the name. On a **local or LAN** connection there are no cloud libraries to reach, so only the local section is returned — see ["Know what your connection reaches"](../SKILL.md#3-know-what-your-connection-reaches) before concluding the user has none.
 
 **When to use:** When the user asks what libraries exist, before scoping a `search` / `explore` / `find_paths` to a specific library, or to discover linked cloud libraries (the only way to learn their `cloud://owner/slug` identifiers).
 
@@ -148,12 +153,14 @@ Search indexed documents by keywords or phrases — across all your local conten
 | ----------------- | ---------- | -------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `query`           | `string`   | Yes      | —           | Search keywords or phrases                                                                                                                                                                                                                                                                                                                                          |
 | `limit`           | `integer`  | No       | 20          | Maximum results to return (1–50)                                                                                                                                                                                                                                                                                                                                    |
-| `doc_types`       | `string[]` | No       | —           | Filter by document types (e.g. `["pdf", "md", "pptx", "epub"]`)                                                                                                                                                                                                                                                                                                             |
+| `doc_types`       | `string[]` | No       | —           | Filter by document type name — one of `pdf`, `docx`, `pptx`, `epub`, `md`, `txt`, `html`, `image`, `audio`, `video` (e.g. `["pdf", "md"]`). Filter by type name, not by extension.                                                                                                                                                                                  |
 | `library`         | `string`   | No       | —           | Scope search to one library — `local://<id>` (local) or `cloud://<owner>/<slug>` (cloud; must be the two-segment `owner/slug` form, a single segment is rejected). A plain string is treated as a local library name (backward-compatible). Omit = all **local** content (cloud libraries are not included by default). Use `list_libraries` to discover libraries. |
 | `path_glob`       | `string`   | No       | —           | Glob **substring-matched** against the file path — may appear anywhere, no leading/trailing `*` needed. `*` matches any chars including `/`, `?` one char. Always case-sensitive. A full directory path (`/Users/me/notes/`) scopes to that dir. When the actual path is unknown, run `find_paths` first.                                                           |
 | `modified_after`  | `string`   | No       | —           | Inclusive lower bound on modification time. Accepts ISO 8601 UTC: a bare date `"2024-01-01"` (expanded to `00:00:00Z`) or a full RFC 3339 datetime `"2024-01-01T00:00:00Z"`.                                                                                                                                                                                        |
 | `modified_before` | `string`   | No       | —           | Inclusive upper bound on modification time. Same format as `modified_after`.                                                                                                                                                                                                                                                                                        |
 | `time_sort`       | `string`   | No       | `"default"` | One of `"default"` / `"newest"` / `"oldest"`. `"default"` keeps hybrid relevance ordering; `"newest"` / `"oldest"` reorder by `modified_at` after dedup, useful for "latest / earliest".                                                                                                                                                                            |
+| `scope`           | `string`   | No       | `"folder"`  | `"folder"` (default) searches all indexed content with the usual `library` / `path_glob` semantics. `"notes"` restricts results to the user's local Markdown card notes and **ignores `library` and `path_glob`**. Unknown values are rejected; `null` or omitted yields the default.                                                                               |
+| `tags`            | `string[]` | No       | —           | Return only documents carrying **all** the given note tags (AND semantics). Tags are normalized: a leading `#` is stripped and ASCII is lowercased. For OR, issue one call per tag and union the results. Most useful with `scope="notes"`.                                                                                                                         |
 | `output_format`   | `string`   | No       | —           | Set to `"json"` for structured JSON output                                                                                                                                                                                                                                                                                                                          |
 
 ### Response Fields (JSON mode)
@@ -230,7 +237,7 @@ Use node IDs (e.g. `"1.2"`, `"2"`) with the `expand` parameter to drill into spe
 
 ## grep
 
-Locate specific lines within a single document by regex pattern. Best for documents with `has_outline=false` where outline is unavailable. Use after `search` to pinpoint exact positions of names, dates, terms, identifiers, or any pattern — then use `read` with offset to see full context. Works on all document types (PDF, Markdown, DOCX, PPTX, EPUB, TXT, HTML). The `doc_id` parameter takes a single ID — to scan multiple documents, call grep once per `doc_id`.
+Locate specific lines within a single document by regex pattern. Best for documents with `has_outline=false` where outline is unavailable. Use after `search` to pinpoint exact positions of names, dates, terms, identifiers, or any pattern — then use `read` with offset to see full context. Works on all document types, including the text derived from images and scanned PDFs (OCR) and from audio and video (transcripts). The `doc_id` parameter takes a single ID — to scan multiple documents, call grep once per `doc_id`.
 
 ### Parameters
 
@@ -293,26 +300,30 @@ Read document content by ID with line-based pagination.
 
 ### Parameters
 
-| Parameter       | Type      | Required | Default | Description                                                                                                                                |
-| --------------- | --------- | -------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `doc_id`        | `string`  | Yes      | —       | Document ID — pass verbatim from search (`local://<integer>` or `cloud://<owner>/<slug>/<root-hash>/<path>`; bare integers still accepted) |
-| `offset`        | `integer` | No       | 1       | Starting line number (1-based)                                                                                                             |
-| `limit`         | `integer` | No       | 200     | Number of lines to read (max 500)                                                                                                          |
-| `output_format` | `string`  | No       | —       | Set to `"json"` for structured JSON output                                                                                                 |
+| Parameter       | Type      | Required | Default      | Description                                                                                                                                                                                                                                                                                                                                                                                  |
+| --------------- | --------- | -------- | ------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `doc_id`        | `string`  | Yes      | —            | Document ID — pass verbatim from search (`local://<integer>` or `cloud://<owner>/<slug>/<root-hash>/<path>`; bare integers still accepted)                                                                                                                                                                                                                                                   |
+| `offset`        | `integer` | No       | 1            | Starting line number (1-based)                                                                                                                                                                                                                                                                                                                                                               |
+| `limit`         | `integer` | No       | 200          | Number of lines to read (max 500)                                                                                                                                                                                                                                                                                                                                                            |
+| `image_text`    | `string`  | No       | `"abstract"` | Detail level for the referenced-images mapping appended to the result (markdown image refs inside the shown line range are resolved to indexed image documents). `"none"` = mapping only (line, file, doc_id); `"abstract"` = plus a one-line excerpt and word count per image; `"full"` = plus inline OCR text (2000 chars per image, 20000 total; over-budget images degrade to abstract). |
+| `output_format` | `string`  | No       | —            | Set to `"json"` for structured JSON output                                                                                                                                                                                                                                                                                                                                                   |
 
 ### Response Fields (JSON mode)
 
-| Field         | Type      | Description                                                                     |
-| ------------- | --------- | ------------------------------------------------------------------------------- |
-| `doc_id`      | `string`  | Document identifier                                                             |
-| `title`       | `string`  | Document title                                                                  |
-| `path`        | `string`  | Full absolute file path                                                         |
-| `word_count`  | `number?` | Total word count                                                                |
-| `author`      | `string?` | Document author or summary                                                      |
-| `content`     | `string`  | Content with line numbers (prefixed)                                            |
-| `total_lines` | `number`  | Total lines in the document (always present, computed from actual file content) |
-| `shown_from`  | `number`  | First line shown (1-based)                                                      |
-| `shown_to`    | `number`  | Last line shown (1-based, inclusive)                                            |
+| Field               | Type      | Description                                                                                                                                                                                                                         |
+| ------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `doc_id`            | `string`  | Document identifier                                                                                                                                                                                                                 |
+| `title`             | `string`  | Document title                                                                                                                                                                                                                      |
+| `path`              | `string`  | Full absolute file path                                                                                                                                                                                                             |
+| `word_count`        | `number?` | Total word count                                                                                                                                                                                                                    |
+| `author`            | `string?` | Document author or summary                                                                                                                                                                                                          |
+| `content`           | `string`  | Content with line numbers (prefixed)                                                                                                                                                                                                |
+| `total_lines`       | `number`  | Total lines in the document (always present, computed from actual file content)                                                                                                                                                     |
+| `shown_from`        | `number`  | First line shown (1-based)                                                                                                                                                                                                          |
+| `shown_to`          | `number`  | Last line shown (1-based, inclusive)                                                                                                                                                                                                |
+| `ocr_pending`       | `boolean` | The body shown is incomplete — a background job (OCR or audio/video transcription) still owes text, or the extracted text was truncated. The wire name says OCR for backward compatibility, but it covers any partial-content case. |
+| `partial_notice`    | `string?` | Human-readable explanation accompanying `ocr_pending`.                                                                                                                                                                              |
+| `referenced_images` | `array`   | Markdown image references found in the shown range, resolved to indexed image documents. Omitted when empty. Detail per entry depends on `image_text`.                                                                              |
 
 ### Content Format
 
@@ -326,17 +337,93 @@ The `content` field contains line-numbered text:
 
 Line numbers are right-aligned and tab-separated from the content.
 
+## list
+
+Enumerate the contents of a container. Unlike `search`, it does **no** full-text matching — it lists and paginates.
+
+### Parameters
+
+| Parameter       | Type       | Required | Default          | Description                                                                                                                                                                                                                                                                          |
+| --------------- | ---------- | -------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `scope`         | `string`   | **Yes**  | —                | Container to list. Currently only `"notes"` (the user's local Markdown card notes) is accepted; unknown values are rejected. Note: `search.scope` has a value also spelled `"folder"` meaning "all indexed content" — a different concept that shares no values with this parameter. |
+| `tags`          | `string[]` | No       | —                | Return only items carrying **all** the given tags (AND semantics), normalized like `search.tags`. For keyword search over notes use `search` with `scope="notes"` instead.                                                                                                           |
+| `limit`         | `integer`  | No       | 50               | Maximum items (max 200; drops to 50 while `snippet` is enabled).                                                                                                                                                                                                                     |
+| `offset`        | `integer`  | No       | 0                | Pagination offset counted in sort order. Use `has_more` to decide whether to fetch the next page.                                                                                                                                                                                    |
+| `snippet`       | `boolean`  | No       | `true` (notes)   | Include a per-item snippet (first ~200 chars of the body, YAML stripped). Set `false` to page with limits above 50 — the field stays present but null.                                                                                                                               |
+| `sort`          | `string`   | No       | `"recent"`       | `"recent"` (creation time, newest first) / `"oldest"` / `"name"` (basename, UTF-8 code point order). Page order follows sort direction, and every sort ends with a deterministic tiebreaker so offset pagination is stable.                                                          |
+| `output_format` | `string`   | No       | `"json"` (notes) | `scope="notes"` defaults to JSON because each item is a CAS handle (`note_id` + `version`) for `note_save`. `"markdown"` is a human-readable opt-in and still carries both inline.                                                                                                   |
+
+### Response Fields (JSON mode)
+
+| Field                 | Type       | Description                                                                                               |
+| --------------------- | ---------- | --------------------------------------------------------------------------------------------------------- |
+| `scope`               | `string`   | Echo of the requested scope                                                                               |
+| `total`               | `number`   | Total items matching the filter                                                                           |
+| `items`               | `array`    | This page of items                                                                                        |
+| `offset` / `limit`    | `number`   | Echo of the pagination window                                                                             |
+| `has_more`            | `boolean`  | Whether more items exist past this page                                                                   |
+| `available_tags`      | `string[]` | Tags in use across **all** notes — computed before filtering, top 50 by usage, same snapshot as this page |
+| `available_tags_hint` | `string`   | Fixed guidance on reusing those tags                                                                      |
+
+Each item carries: `note_id`, `version` (sha256 — this is the `base_version` you need to edit it), `title`, `doc_id`, `path`, `created_at`, `modified_at`, `tags`, `snippet`.
+
+**When to use:** the user wants to browse or enumerate notes ("what notes do I have?", "show my notes tagged work"). To find notes by content, use `search` with `scope="notes"`.
+
+## note_save
+
+Create or rewrite one of the user's local Markdown notes. **This is the only write tool** — every other tool in this reference is read-only.
+
+### Parameters
+
+| Parameter      | Type       | Required      | Description                                                                                                                                                                                                             |
+| -------------- | ---------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mode`         | `string`   | Yes           | `"create"` writes a new note; `"edit"` rewrites an existing one. Edit **requires `note_id`, `base_version` and `tags` together** — missing any of them returns `NOTE_INVALID_INPUT` with a fix example.                 |
+| `content`      | `string`   | Yes           | Markdown body **without** YAML front matter. See the whitelist below.                                                                                                                                                   |
+| `note_id`      | `string`   | edit only     | Note UUID. Required for edit. On create it is reserved for future cloud sync, and a create carrying an already-existing id is rejected as `NOTE_DUPLICATE_ID`.                                                          |
+| `base_version` | `string`   | edit only     | The note's current version hash (sha256 of the raw file). Read it from `list` or from a previous `note_save` response. A stale value returns `NOTE_VERSION_CONFLICT` with the actual version — re-read before retrying. |
+| `tags`         | `string[]` | edit required | **Full replacement set** on edit: pass back exactly what you read to leave tags unchanged; omitting a previously present tag removes it. Optional on create.                                                            |
+
+### Content whitelist
+
+**Allowed:** paragraphs, line breaks, bold, strikethrough, ordered and unordered lists, plain text (bare URLs are fine as plain text).
+
+**Rejected** with `NOTE_INVALID_INPUT` (the error lists the offending constructs): headings, italics, blockquotes, inline code, code blocks, links, images, raw HTML, thematic breaks, tables, task lists, footnotes. An edit may keep constructs the note already contains, but must not introduce new forbidden kinds.
+
+Inline `#tags` in the body stay plain text — they are **not** extracted into the tag set. Use the `tags` parameter.
+
+### Tag policy
+
+**Do not add tags on your own initiative.** Pass only tags the user explicitly asked for; never invent them. The `available_tags` list from `list` exists for filtering, not for decorating new notes.
+
+### Response
+
+`note_id`, `created_at`, `updated_at`, `updated_by`, `version`, and the note's path. On a version conflict the error body carries `note_id`, `expected_version`, `actual_version` and `actual_updated_at`.
+
+### Error codes
+
+`NOTE_INVALID_INPUT`, `NOTE_NOT_FOUND`, `NOTE_DUPLICATE_ID`, `NOTE_VERSION_CONFLICT`, `NOTE_OUTSIDE_ROOT`, `NOTE_PARSE_ERROR`, `NOTE_IO_ERROR`.
+
 ## Supported Document Types
 
-| Type       | Extensions                               | Outline Support      |
-| ---------- | ---------------------------------------- | -------------------- |
-| Markdown   | `.md`, `.mdx`                            | Yes (parsed)         |
-| PDF        | `.pdf`                                   | No                   |
-| Word       | `.docx`                                  | Yes (parsed)         |
-| PowerPoint | `.pptx`                                  | Yes (slide outlines) |
-| Text       | `.txt`                                   | No                   |
-| HTML       | `.html`, `.htm`                          | No                   |
-| EPUB       | `.epub`                                  | Yes (from ToC)       |
-| Image      | `.png`, `.jpg`, `.jpeg`, `.bmp`, `.webp` | No (OCR text)        |
+| Type       | `doc_types` value | Extensions                                      | Outline Support             |
+| ---------- | ----------------- | ----------------------------------------------- | --------------------------- |
+| Markdown   | `md`              | `.md`, `.mdx`                                   | Yes (parsed)                |
+| PDF        | `pdf`             | `.pdf`                                          | No                          |
+| Word       | `docx`            | `.docx`                                         | Yes (parsed)                |
+| PowerPoint | `pptx`            | `.pptx`                                         | Yes (slide outlines)        |
+| Text       | `txt`             | `.txt`                                          | No                          |
+| HTML       | `html`            | `.html`                                         | No                          |
+| EPUB       | `epub`            | `.epub`                                         | Yes (from ToC)              |
+| Image      | `image`           | `.png`, `.jpg`, `.jpeg`, `.bmp`, `.webp`        | No (OCR text)               |
+| Audio      | `audio`           | `.mp3`, `.wav`, `.m4a`, `.flac`, `.aac`, `.ogg` | Yes (chapters / time spans) |
+| Video      | `video`           | `.mp4`, `.mov`, `.mkv`, `.webm`                 | Yes (chapters / time spans) |
+
+The middle column is what you pass to `doc_types` / `--type` — filter by type name, not by extension.
+
+Notes on the derived types:
+
+- **Audio and video** are indexed from their **transcript**, produced by on-device speech recognition. Searching them matches transcript text; `outline` returns chapters and time spans (`HH:MM:SS`) rather than headings. Transcription is opt-in per media kind in Desktop Settings → Indexing — if the user's recordings return nothing, that toggle is the first thing to check.
+- **Images and scanned PDFs** are indexed from their **OCR text**. Images referenced from within another document also surface through `read`'s `image_text` parameter.
+- **Subtitle sidecars** (`.srt`, `.vtt`) sitting next to a media file are paired with that file rather than indexed as separate documents.
 
 For document types without outline support, `has_outline` is always `false` in search results. Use the `read` tool with pagination to browse these documents.
