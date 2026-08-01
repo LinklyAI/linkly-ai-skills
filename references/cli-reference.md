@@ -124,11 +124,11 @@ Read the `[meta] now=<iso>` footer (Markdown output) or top-level `_meta.now` (J
 linkly outline <IDS>...
 ```
 
-| Option           | Description                                                                           |
-| ---------------- | ------------------------------------------------------------------------------------- |
-| `<IDS>...`       | One or more document IDs from search (required)                                       |
-| `--expand <ids>` | Node IDs to expand, comma-separated (e.g. `2,3.1`); others collapse, omit to auto-fit |
-| `--json`         | Output structured JSON (global option)                                                |
+| Option           | Description                                                                                         |
+| ---------------- | --------------------------------------------------------------------------------------------------- |
+| `<IDS>...`       | One or more document IDs from search (required). Pass `-` to read the IDs from stdin, one per line. |
+| `--expand <ids>` | Node IDs to expand, comma-separated (e.g. `2,3.1`); others collapse, omit to auto-fit               |
+| `--json`         | Output structured JSON (global option)                                                              |
 
 Examples:
 
@@ -142,22 +142,22 @@ linkly outline 1044 --json
 ### grep — Locate specific lines within a document by regex
 
 ```bash
-linkly grep <PATTERN> <DOC_ID> [OPTIONS]
+linkly grep <PATTERN> <DOC_IDS>... [OPTIONS]
 ```
 
-| Option               | Description                                                                   |
-| -------------------- | ----------------------------------------------------------------------------- |
-| `<PATTERN>`          | Regular expression pattern (required)                                         |
-| `<DOC_ID>`           | Document ID to search within (required, from search results)                  |
-| `-C, --context`      | Lines of context before and after each match                                  |
-| `-B, --before`       | Lines of context before each match                                            |
-| `-A, --after`        | Lines of context after each match                                             |
-| `-i`                 | Case-insensitive matching                                                     |
-| `--mode`             | Output mode: `content` or `count`                                             |
-| `--limit`            | Maximum matches, 1–100 (default: 20)                                          |
-| `--offset`           | Number of matches to skip for pagination (default: 0)                         |
-| `--fuzzy-whitespace` | Fuzzy whitespace matching: `true`/`false`, omit for auto (PDF on, others off) |
-| `--json`             | Output structured JSON (global option)                                        |
+| Option               | Description                                                                                              |
+| -------------------- | -------------------------------------------------------------------------------------------------------- |
+| `<PATTERN>`          | Regular expression pattern (required)                                                                    |
+| `<DOC_IDS>...`       | One or more document IDs to search within (required). Pass `-` to read the IDs from stdin, one per line. |
+| `-C, --context`      | Lines of context before and after each match                                                             |
+| `-B, --before`       | Lines of context before each match                                                                       |
+| `-A, --after`        | Lines of context after each match                                                                        |
+| `-i`                 | Case-insensitive matching                                                                                |
+| `--mode`             | Output mode: `content` or `count`                                                                        |
+| `--limit`            | Maximum matches, 1–100 (default: 20)                                                                     |
+| `--offset`           | Number of matches to skip for pagination (default: 0)                                                    |
+| `--fuzzy-whitespace` | Fuzzy whitespace matching: `true`/`false`, omit for auto (PDF on, others off)                            |
+| `--json`             | Output structured JSON (global option)                                                                   |
 
 Examples:
 
@@ -171,12 +171,12 @@ linkly grep "function\s+\w+" 1044 -A 5 --json
 ### read — Read document content
 
 ```bash
-linkly read <ID> [OPTIONS]
+linkly read <IDS>... [OPTIONS]
 ```
 
 | Option                  | Description                                                                                                                                                                                                                    |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `<ID>`                  | Document ID from search (required)                                                                                                                                                                                             |
+| `<IDS>...`              | One or more document IDs from search (required). Pass `-` to read the IDs from stdin, one per line.                                                                                                                            |
 | `--offset <N>`          | Starting line number, 1-based                                                                                                                                                                                                  |
 | `--limit <N>`           | Number of lines to read, max 500                                                                                                                                                                                               |
 | `--image-text <detail>` | Detail for the referenced-images block: `none` (mapping only), `abstract` (default — plus excerpt and word count), `full` (plus inline OCR text; 2000 chars per image, 20000 total, over-budget images degrade to `abstract`). |
@@ -453,13 +453,12 @@ Errors from the cloud gateway also carry a JSON-RPC `code` and a `data` object (
 
 ## Shell Composition Tips
 
-The CLI outputs plain text or structured JSON, making it composable with standard Unix tools for more precise text processing. Note: a cloud `doc_id` embeds the file path and can contain spaces, so iterate doc_ids with `while IFS= read -r id` rather than `xargs` (which splits on whitespace).
+`read`, `outline` and `grep` all take **several document IDs**, and `-` reads the IDs from stdin (one per line). So a `search` result feeds straight into the next command — no shell loop.
 
-**Extract doc IDs and batch outline:**
+**Outline everything a search found:**
 
 ```bash
-linkly search "architecture" --json | jq -r '.results[].doc_id' \
-  | while IFS= read -r id; do linkly outline "$id"; done
+linkly search "architecture" --json | jq -r '.results[].doc_id' | linkly outline -
 ```
 
 **Chain search → grep for two-stage filtering:**
@@ -468,16 +467,24 @@ linkly search "architecture" --json | jq -r '.results[].doc_id' \
 # First narrow by semantics, then filter by exact keyword
 linkly search "deployment" --json \
   | jq -r '.results[].doc_id' \
-  | while IFS= read -r id; do linkly grep "docker\|kubernetes" "$id"; done
+  | linkly grep "docker\|kubernetes" -
 ```
 
-**Aggregate outline output into a single file:**
+**Aggregate into a file:**
 
 ```bash
-linkly search "API design" --json \
-  | jq -r '.results[].doc_id' \
-  | while IFS= read -r id; do linkly outline "$id"; done \
-  > combined-outlines.txt
+linkly search "API design" --json | jq -r '.results[].doc_id' \
+  | linkly outline - > combined-outlines.txt
+```
+
+**Read several documents as JSON Lines:**
+
+```bash
+# One JSON object per line — one document each. A single ID still prints
+# a single object, so this is safe to use either way.
+linkly search "onboarding" --json | jq -r '.results[].doc_id' \
+  | linkly read - --json \
+  | jq -r '"\(.title): \(.total_lines) lines"'
 ```
 
 **Use `grep` on CLI output for further filtering:**
@@ -485,5 +492,12 @@ linkly search "API design" --json \
 ```bash
 linkly search "security" | grep -i "auth\|token\|jwt"
 ```
+
+Notes on batching:
+
+- **`-` cannot be mixed with IDs on the command line** — pass either `-` alone or the IDs directly.
+- **Partial failures don't abort the batch.** Unreadable documents are reported on stderr and the rest still print on stdout, so a downstream parser sees only good records. If _every_ ID fails, the command fails.
+- **`--exit-code` treats the batch as a whole**: `grep` exits 0 when at least one document matched, 1 when none did — the same thing `grep pattern *.txt` reports.
+- A cloud `doc_id` embeds the file path and can contain spaces. Piping through `-` is line-based and handles that; `xargs` (which splits on whitespace) does not.
 
 When using `--json`, pipe through `jq` to extract specific fields before passing to the next command. This keeps token usage low and gives you precise control over what the Agent reads.
