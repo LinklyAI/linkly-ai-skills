@@ -199,15 +199,15 @@ linkly list --scope notes [OPTIONS]
 
 Lists and paginates the contents of a container. Does **no** full-text matching — to find notes by content use `linkly search --scope notes`.
 
-| Option            | Description                                                                                                 |
-| ----------------- | ----------------------------------------------------------------------------------------------------------- |
-| `--scope <scope>` | **Required.** Container to list. Currently only `notes` (the user's local Markdown card notes) is accepted. |
-| `--tags <tags>`   | Comma-separated tags; returns only items carrying **all** of them (AND).                                    |
-| `--limit <N>`     | Maximum items (default 50, max 200; capped at 50 while snippets are on)                                     |
-| `--offset <N>`    | Pagination offset in sort order (default 0). Use `has_more` to decide whether to fetch the next page.       |
-| `--sort <order>`  | `recent` (default, newest first by creation time), `oldest`, or `name` (basename A → Z)                     |
-| `--no-snippet`    | Omit per-item snippets; allows limits above 50                                                              |
-| `--json`          | Output structured JSON (global option; the default for `--scope notes`)                                     |
+| Option            | Description                                                                                                                                                                                         |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--scope <scope>` | **Required.** Container to list — `notes` is the user's local Markdown card notes. Validated by the desktop rather than the CLI, so scopes added by a newer desktop work without upgrading the CLI. |
+| `--tags <tags>`   | Comma-separated tags; returns only items carrying **all** of them (AND).                                                                                                                            |
+| `--limit <N>`     | Maximum items (default 50, max 200; capped at 50 while snippets are on)                                                                                                                             |
+| `--offset <N>`    | Pagination offset in sort order (default 0). Use `has_more` to decide whether to fetch the next page.                                                                                               |
+| `--sort <order>`  | `recent` (default, newest first by creation time), `oldest`, or `name` (basename A → Z)                                                                                                             |
+| `--no-snippet`    | Omit per-item snippets; allows limits above 50                                                                                                                                                      |
+| `--json`          | Output structured JSON (global option; the default for `--scope notes`)                                                                                                                             |
 
 Examples:
 
@@ -336,21 +336,50 @@ linkly self-update
 
 ## Exit Codes
 
+By default the CLI keeps the conventional two-value contract:
+
+| Code | Meaning                      |
+| ---- | ---------------------------- |
+| `0`  | The command ran successfully |
+| `1`  | The command failed           |
+
+Note that "ran successfully" includes finding nothing — a search with no hits still exits `0`.
+
+### `--exit-code`
+
+Pass `--exit-code` (a global flag) to tell "found nothing" apart from "failed":
+
 | Code | Meaning                                                                        |
 | ---- | ------------------------------------------------------------------------------ |
 | `0`  | The command ran and produced at least one result                               |
 | `1`  | The command ran successfully but found nothing (no search hits, no matches)    |
 | `2`  | The command failed (connection, authentication, invalid arguments, tool error) |
 
-This makes `&&` chaining work as expected — `linkly search "x" && echo found` only fires when there really was a hit. Scripts that need to distinguish "no results" from "broken" should check for `1` versus `2` rather than parsing output.
+```bash
+# Only runs the second command when there really was a hit:
+linkly search "quarterly report" --exit-code && open-report
+
+# Tell "nothing found" apart from "Linkly is broken":
+linkly search "$q" --exit-code
+case $? in
+  0) echo "found" ;;
+  1) echo "nothing matched" ;;
+  2) echo "linkly failed" ;;
+esac
+```
+
+The flag is opt-in because it changes what `1` means: without it, `1` is "failed" (the historical behaviour existing scripts test for); with it, `1` is "matched nothing" and failures move to `2`.
+
+**Applies to** `search`, `grep`, `find-paths` and `list` — the commands that can legitimately match nothing. Every other command exits `0` on success either way.
 
 ## Global Options
 
-| Flag            | Description                                             |
-| --------------- | ------------------------------------------------------- |
-| `--json`        | Output in structured JSON format (useful for scripting) |
-| `-V, --version` | Print version                                           |
-| `-h, --help`    | Print help                                              |
+| Flag            | Description                                                                        |
+| --------------- | ---------------------------------------------------------------------------------- |
+| `--json`        | Output in structured JSON format (useful for scripting)                            |
+| `--exit-code`   | Distinguish "no results" (`1`) from "failed" (`2`) — see [Exit Codes](#exit-codes) |
+| `-V, --version` | Print version                                                                      |
+| `-h, --help`    | Print help                                                                         |
 
 ## JSON Output Format
 

@@ -20,16 +20,20 @@ Linkly AI uses **BM25 + vector hybrid retrieval**. Understanding how both signal
 linkly search "auth migration" --limit 30
 
 # Step 2: grep filters that set down to docs that actually contain both.
-#   `linkly grep` exits 0 even on zero matches (success = "the search ran"),
-#   so chaining with `&&` does NOT filter — read the JSON `total_matches`
-#   field instead. `jq` parses the per-doc count.
+#   `--exit-code` makes a zero-match grep exit 1, so `&&` filters directly.
 for id in <ID1> <ID2> <ID3> ...; do
-  count_a=$(linkly grep "auth"      "$id" --mode count --json | jq -r '.total_matches // 0')
-  count_b=$(linkly grep "migration" "$id" --mode count --json | jq -r '.total_matches // 0')
-  if [ "$count_a" -gt 0 ] && [ "$count_b" -gt 0 ]; then
+  if linkly grep "auth" "$id" --mode count --exit-code >/dev/null \
+  && linkly grep "migration" "$id" --mode count --exit-code >/dev/null; then
     echo "$id matches both"
   fi
 done
+```
+
+Without `--exit-code`, `linkly grep` exits 0 even on zero matches (success means "the search ran"), so `&&` does not filter — you have to read the count out of the JSON instead:
+
+```bash
+count=$(linkly grep "auth" "$id" --mode count --json | jq -r '.total_matches // 0')
+[ "$count" -gt 0 ] && echo "$id matches"
 ```
 
 For two terms a faster shortcut is to grep one (the rarer) right after `search`, since the BM25 ranking already biases toward documents matching multiple terms — most top-N results will already satisfy AND.
