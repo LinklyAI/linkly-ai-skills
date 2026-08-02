@@ -17,7 +17,7 @@ Before executing any document operation, detect what's available and pick a mode
 Run both checks independently (skip a check if its prerequisite isn't there):
 
 - **CLI**: if Bash is available, run `linkly --version`. Success → CLI is installed. Then run `linkly status` to confirm the desktop app is reachable; if the status reports a connection problem, run `linkly doctor` (see `references/troubleshooting.md`).
-- **MCP**: check whether MCP tools named `search`, `find_paths`, `outline`, `grep`, `read`, `list`, `list_libraries`, `explore`, and `note_save` are accessible in the current environment. They may come from the `linkly-ai` server (local Desktop MCP) or the `linkly-ai-cloud` server (the `mcp.linkly.ai` cloud gateway).
+- **MCP**: check whether MCP tools named `search`, `find_paths`, `outline`, `grep`, `read`, `list`, `list_libraries`, `explore`, and `note_save` are accessible in the current environment. Both servers expose all nine: the `linkly-ai` server (local Desktop MCP) and the `linkly-ai-cloud` server (the `mcp.linkly.ai` cloud gateway). The difference is reach, not the tool list — see "Know what your connection reaches" below. The two note tools (`list`, `note_save`) are the exception that never varies: they always resolve to the user's Desktop, whichever server they arrived from.
 
 ### 2. Pick a mode
 
@@ -38,6 +38,8 @@ Run both checks independently (skip a check if its prerequisite isn't there):
 | **Cloud gateway** (`linkly --remote`, `linkly mcp --remote`, or the `linkly-ai-cloud` MCP server) | Both local content (through the desktop tunnel) and linked **cloud** libraries.                                                     |
 
 If the user asks for cloud-library content while you are on a local or LAN connection, **tell them to switch connection** (`--remote`, or configure the cloud gateway connector). Do not retry, and do not attempt a `cloud://` reference from a local connection — it will fail every time.
+
+**Notes sit outside this table.** They are local files with no cloud counterpart, so `list` (`scope="notes"`) and `note_save` always reach the Desktop no matter which connection you are on — over the tunnel when you are on the cloud gateway. Consequences: they need the Desktop online (over the tunnel, that also means Pro), and when it is unreachable there is **no cloud fallback to retry against**. Never pass a `library` to either tool — they have no such parameter and will reject it.
 
 The CLI's three connection modes:
 
@@ -152,6 +154,8 @@ linkly read <ID> --image-text full
 ## Notes (Local Markdown Cards)
 
 Linkly AI keeps short Markdown "card" notes in the user's local library folder. They are **plain local files, never uploaded to the cloud**, and they are indexed like any other document.
+
+Because there is no cloud copy, note tools behave the same on every connection: they reach the user's Desktop, over the tunnel when you are on the cloud gateway (`--remote`). If the Desktop is offline the call fails and there is nothing to fall back on — report that and stop, rather than retrying against a cloud library. **Do not tell the user their notes are lost**; they are on that machine, just currently unreachable.
 
 | Goal                               | Tool                          |
 | ---------------------------------- | ----------------------------- |

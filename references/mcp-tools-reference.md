@@ -2,7 +2,9 @@
 
 The Linkly AI MCP server exposes nine tools: seven read-only document tools (`list_libraries`, `explore`, `find_paths`, `search`, `outline`, `grep`, `read`), one enumeration tool (`list`), and one write tool (`note_save`). Local documents require the Linkly AI desktop app to be running with its MCP server enabled; linked cloud libraries are served directly by the cloud gateway and stay reachable even when the desktop is offline.
 
-**Server name:** `linkly-ai` (local Desktop MCP) or `linkly-ai-cloud` (the cloud gateway at `mcp.linkly.ai`, which exposes both your local libraries — via the desktop tunnel — and your linked cloud libraries).
+**Server name:** `linkly-ai` (local Desktop MCP) or `linkly-ai-cloud` (the cloud gateway at `mcp.linkly.ai`, which exposes both your local libraries — via the desktop tunnel — and your linked cloud libraries). Both servers advertise the same nine tools.
+
+**Notes are Desktop-only.** `list` and `note_save` operate on plain Markdown files on the user's computer; there is no cloud notes store. Neither tool takes a `library` parameter, and on the cloud gateway both are forwarded to the Desktop over the tunnel — so they need the Desktop online (which over the tunnel also means Pro) and have **no cloud library to fall back on** when it is not. A `library` passed to either is rejected as an unknown field.
 
 ## Response Metadata
 
@@ -372,6 +374,8 @@ Each item carries: `note_id`, `version` (sha256 — this is the `base_version` y
 ## note_save
 
 Create or rewrite one of the user's local Markdown notes. **This is the only write tool** — every other tool in this reference is read-only.
+
+The write always lands on the user's Desktop, including when you reach it through the cloud gateway (`--remote`): the tunnel forwards to that machine, it does not write to the cloud. There is no delete tool — deletion is user-only in the app UI.
 
 ### Parameters
 

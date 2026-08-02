@@ -231,6 +231,8 @@ some-command | linkly note-save --mode create --content - --tags research
 
 **This is the only write command.** It creates or rewrites one of the user's local Markdown notes.
 
+With `--remote` the write still lands on the Desktop machine — the tunnel forwards to it, and notes are never stored in the cloud. So `note-save --remote` needs that Desktop online (which over the tunnel also means Pro), and there is no cloud library to target or to fall back on when it is offline. There is no delete command; deletion is user-only in the app UI.
+
 | Option                  | Description                                                                                                                                                                        |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `--mode <mode>`         | **Required.** `create` writes a new note; `edit` rewrites an existing one. `edit` requires `--note-id`, `--base-version` and `--tags` together.                                    |
@@ -353,6 +355,8 @@ linkly self-update
 | `--endpoint <url>` | LAN    | Connect to a specific MCP endpoint (e.g. `http://192.168.1.100:60606/mcp`), requires `--token`                                                                                         |
 | `--token <token>`  | LAN    | Bearer token for LAN authentication (required with `--endpoint`, conflicts with `--remote`)                                                                                            |
 | `--remote`         | Remote | Connect via `https://mcp.linkly.ai` — reaches local + linked cloud libraries (cloud works even when the desktop tunnel is down); requires `auth set-key` (conflicts with `--endpoint`) |
+
+`--remote` changes **how you reach your Desktop**, not where the data lives: the gateway forwards to that machine over the tunnel. Linked cloud libraries are the one exception — the gateway serves those itself, so they stay available while the Desktop is offline. Notes are the opposite extreme: they exist only on the Desktop, so `list --scope notes` and `note-save` over `--remote` fail outright when it is unreachable, with nothing to retry against.
 
 ## Exit Codes
 
