@@ -117,9 +117,10 @@ A `read` response may say the text is incomplete (`ocr_pending` in JSON). That m
 #### Note operations fail
 
 - **`NOTE_VERSION_CONFLICT`** — someone (or something) changed the note since you read it. The error carries the actual version. Re-read via `linkly list --scope notes`, merge your change into the current body, then retry with the fresh `base_version`. **Never retry by blindly reusing the old version.**
-- **`NOTE_INVALID_INPUT`** — either a required field is missing (`edit` needs `note_id` + `base_version` + `tags` together), or the content uses Markdown outside the allowed subset. The error lists the offending constructs. Allowed: paragraphs, line breaks, bold, strikethrough, lists. Not allowed: headings, italics, blockquotes, code, links, images, raw HTML, rules, tables, task lists, footnotes.
+- **`NOTE_INVALID_INPUT`** — either a required field is missing (`edit` needs `note_id` + `base_version`), or the content uses Markdown outside the allowed subset. The error lists the offending constructs. Allowed: paragraphs, line breaks, bold, strikethrough, lists. Not allowed: headings, italics, blockquotes, code, links, images, raw HTML, rules, tables, task lists, footnotes.
 - **`NOTE_NOT_FOUND`** — the `note_id` doesn't exist; re-list to get a current one.
-- **Tags disappeared after an edit** — on `edit`, `tags` is the full replacement set. Passing a shorter list deletes the omitted ones. Read the current tags first and pass them all back.
+- **Tags can't be edited in the app UI on an AI-written note** — a note written by an old Desktop (< 0.11.0) may store tags only in YAML. Since 0.11.0, tags live in the body as `#tokens`; one agent edit materializes the legacy tags into the body and the note heals itself.
+- **A tag keeps coming back after you remove it from `tags`** — the `tags` parameter only adds. Remove a tag by deleting its `#token` from the note `content` on edit.
 
 ### CLI not found
 

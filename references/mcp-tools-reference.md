@@ -379,13 +379,13 @@ The write always lands on the user's Desktop, including when you reach it throug
 
 ### Parameters
 
-| Parameter      | Type       | Required      | Description                                                                                                                                                                                                             |
-| -------------- | ---------- | ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `mode`         | `string`   | Yes           | `"create"` writes a new note; `"edit"` rewrites an existing one. Edit **requires `note_id`, `base_version` and `tags` together** — missing any of them returns `NOTE_INVALID_INPUT` with a fix example.                 |
-| `content`      | `string`   | Yes           | Markdown body **without** YAML front matter. See the whitelist below.                                                                                                                                                   |
-| `note_id`      | `string`   | edit only     | Note UUID. Required for edit. On create it is reserved for future cloud sync, and a create carrying an already-existing id is rejected as `NOTE_DUPLICATE_ID`.                                                          |
-| `base_version` | `string`   | edit only     | The note's current version hash (sha256 of the raw file). Read it from `list` or from a previous `note_save` response. A stale value returns `NOTE_VERSION_CONFLICT` with the actual version — re-read before retrying. |
-| `tags`         | `string[]` | edit required | **Full replacement set** on edit: pass back exactly what you read to leave tags unchanged; omitting a previously present tag removes it. Optional on create.                                                            |
+| Parameter      | Type       | Required  | Description                                                                                                                                                                                                             |
+| -------------- | ---------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `mode`         | `string`   | Yes       | `"create"` writes a new note; `"edit"` rewrites an existing one. Edit **requires `note_id` and `base_version`** — missing either returns `NOTE_INVALID_INPUT` with a fix example.                                       |
+| `content`      | `string`   | Yes       | Markdown body **without** YAML front matter. See the whitelist below.                                                                                                                                                   |
+| `note_id`      | `string`   | edit only | Note UUID. Required for edit. On create it is reserved for future cloud sync, and a create carrying an already-existing id is rejected as `NOTE_DUPLICATE_ID`.                                                          |
+| `base_version` | `string`   | edit only | The note's current version hash (sha256 of the raw file). Read it from `list` or from a previous `note_save` response. A stale value returns `NOTE_VERSION_CONFLICT` with the actual version — re-read before retrying. |
+| `tags`         | `string[]` | No        | Extra tags to **add**, unioned with the body's `#tags` — the server appends the missing `#tokens` to the body. Cannot remove tags: delete the `#token` from `content` instead. Optional on both modes.                  |
 
 ### Content whitelist
 
@@ -393,7 +393,7 @@ The write always lands on the user's Desktop, including when you reach it throug
 
 **Rejected** with `NOTE_INVALID_INPUT` (the error lists the offending constructs): headings, italics, blockquotes, inline code, code blocks, links, images, raw HTML, thematic breaks, tables, task lists, footnotes. An edit may keep constructs the note already contains, but must not introduce new forbidden kinds.
 
-Inline `#tags` in the body stay plain text — they are **not** extracted into the tag set. Use the `tags` parameter.
+Inline `#tags` in the body (outside code) **are** the note's tag set — the body is the single source of truth for tags. Remove a tag by deleting its `#token`; keep tags by keeping their `#tokens`. Legacy tags stored only in YAML are materialized into the body on the first agent edit (one-time migration). Every success response returns the note's effective `content` — base any follow-up edit on it, never on what you sent.
 
 ### Tag policy
 

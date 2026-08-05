@@ -235,13 +235,13 @@ With `--remote` the write still lands on the Desktop machine — the tunnel forw
 
 | Option                  | Description                                                                                                                                                                        |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--mode <mode>`         | **Required.** `create` writes a new note; `edit` rewrites an existing one. `edit` requires `--note-id`, `--base-version` and `--tags` together.                                    |
+| `--mode <mode>`         | **Required.** `create` writes a new note; `edit` rewrites an existing one. `edit` requires `--note-id` and `--base-version`.                                                       |
 | `--content <markdown>`  | **Required.** Body without YAML front matter. Restricted Markdown subset — see below. Pass `-` to read the body from stdin, which avoids shell-quoting a long note.                |
 | `--note-id <uuid>`      | Note UUID. Required for `edit`; on `create` an already-existing id is rejected as `NOTE_DUPLICATE_ID`.                                                                             |
 | `--base-version <hash>` | The note's current version (sha256 of the raw file), from `linkly list --scope notes`. Required for `edit`. A stale value returns `NOTE_VERSION_CONFLICT` with the actual version. |
-| `--tags <tags>`         | Comma-separated. Optional on `create`; **required on `edit`, where it is the full replacement set** — omitting a previously present tag removes it.                                |
+| `--tags <tags>`         | Comma-separated. Optional on both modes; only **adds** tags (the server appends the missing `#tokens` to the body). Remove a tag by deleting its `#token` from the content.        |
 
-**Content whitelist.** Allowed: paragraphs, line breaks, bold, strikethrough, ordered and unordered lists, plain text. Rejected with `NOTE_INVALID_INPUT`: headings, italics, blockquotes, inline code, code blocks, links, images, raw HTML, thematic breaks, tables, task lists, footnotes. Inline `#tags` in the body stay plain text and are not extracted — use `--tags`.
+**Content whitelist.** Allowed: paragraphs, line breaks, bold, strikethrough, ordered and unordered lists, plain text. Rejected with `NOTE_INVALID_INPUT`: headings, italics, blockquotes, inline code, code blocks, links, images, raw HTML, thematic breaks, tables, task lists, footnotes. Inline `#tags` in the body **are** the note's tags — the body is the source of truth; remove a tag by deleting its `#token` from the content.
 
 **Tag policy.** Do not add tags on your own initiative; pass only tags the user explicitly asked for.
 
