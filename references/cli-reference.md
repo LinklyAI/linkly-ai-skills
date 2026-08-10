@@ -217,7 +217,7 @@ Three scopes: `folder` (a disk directory, or every watched root when `--path` is
 | `--sort <order>`           | `recent` (default, newest first), `oldest`, or `name` (basename A → Z). Cloud libraries reject `name`.                                                                                                            |
 | `--snippet`                | Attach per-item snippets where the scope defaults to off (`folder` / `library`, taken from the indexed abstract). Caps `--limit` at 50.                                                                           |
 | `--no-snippet`             | Omit per-item snippets; allows limits above 50. This is the notes-side counterpart, where snippets are on by default.                                                                                             |
-| `--json`                   | Output structured JSON (global option; the default for `--scope notes`, opt-in for the other two)                                                                                                                 |
+| `--json`                   | Output structured JSON (global option). The CLI prints Markdown for **every** scope unless this is set — the MCP tool's JSON-by-default for notes does not apply here.                                            |
 
 Examples:
 
