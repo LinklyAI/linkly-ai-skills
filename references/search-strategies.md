@@ -106,7 +106,7 @@ Try in this order:
 After finding documents with `search`, use `grep` to locate specific content without reading entire files:
 
 1. **Known terms or names**: `linkly grep "John Smith" <ID>` — find exact references to a person, product, or concept.
-2. **Codes or identifiers**: `linkly grep "INV-\d{4}" <DOC_ID> -i` — search for invoice numbers, error codes, etc. `doc_id` takes a single ID; to scan multiple documents loop the call: `for id in <ID1> <ID2>; do linkly grep "INV-\d{4}" "$id" -i; done`.
+2. **Codes or identifiers**: `linkly grep "INV-\d{4}" <DOC_ID> -i` — search for invoice numbers, error codes, etc. To scan multiple documents, pass all the IDs in one call (`linkly grep "INV-\d{4}" <ID1> <ID2> -i`) or pipe them in via `-` — no shell loop needed. Only the MCP `grep` tool is limited to one `doc_id` per call.
 3. **Count occurrences**: `linkly grep "TODO|FIXME" <ID> --mode count` — quickly tally matches.
 4. **Context for understanding**: `linkly grep "pattern" <ID> -C 3` — see surrounding lines.
 5. **Combine with read**: After finding a match at line N, use `linkly read <ID> --offset N-10 --limit 30` to read the full surrounding context.
