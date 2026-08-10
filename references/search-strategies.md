@@ -150,6 +150,16 @@ linkly find-paths --patterns WeChat,微信,wxid --limit 5
 linkly search "购物订单 receipt" --path-glob "*xinWeChat*" --limit 10
 ```
 
+**Branch on what the user actually wanted from the container:**
+
+- **A topic inside it** ("receipts in my WeChat") → step 2 above: `search` scoped by `--path-glob`.
+- **Its contents** ("what's in that folder?", "list the PDFs in there") → `linkly list --scope folder --path <candidate path>`. Enumeration is complete and paginated; a search is ranked and capped, so it can never answer "what is there". Pass the candidate's `path` field here, **not** its `path_glob` — `list` takes an address, and the glob-quoted form would be matched literally.
+
+```bash
+linkly find-paths --patterns reports --limit 5
+linkly list --scope folder --path /Users/me/Documents/reports --type pdf
+```
+
 For a **cloud library**, scope `find_paths` to it (over `--remote`) and carry the returned `cloud://owner/slug` reference into the follow-up `search`:
 
 ```bash
@@ -199,6 +209,8 @@ linkly search "onboarding checklist" --scope notes  # "did I write anything abou
 ⚠️ **`--scope notes` ignores `--library` and `--path-glob`.** Passing them together doesn't error — the path/library filter is silently dropped, and you get results from the whole notes folder. If you need both a path filter and note content, search without `--scope` and filter the results yourself.
 
 Start from `list` when the user's phrasing is about the notes themselves ("my notes", "notes tagged X", "recent notes"); start from `search` when it's about a topic. `list` responses carry `available_tags`, which is the reliable way to learn what tag vocabulary the user actually uses — guessing tag names produces empty results.
+
+The same split applies one level up: `list --scope folder` / `--scope library` enumerates a container the user can name, while `search` ranks a topic across one. Notes are simply the third container `list` knows about, not a separate tool.
 
 ### Searching derived text (OCR and transcripts)
 

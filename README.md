@@ -18,6 +18,7 @@ When installed, this skill enables AI agents to:
 
 - **Search** your local documents (and linked cloud libraries) by keywords with relevance ranking, time windows, and path filters
 - **Find paths** for fuzzy or cross-language container names ("in my WeChat", "在 Notion 笔记里") by matching against the indexed file paths
+- **List** a known container — a disk folder, a library, or your notes — as a complete paged enumeration, with no search query to invent
 - **Explore** the knowledge base for an overview of themes, document types, and recent activity
 - **List libraries** to discover and search within specific knowledge bases
 - **Browse** document outlines to understand structure before diving in

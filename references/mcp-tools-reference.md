@@ -4,7 +4,9 @@ The Linkly AI MCP server exposes nine tools: seven read-only document tools (`li
 
 **Server name:** `linkly-ai` (local Desktop MCP) or `linkly-ai-cloud` (the cloud gateway at `mcp.linkly.ai`, which exposes both your local libraries — via the desktop tunnel — and your linked cloud libraries). Both servers advertise the same nine tools.
 
-**Notes are Desktop-only.** `list` and `note_save` operate on plain Markdown files on the user's computer; there is no cloud notes store. Neither tool takes a `library` parameter, and on the cloud gateway both are forwarded to the Desktop over the tunnel — so they need the Desktop online (which over the tunnel also means Pro) and have **no cloud library to fall back on** when it is not. A `library` passed to either is rejected as an unknown field.
+**Notes are Desktop-only.** `note_save`, and `list` with `scope="notes"`, operate on plain Markdown files on the user's computer; there is no cloud notes store. On the cloud gateway both are forwarded to the Desktop over the tunnel — so they need the Desktop online (which over the tunnel also means Pro) and have **no cloud library to fall back on** when it is not. `note_save` has no `library` parameter at all and rejects one as an unknown field; `list` does have one, but passing it alongside `scope="notes"` is rejected.
+
+**`list` is the one tool whose backend depends on its arguments.** `scope="folder"`, `scope="notes"` and a `local://` library are answered by the Desktop; `scope="library"` with a `cloud://owner/slug` is answered by the gateway itself — available on the Free plan, and unaffected by the Desktop being offline.
 
 ## Response Metadata
 
@@ -341,35 +343,140 @@ Line numbers are right-aligned and tab-separated from the content.
 
 ## list
 
-Enumerate the contents of a container. Unlike `search`, it does **no** full-text matching — it lists and paginates.
+Enumerate the contents of a container. Unlike `search`, it does **no** full-text matching and applies no relevance ranking — it lists and paginates. Use it when the user's question is about a container ("what's in this folder", "list that library", "what notes do I have"); use `search` when it's about a topic.
+
+### Scopes
+
+| `scope`     | Container                                                                   | Required parameter | Answered by                                                                              |
+| ----------- | --------------------------------------------------------------------------- | ------------------ | ---------------------------------------------------------------------------------------- |
+| `"folder"`  | A disk directory (`path`), or **every watched root** when `path` is omitted | —                  | Desktop                                                                                  |
+| `"library"` | One library                                                                 | `library`          | Desktop for `local://<id>` / plain names; the **cloud gateway** for `cloud://owner/slug` |
+| `"notes"`   | The user's local Markdown card notes                                        | —                  | Desktop                                                                                  |
+
+Unknown scopes are rejected at call time with an error naming all three. The schema deliberately does **not** freeze the value set, so a newer Desktop can add a scope without every client shipping a new build first — which also means a value your client accepts may still be refused by an older Desktop.
+
+Careful: `search.scope` has a value also spelled `"folder"` meaning "all indexed content". Different concept — the two parameters share no values.
 
 ### Parameters
 
-| Parameter       | Type       | Required | Default          | Description                                                                                                                                                                                                                                                                          |
-| --------------- | ---------- | -------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `scope`         | `string`   | **Yes**  | —                | Container to list. Currently only `"notes"` (the user's local Markdown card notes) is accepted; unknown values are rejected. Note: `search.scope` has a value also spelled `"folder"` meaning "all indexed content" — a different concept that shares no values with this parameter. |
-| `tags`          | `string[]` | No       | —                | Return only items carrying **all** the given tags (AND semantics), normalized like `search.tags`. For keyword search over notes use `search` with `scope="notes"` instead.                                                                                                           |
-| `limit`         | `integer`  | No       | 50               | Maximum items (max 200; drops to 50 while `snippet` is enabled).                                                                                                                                                                                                                     |
-| `offset`        | `integer`  | No       | 0                | Pagination offset counted in sort order. Use `has_more` to decide whether to fetch the next page.                                                                                                                                                                                    |
-| `snippet`       | `boolean`  | No       | `true` (notes)   | Include a per-item snippet (first ~200 chars of the body, YAML stripped). Set `false` to page with limits above 50 — the field stays present but null.                                                                                                                               |
-| `sort`          | `string`   | No       | `"recent"`       | `"recent"` (creation time, newest first) / `"oldest"` / `"name"` (basename, UTF-8 code point order). Page order follows sort direction, and every sort ends with a deterministic tiebreaker so offset pagination is stable.                                                          |
-| `output_format` | `string`   | No       | `"json"` (notes) | `scope="notes"` defaults to JSON because each item is a CAS handle (`note_id` + `version`) for `note_save`. `"markdown"` is a human-readable opt-in and still carries both inline.                                                                                                   |
+Twelve in total. Which ones are legal depends on `scope`; anything outside its row is rejected with `INVALID_PARAMS` naming the scopes it does apply to, before any disk or network I/O.
 
-### Response Fields (JSON mode)
+| Parameter                            | folder                 | library                                   | notes                         |
+| ------------------------------------ | ---------------------- | ----------------------------------------- | ----------------------------- |
+| `library`                            | ✗                      | **required**                              | ✗                             |
+| `path`                               | optional, **absolute** | optional (**relative** prefix when cloud) | ✗                             |
+| `doc_types`                          | ✓                      | ✓                                         | ✗ (notes are always markdown) |
+| `tags`                               | ✗                      | ✗                                         | ✓                             |
+| `modified_after` / `modified_before` | ✓                      | ✓                                         | ✗                             |
+| `sort`                               | ✓                      | ✓ (cloud: no `"name"`)                    | ✓                             |
+| `snippet`                            | ✓ — default `false`    | ✓ — default `false`                       | ✓ — default `true`            |
+| `limit` / `offset`                   | ✓                      | ✓                                         | ✓                             |
+| `output_format`                      | default `"markdown"`   | default `"markdown"`                      | default `"json"`              |
 
-| Field                 | Type       | Description                                                                                               |
-| --------------------- | ---------- | --------------------------------------------------------------------------------------------------------- |
-| `scope`               | `string`   | Echo of the requested scope                                                                               |
-| `total`               | `number`   | Total items matching the filter                                                                           |
-| `items`               | `array`    | This page of items                                                                                        |
-| `offset` / `limit`    | `number`   | Echo of the pagination window                                                                             |
-| `has_more`            | `boolean`  | Whether more items exist past this page                                                                   |
-| `available_tags`      | `string[]` | Tags in use across **all** notes — computed before filtering, top 50 by usage, same snapshot as this page |
-| `available_tags_hint` | `string`   | Fixed guidance on reusing those tags                                                                      |
+Per-parameter detail:
 
-Each item carries: `note_id`, `version` (sha256 — this is the `base_version` you need to edit it), `title`, `doc_id`, `path`, `created_at`, `modified_at`, `tags`, `snippet`.
+| Parameter                            | Type       | Notes                                                                                                                                                                                                                                                                                                        |
+| ------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `scope`                              | `string`   | **Required.** See the table above.                                                                                                                                                                                                                                                                           |
+| `library`                            | `string`   | `local://<library-id>`, a plain local library name, or `cloud://owner/slug`. Call `list_libraries` first — it is the only way to learn a cloud library's reference.                                                                                                                                          |
+| `path`                               | `string`   | An **address, not a pattern** — no globs, no fuzzy names. Absolute for `scope="folder"` and for a local library (must fall inside that library's folders). For a cloud library it is a path **relative to the library root**, as returned by `find_paths`. Run `find_paths` when you only know a fuzzy name. |
+| `doc_types`                          | `string[]` | Same type names as `search` — `pdf`, `md`, `docx`, `pptx`, `epub`, `txt`, `html`, `image`, `audio`, `video`.                                                                                                                                                                                                 |
+| `tags`                               | `string[]` | Notes only. Returns items carrying **all** the given tags (AND), normalized like `search.tags` (leading `#` stripped, ASCII lowercased). For keyword search over notes use `search` with `scope="notes"`.                                                                                                    |
+| `modified_after` / `modified_before` | `string`   | Inclusive bounds on file modification time. ISO 8601 UTC — a bare date (`2024-01-01`) or a full RFC 3339 datetime. Derive relative dates from `_meta.now`.                                                                                                                                                   |
+| `sort`                               | `string`   | `"recent"` (default) / `"oldest"` / `"name"`. See "Sort is the truncation policy" below.                                                                                                                                                                                                                     |
+| `snippet`                            | `boolean`  | Per-item excerpt. Notes: first ~200 chars of the body, YAML stripped. Folder/library: ~120 chars from the **indexed abstract**, never a disk read. While enabled, `limit` is capped at 50. The field is always present, and `null` when disabled or unavailable.                                             |
+| `limit`                              | `integer`  | Default 50, max 200 — max 50 while `snippet` is on. Set `snippet: false` to page in larger blocks.                                                                                                                                                                                                           |
+| `offset`                             | `integer`  | Default 0, counted in sort order. Page until `has_more` is false.                                                                                                                                                                                                                                            |
+| `output_format`                      | `string`   | `"markdown"` or `"json"`. Notes default to JSON because each item is a CAS handle (`note_id` + `version`) for `note_save`; folder/library default to compact Markdown. Both formats carry the same handles.                                                                                                  |
 
-**When to use:** the user wants to browse or enumerate notes ("what notes do I have?", "show my notes tagged work"). To find notes by content, use `search` with `scope="notes"`.
+Every optional parameter accepts an explicit `null` as equivalent to omitting it. Unknown fields are rejected — there is no `path_glob` and no `recursive` (listing a directory is always its whole subtree).
+
+### Sort is the truncation policy, not decoration
+
+`sort` decides **which slice survives `limit`**, so it is a correctness parameter:
+
+- `"recent"` (default) — newest first. Notes anchor on creation time; folder/library on file modification time. With `has_more: true` you are looking at the most recently touched files, not a random sample.
+- `"oldest"` — the same anchor, earliest first.
+- `"name"` — file basename, UTF-8 code point order, A → Z. **Not supported for cloud libraries** and rejected there rather than silently sorting only the current page.
+
+Page order equals sort direction, and every sort ends with a deterministic file-path tiebreaker, so `offset` pagination is stable across calls. When you report results, say which slice you saw.
+
+### Response — folder / library
+
+JSON mode returns `scope`, `target` (the resolved container, echoed back), `total`, `items`, `offset`, `limit`, `has_more`, plus `readme` and `hint` when they apply. Markdown mode renders the same data as `# List (<scope>)`, a `Showing N of T files (sort: …, offset: …) — target: …` header, and one `##` block per item.
+
+Each item carries:
+
+| Field                       | Description                                                                         |
+| --------------------------- | ----------------------------------------------------------------------------------- |
+| `doc_id`                    | Pass straight to `outline` / `grep` / `read` — no reshaping                         |
+| `title`, `path`, `doc_type` | `path` is absolute for local containers, root-relative for cloud libraries          |
+| `word_count`, `total_lines` | `null` when unknown                                                                 |
+| `has_outline`               | Whether `outline` will return structure                                             |
+| `modified_at`               | Unix milliseconds                                                                   |
+| `keywords`                  | Extracted keywords, `[]` when none                                                  |
+| `snippet`                   | Present but `null` unless `snippet: true`                                           |
+| `skip_reason`               | Non-null means the file is indexed by name but **has no readable body** — see below |
+
+**`skip_reason` is a stop sign.** `cloud_placeholder` (never downloaded), `no_audio_track`, `transcription_failed`, or a signature/extension mismatch. Markdown output surfaces it as `**Content not indexed**`. Relay the reason; do not queue that `doc_id` for `read` and retry — there is no text to get.
+
+### Response — notes
+
+JSON mode returns `scope`, `target`, `total`, `items`, `offset`, `limit`, `has_more`, plus two notes-only fields:
+
+| Field                 | Description                                                                                               |
+| --------------------- | --------------------------------------------------------------------------------------------------------- |
+| `available_tags`      | Tags in use across **all** notes — computed before filtering, top 50 by usage, same snapshot as this page |
+| `available_tags_hint` | Fixed guidance on reusing those tags                                                                      |
+
+Each item carries `note_id` and `version` (full sha256 — this is the `base_version` `note_save --mode edit` requires, never truncate it), `title`, `path`, `tags`, `created_at`, `modified_at`, `snippet`, the writer attribution (`source`, `agent`, `app_name`, `updated_by`), and the index-derived fields `doc_id`, `word_count`, `total_lines`, `has_outline`, `keywords`, `indexed`.
+
+Notes are enumerated from the filesystem, not the index, so **a note appears in `list` the moment it is written** — before indexing catches up. Such an item carries `indexed: false` and `doc_id: null`, with the other derived fields degraded together. That is normal and self-corrects; it means you can't `read` that one by `doc_id` yet, not that the note is broken.
+
+### `total: 0` is three different answers
+
+A local `list` distinguishes them, and you should relay which one you got instead of telling the user their folder is empty:
+
+| What happened                          | How it comes back                                                                                                                  |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| The path doesn't exist on disk         | Error: `path does not exist on disk. Verify the directory with find_paths.`                                                        |
+| The path is outside every watched root | Error naming the watched roots (capped at ~10) — Linkly only indexes what the user added                                           |
+| The directory is genuinely empty       | `total: 0` plus the hint `Directory exists but contains no indexed files (unsupported types, still indexing, or genuinely empty).` |
+
+A **cloud** library cannot tell a missing prefix from an empty one; it returns `total: 0` with a hint saying exactly that and pointing you at `find_paths`.
+
+### README pointer
+
+When you list a local directory by explicit `path` (`scope="folder"`, or a local `scope="library"`), the response may carry a `readme` object — `doc_id`, `path`, `word_count`, `total_lines`. It is a **pointer only**; the content is never inlined, so reading it costs one `read` call.
+
+- Candidates are the directory's **direct children** only, chosen by priority: `README.md` → `README.txt` → `index.md` → `_index.md` → `<foldername>.md`. Matching is case-insensitive; an extensionless `README` is not a candidate (it is not indexed, so the pointer would be a dead link).
+- Agent instruction files are **never** offered, even when they win a rule above: `CLAUDE.md`, `AGENTS.md`, `AGENT.md`, `GEMINI.md`, `.cursorrules`, `.windsurfrules`, `copilot-instructions.md`. They describe how to work on the code, not what the folder is.
+- The field only appears when the pointer is actually readable (`doc_id` non-null, no `skip_reason`).
+
+**Read it when the folder's purpose matters** — the user asked what the folder is, or you are about to act on files you don't recognize. Skip it when you are enumerating or hunting one known file.
+
+### Desktop vs cloud library
+
+|                       | Desktop (`folder` / `notes` / `local://`) | Cloud library (`cloud://owner/slug`)               |
+| --------------------- | ----------------------------------------- | -------------------------------------------------- |
+| Scopes served         | all three                                 | `library` only                                     |
+| `path`                | absolute address                          | **relative** prefix from the library root          |
+| `sort`                | `recent` / `oldest` / `name`              | `recent` / `oldest` (`name` rejected)              |
+| `total`               | always known                              | `null`, except `0` when `offset=0` returns nothing |
+| `readme` pointer      | yes (explicit `path` only)                | no                                                 |
+| Missing vs empty path | distinguished                             | not distinguishable                                |
+| Needs Desktop online  | yes                                       | no                                                 |
+
+`total: null` is not a bug — the cloud backend does not count the full set before paginating. Use `has_more` for "is there more", and don't report a total you were not given.
+
+### Errors worth recognizing
+
+- **`UPDATE_REQUIRED`** — you are on the cloud gateway and the user's Desktop predates the three-scope `list`. Cloud libraries still work; local scopes need the Desktop updated.
+- **Pro paywall on local scopes** — over the gateway, listing local folders, notes, or a local library rides the Desktop tunnel, which is Pro. Cloud libraries list on the Free plan, and local content is free when the AI client runs on the same computer as the Desktop (local MCP, no tunnel).
+- **`cloud://` passed as `path` or with `scope="folder"`** — `folder` addresses local disk only. Use `scope="library"` with the `cloud://owner/slug` reference and a relative `path` prefix.
+- **`scope="library"` without `library`** — call `list_libraries` first, then pass one of the references it returns.
+
+**When to use:** the user asks what is inside a container they can name — a folder, a library, or their notes. To find things by topic instead, use `search`. To get a thematic overview of the whole knowledge base rather than a file list, use `explore`.
 
 ## note_save
 

@@ -192,6 +192,7 @@ The CLI evolves alongside the desktop app. An outdated CLI may be missing comman
 - `error: unexpected argument '--scope'` / `--tags` / `--image-text`, or `error: unrecognized subcommand 'note-save'` / `'list'` / `'completions'` → CLI below v0.6.0, missing note support, referenced-image detail and shell completions
 - `error: unexpected argument '--exit-code'` → CLI below v0.6.0; without it an empty result is indistinguishable from a failure by exit code alone
 - `linkly read` or `linkly grep` rejects a second document ID, or `-` is treated as a literal ID → CLI below v0.6.0, missing batch and stdin input
+- `error: unexpected argument '--path'` / `--type` / `--modified-after` **on `linkly list`**, or `--library` rejected there → CLI below v0.6.1, which is where `list` grew the `folder` and `library` scopes
 - `linkly doctor` not recognized → CLI needs updating
 - Commands fail silently or return unexpected errors after a desktop app update
 
@@ -213,6 +214,10 @@ The opposite mismatch also bites: the CLI is up to date but the desktop app on t
 - `Error: ... unknown field '<param>'` — the tool exists but not that parameter
 - A call **looks** like it succeeded but a filter had no effect — the same documents come back as a query without it. Very old desktops silently drop parameters they don't recognise instead of erroring
 - The `[meta] now=` footer / `_meta.now` field is missing from successful responses
+
+Known thresholds worth naming to the user:
+
+- **Desktop 0.11.0** — `list` with `scope="folder"` / `scope="library"`, and additive `note_save` tags. Below it, CLI v0.6.1 refuses outright on a local or LAN connection rather than sending a call that would misbehave; over the cloud gateway you get `UPDATE_REQUIRED` for the local scopes while cloud libraries keep working.
 
 **Diagnose with `linkly status`** — it prints the desktop's version alongside the CLI's, and recent CLI builds show a ⚠ banner under the `App` line naming the features the desktop is too old for.
 

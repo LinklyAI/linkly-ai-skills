@@ -194,30 +194,49 @@ linkly read 1044 --json
 ### list — Enumerate a container
 
 ```bash
+linkly list --scope folder --path <DIR> [OPTIONS]
+linkly list --scope library --library <REF> [OPTIONS]
 linkly list --scope notes [OPTIONS]
 ```
 
-Lists and paginates the contents of a container. Does **no** full-text matching — to find notes by content use `linkly search --scope notes`.
+Lists and paginates the contents of a container. Does **no** full-text matching and applies no ranking — reach for it when the user names a container, and for `search` when they name a topic. To find notes by content use `linkly search --scope notes`.
 
-| Option            | Description                                                                                                                                                                                         |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--scope <scope>` | **Required.** Container to list — `notes` is the user's local Markdown card notes. Validated by the desktop rather than the CLI, so scopes added by a newer desktop work without upgrading the CLI. |
-| `--tags <tags>`   | Comma-separated tags; returns only items carrying **all** of them (AND).                                                                                                                            |
-| `--limit <N>`     | Maximum items (default 50, max 200; capped at 50 while snippets are on)                                                                                                                             |
-| `--offset <N>`    | Pagination offset in sort order (default 0). Use `has_more` to decide whether to fetch the next page.                                                                                               |
-| `--sort <order>`  | `recent` (default, newest first by creation time), `oldest`, or `name` (basename A → Z)                                                                                                             |
-| `--no-snippet`    | Omit per-item snippets; allows limits above 50                                                                                                                                                      |
-| `--json`          | Output structured JSON (global option; the default for `--scope notes`)                                                                                                                             |
+Three scopes: `folder` (a disk directory, or every watched root when `--path` is omitted), `library` (one library — `local://<id>`, a plain name, or `cloud://owner/slug`), and `notes` (the local Markdown card notes). **Requires Desktop 0.11.0+** for `folder` / `library`; on a local or LAN connection an older Desktop makes the CLI bail with a version error naming what is missing.
+
+| Option                     | Description                                                                                                                                                                                                       |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--scope <scope>`          | **Required.** `folder`, `library`, or `notes`. Validated by the desktop rather than the CLI, so scopes added by a newer desktop work without upgrading the CLI.                                                   |
+| `--library <ref>`          | Which library to list. **Required with `--scope library`**; rejected on other scopes. See `linkly list-libraries`.                                                                                                |
+| `--path <dir>`             | Directory to list. Absolute for `--scope folder` and for a local library; a **relative** prefix from the library root for a cloud library. An address, not a glob — run `linkly find-paths` if the name is fuzzy. |
+| `--type <types>`           | Comma-separated document types (`pdf,md,docx,…`). `folder` / `library` only.                                                                                                                                      |
+| `--modified-after <date>`  | Inclusive lower bound on file modification time (ISO 8601 UTC). `folder` / `library` only.                                                                                                                        |
+| `--modified-before <date>` | Inclusive upper bound, same format. `folder` / `library` only.                                                                                                                                                    |
+| `--tags <tags>`            | Comma-separated tags; returns only items carrying **all** of them (AND). `notes` only.                                                                                                                            |
+| `--limit <N>`              | Maximum items (default 50, max 200; capped at 50 while snippets are on)                                                                                                                                           |
+| `--offset <N>`             | Pagination offset in sort order (default 0). Use `has_more` to decide whether to fetch the next page.                                                                                                             |
+| `--sort <order>`           | `recent` (default, newest first), `oldest`, or `name` (basename A → Z). Cloud libraries reject `name`.                                                                                                            |
+| `--snippet`                | Attach per-item snippets where the scope defaults to off (`folder` / `library`, taken from the indexed abstract). Caps `--limit` at 50.                                                                           |
+| `--no-snippet`             | Omit per-item snippets; allows limits above 50. This is the notes-side counterpart, where snippets are on by default.                                                                                             |
+| `--json`                   | Output structured JSON (global option; the default for `--scope notes`, opt-in for the other two)                                                                                                                 |
 
 Examples:
 
 ```bash
+linkly list --scope folder --path /Users/me/Documents/reports
+linkly list --scope folder --path /Users/me/notes --type md --modified-after 2026-01-01
+linkly list --scope folder --limit 200 --no-snippet          # every watched root
+linkly list --scope library --library my-research --snippet
+linkly list --scope library --library cloud://alice/handbook --path guides/ --remote
 linkly list --scope notes
 linkly list --scope notes --tags project,urgent
 linkly list --scope notes --sort name --limit 100 --no-snippet
 ```
 
-Every response carries `available_tags` — the tags actually in use across all notes (top 50 by usage). Reuse those values rather than inventing new ones. Each item also carries `note_id` and `version`, which together are the handle needed by `note-save --mode edit`.
+`--sort` chooses which slice survives `--limit`, so it is a correctness choice, not cosmetics: with `has_more` true you are holding the newest / oldest / A→Z head, never a random sample.
+
+A `folder` or local `library` listing given an explicit `--path` may also point at that directory's README (`README.md` → `README.txt` → `index.md` → `_index.md` → `<foldername>.md`, agent instruction files excluded). It is a pointer, not the content — `linkly read` it only when the folder's purpose actually matters.
+
+Note listings carry `available_tags` — the tags actually in use across all notes (top 50 by usage). Reuse those values rather than inventing new ones. Each note item also carries `note_id` and `version`, which together are the handle needed by `note-save --mode edit`; a note written moments ago shows up with `indexed: false` and a null `doc_id` until indexing catches up.
 
 ### note-save — Create or rewrite a note
 
