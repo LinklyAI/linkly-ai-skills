@@ -177,7 +177,7 @@ linkly read <ID> --image-text full
 - For long documents: use outline to identify target sections, then read specific line ranges.
 - To paginate: advance `offset` by `limit` on each call (e.g., offset=1 limit=200, then offset=201 limit=200).
 
-**Images referenced in the text:** markdown image references inside the shown line range are resolved to indexed image documents and appended as a mapping block. `--image-text` / `image_text` controls the detail: `none` (mapping only), `abstract` (default — plus a one-line excerpt and word count per image), `full` (plus inline OCR text). Use `full` only when the images carry content you actually need — it is capped at 2000 chars per image and 20000 chars total, and over-budget images silently degrade to `abstract`.
+**Images referenced in the text:** markdown image references inside the shown line range are resolved to indexed image documents and appended as a mapping block. `--image-text` / `image_text` controls the detail: `none` (mapping only), `abstract` (default — plus a one-line excerpt and word count per image), `full` (plus inline OCR text). Use `full` only when the images carry content you actually need — it is capped at 2000 chars per image and 20000 chars total, and over-budget images silently degrade to `abstract`. On **cloud** documents `full` never inlines text: matched images degrade to `abstract` with a per-image pointer, and you `read` the image's own `doc_id` for its full text.
 
 **Don't:** call `read` without a real `doc_id` from a `search` or `list` response. Document IDs are stable but never invented — guessing one returns "Document not found".
 
