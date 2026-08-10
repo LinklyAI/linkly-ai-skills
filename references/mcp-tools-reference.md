@@ -353,7 +353,7 @@ Enumerate the contents of a container. Unlike `search`, it does **no** full-text
 | `"library"` | One library                                                                 | `library`          | Desktop for `local://<id>` / plain names; the **cloud gateway** for `cloud://owner/slug` |
 | `"notes"`   | The user's local Markdown card notes                                        | —                  | Desktop                                                                                  |
 
-Unknown scopes are rejected at call time with an error naming all three. The schema deliberately does **not** freeze the value set, so a newer Desktop can add a scope without every client shipping a new build first — which also means a value your client accepts may still be refused by an older Desktop.
+Unknown scopes are rejected at call time with an error naming all three, but the two servers get there differently. The **Desktop** schema deliberately does **not** freeze the value set, so a newer Desktop can add a scope without every client shipping a new build first — which also means a value your client accepts may still be refused by an older Desktop. The **cloud gateway** declares `enum: ["folder", "library", "notes"]` and rejects anything else up front, before routing or the paywall — so a scope newer than these three will not work over the gateway until the gateway ships it too. Either way: never invent scope values.
 
 Careful: `search.scope` has a value also spelled `"folder"` meaning "all indexed content". Different concept — the two parameters share no values.
 
