@@ -41,10 +41,18 @@ linkly doctor --remote
 - **Important:** the port file still exists and the port still answers. The local API server stays up to serve other features (browser clipping, health checks) and only the `/mcp` route is gated. So "the port is reachable" does **not** mean MCP is enabled, and a disabled MCP server does **not** produce "connection refused".
 - **Fix:** Open Settings → MCP → enable the MCP server. It takes effect on the next request; no restart needed.
 
+#### `App: Unreachable` / `desktop_unreachable`
+
+- **Meaning:** The CLI could not reach the configured Linkly AI Desktop endpoint. This is a transport result, not proof that the Desktop is stopped. In an AI-agent environment, the shell may be able to execute the CLI while its network sandbox blocks `127.0.0.1` or the LAN endpoint.
+- **Recovery order:**
+  1. Check whether Linkly MCP tools are available in the current agent environment. If they are, use MCP and stop retrying the sandboxed CLI.
+  2. If MCP is unavailable and the shell is sandboxed, ask the user to approve retrying the **exact Linkly CLI command** outside the network sandbox. Do not recommend disabling the sandbox globally and do not request broad approval for every `linkly` subcommand.
+  3. Only if the approved retry still fails, ask the user to launch or relaunch Linkly AI Desktop and try again. For LAN mode, also verify the configured host and port.
+
 #### "Connection refused"
 
-- **Cause:** Nothing is listening on that port — usually a stale port file left by a crashed or force-quit app, or a wrong `--endpoint` in LAN mode.
-- **Fix:** Confirm the desktop app is actually running (relaunch if unsure). In LAN mode, re-check the `--endpoint` host and port.
+- **Cause:** Outside a network sandbox, nothing is listening on that port — usually a stale port file left by a crashed or force-quit app, or a wrong `--endpoint` in LAN mode. Inside an AI-agent sandbox, the same low-level failure may instead mean that localhost or LAN access is blocked.
+- **Fix:** Follow the `App: Unreachable` recovery order above. If an approved retry outside the sandbox still gets connection refused, confirm the desktop app is actually running (relaunch if unsure). In LAN mode, re-check the `--endpoint` host and port.
 
 #### "Authentication failed" (LAN/Remote)
 
