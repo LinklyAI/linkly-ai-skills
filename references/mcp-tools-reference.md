@@ -34,6 +34,7 @@ Returns a Markdown document with up to three sections — **Local libraries**, *
 
 - **my-research** ("AI Research"): AI and ML papers (42 docs, 3 folders)
 - **work-notes**: Daily work logs (128 docs, 1 folders)
+- **reading**: Tagged notes and clips (37 docs, 0 folders, 2 tag filters)
 
 ## Cloud libraries (1)
 
@@ -379,7 +380,7 @@ Per-parameter detail:
 | ------------------------------------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `scope`                              | `string`   | **Required.** See the table above.                                                                                                                                                                                                                                                                           |
 | `library`                            | `string`   | `local://<library-id>`, a plain local library name, or `cloud://owner/slug`. Call `list_libraries` first — it is the only way to learn a cloud library's reference.                                                                                                                                          |
-| `path`                               | `string`   | An **address, not a pattern** — no globs, no fuzzy names. Absolute for `scope="folder"` and for a local library (must fall inside that library's folders). For a cloud library it is a path **relative to the library root**, as returned by `find_paths`. Run `find_paths` when you only know a fuzzy name. |
+| `path`                               | `string`   | An **address, not a pattern** — no globs, no fuzzy names. Absolute for `scope="folder"` and for a local library (must fall inside that library's folders, or inside the Notes/Clips directory when the library has a tag filter for that source — such paths list only the documents matched by the filter). For a cloud library it is a path **relative to the library root**, as returned by `find_paths`. Run `find_paths` when you only know a fuzzy name. |
 | `doc_types`                          | `string[]` | Same type names as `search` — `pdf`, `md`, `docx`, `pptx`, `epub`, `txt`, `html`, `image`, `audio`, `video`.                                                                                                                                                                                                 |
 | `tags`                               | `string[]` | Notes only. Returns items carrying **all** the given tags (AND), normalized like `search.tags` (leading `#` stripped, ASCII lowercased). For keyword search over notes use `search` with `scope="notes"`.                                                                                                    |
 | `modified_after` / `modified_before` | `string`   | Inclusive bounds on file modification time. ISO 8601 UTC — a bare date (`2024-01-01`) or a full RFC 3339 datetime. Derive relative dates from `_meta.now`.                                                                                                                                                   |
