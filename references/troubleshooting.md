@@ -78,7 +78,7 @@ linkly doctor --remote
   1. Run `linkly status` to check if indexing is complete ("Watching" = ready).
   2. Try broader keywords or natural language queries.
   3. Remove `--type` or `--library` filters to widen the search across all local content.
-  4. Confirm the user's target content is a supported document type (PDF, Markdown, DOCX, PPTX, EPUB, Excel, CSV, TXT, HTML, image, audio, video). Files outside this list are not indexed even if they live under indexed folders — check by running `linkly explore` and looking at the document-type distribution.
+  4. Confirm the user's target content is a supported document type (PDF, Markdown, Excel, CSV, DOC, TXT, DOCX, PPTX, RTF, EPUB, HTML, image, audio, video). Files outside this list are not indexed even if they live under indexed folders — check by running `linkly explore` and looking at the document-type distribution.
   5. For audio or video, check that transcription is switched on — it is opt-in per media kind in Desktop Settings → Indexing. Until it is enabled those files are indexed by filename only.
   6. If the user expects content from a **cloud** library, confirm the connection mode reaches it — see "Cloud library content is missing" below.
 
