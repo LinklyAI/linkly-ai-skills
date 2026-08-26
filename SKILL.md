@@ -1,12 +1,12 @@
 ---
 name: linkly-ai
-description: "Search, browse, read, and take notes across the user's documents indexed by Linkly AI — local files and linked cloud libraries. Use when the user asks to 'search my documents', 'find files about a topic', 'read a local document', 'what's in this folder', 'list the files in that library', 'browse document outlines', 'list knowledge libraries', 'save this as a note', 'list my notes', or any task involving searching, listing, reading, or noting stored content (PDF, Markdown, DOCX, PPTX, EPUB, TXT, HTML, images, audio, video). Also triggered by: 'linkly not working', 'cloud library', '搜索我的文档', '查找文件', '这个文件夹里有什么', '列出文件', '知识库搜索', '云端知识库', '记笔记', '我的笔记', '连接不上', '故障排查'. Provides full-text search, container enumeration, structural outlines, paginated reading, and local note capture via CLI or MCP tools."
+description: "Search, browse, read, and take notes across the user's documents indexed by Linkly AI — local files and linked cloud libraries. Use when the user asks to 'search my documents', 'find files about a topic', 'read a local document', 'what's in this folder', 'list the files in that library', 'browse document outlines', 'list knowledge libraries', 'save this as a note', 'list my notes', or any task involving searching, listing, reading, or noting stored content (PDF, Markdown, DOCX, PPTX, EPUB, Excel, CSV, TXT, HTML, images, audio, video). Also triggered by: 'linkly not working', 'cloud library', '搜索我的文档', '查找文件', '这个文件夹里有什么', '列出文件', '知识库搜索', '云端知识库', '记笔记', '我的笔记', '连接不上', '故障排查'. Provides full-text search, container enumeration, structural outlines, paginated reading, and local note capture via CLI or MCP tools."
 license: Apache-2.0
 ---
 
 # Linkly AI — Document Search (Local + Cloud)
 
-Linkly AI indexes documents on the user's local machine (PDF, Markdown, DOCX, PPTX, EPUB, TXT, HTML, images, audio, video) and can also reach cloud libraries the user has linked via Linkly Web. It exposes them through a progressive disclosure workflow: **search → grep or outline → read**. It can also capture and list the user's local Markdown notes.
+Linkly AI indexes documents on the user's local machine (PDF, Markdown, DOCX, PPTX, EPUB, Excel, CSV, TXT, HTML, images, audio, video) and can also reach cloud libraries the user has linked via Linkly Web. It exposes them through a progressive disclosure workflow: **search → grep or outline → read**. It can also capture and list the user's local Markdown notes.
 
 ## Environment Detection
 
@@ -122,7 +122,7 @@ Search uses BM25 + vector hybrid retrieval (OR logic for keywords, semantic matc
 **Tips:**
 
 - Both specific keywords and natural language sentences are effective queries.
-- Add `--type` filter when the user mentions a specific format (`pdf`, `docx`, `pptx`, `epub`, `md`, `txt`, `html`, `image`, `audio`, `video`). Audio and video match against their transcripts; images and scanned PDFs against their OCR text.
+- Add `--type` filter when the user mentions a specific format (`pdf`, `docx`, `pptx`, `epub`, `xlsx`, `csv`, `md`, `txt`, `html`, `image`, `audio`, `video`). Audio and video match against their transcripts; images and scanned PDFs against their OCR text; spreadsheets against their cell text.
 - Use `--library` only when the user explicitly specifies a library name.
 - To search the user's notes, use `--scope notes` — see ["Notes"](#notes-local-markdown-cards) below. Note that `--scope notes` ignores `--library` and `--path-glob`.
 - Use `--path-glob` to filter by file path: the pattern is **substring-matched** against the path (it may appear anywhere — no leading/trailing `*` needed), always case-sensitive. `*` matches any chars (incl. `/`), `?` one char. A full directory path like `/Users/me/notes/` scopes to that directory. When the actual path is unknown, run Step 0 (`find_paths`) first.
