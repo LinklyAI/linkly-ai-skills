@@ -122,7 +122,7 @@ Search uses BM25 + vector hybrid retrieval (OR logic for keywords, semantic matc
 **Tips:**
 
 - Both specific keywords and natural language sentences are effective queries.
-- Add `--type` filter when the user mentions a specific format (`pdf`, `docx`, `pptx`, `epub`, `md`, `txt`, `html`, `image`, `audio`, `video`). Audio and video match against their transcripts; images and scanned PDFs against their OCR text.
+- Add `--type` filter when the user mentions a specific format (`pdf`, `docx`, `doc`, `pptx`, `epub`, `rtf`, `md`, `txt`, `html`, `image`, `audio`, `video`). Audio and video match against their transcripts; images and scanned PDFs against their OCR text.
 - Use `--library` only when the user explicitly specifies a library name.
 - To search the user's notes, use `--scope notes` — see ["Notes"](#notes-local-markdown-cards) below. Note that `--scope notes` ignores `--library` and `--path-glob`.
 - Use `--path-glob` to filter by file path: the pattern is **substring-matched** against the path (it may appear anywhere — no leading/trailing `*` needed), always case-sensitive. `*` matches any chars (incl. `/`), `?` one char. A full directory path like `/Users/me/notes/` scopes to that directory. When the actual path is unknown, run Step 0 (`find_paths`) first.
