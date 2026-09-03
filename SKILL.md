@@ -2,6 +2,7 @@
 name: linkly-ai
 description: "Search, browse, read, and take notes across the user's documents indexed by Linkly AI — local files and linked cloud libraries. Use when the user asks to 'search my documents', 'find files about a topic', 'read a local document', 'what's in this folder', 'list the files in that library', 'browse document outlines', 'list knowledge libraries', 'save this as a note', 'list my notes', or any task involving searching, listing, reading, or noting stored content (PDF, Markdown, DOCX, PPTX, EPUB, TXT, HTML, images, audio, video). Also triggered by: 'linkly not working', 'cloud library', '搜索我的文档', '查找文件', '这个文件夹里有什么', '列出文件', '知识库搜索', '云端知识库', '记笔记', '我的笔记', '连接不上', '故障排查'. Provides full-text search, container enumeration, structural outlines, paginated reading, and local note capture via CLI or MCP tools."
 license: Apache-2.0
+version: 0.6.0
 ---
 
 # Linkly AI — Document Search (Local + Cloud)
@@ -337,3 +338,7 @@ For detailed troubleshooting steps, see `references/troubleshooting.md`.
 - `references/mcp-tools-reference.md` — MCP tool schemas, parameters, and response formats.
 - `references/search-strategies.md` — Advanced query crafting, multi-round search, and complex retrieval patterns.
 - `references/troubleshooting.md` — Diagnosing and resolving connection and search issues.
+
+## Version
+
+linkly-ai-skill-version: 0.6.0

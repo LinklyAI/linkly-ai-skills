@@ -1,0 +1,100 @@
+# Release — packages the skill and publishes it, triggered by a version tag.
+#
+# scripts/package.sh only bumps the version, commits, tags and pushes; everything
+# from packaging onward happens here. Building the ZIP in both places would put
+# two artifacts into the world for the same version, and a mismatch between them
+# is the kind of bug nobody finds until a user reports broken references.
+#
+# Upload order matters: the ZIP goes up before latest.json. Reversed, there is a
+# window where clients are told a new version exists but still download the old
+# package.
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve version from tag
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      # The version lives in three files plus the tag. They drift silently
+      # otherwise — the README badge already fell two minor versions behind once,
+      # and nothing caught it until a user's install was inspected by hand.
+      - name: Assert the version agrees everywhere
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          fail=0
+
+          fm=$(sed -n 's/^version: \(.*\)$/\1/p' SKILL.md | head -1)
+          body=$(sed -n 's/^linkly-ai-skill-version: \(.*\)$/\1/p' SKILL.md | head -1)
+          badge=$(sed -n 's/.*badge\/version-\([0-9][0-9.]*\)-blue.*/\1/p' README.md | head -1)
+
+          for pair in "SKILL.md frontmatter:$fm" "SKILL.md body marker:$body" "README badge:$badge"; do
+            name="${pair%%:*}"; got="${pair##*:}"
+            if [ "$got" != "$VERSION" ]; then
+              echo "::error::$name is '$got', tag is '$VERSION'"
+              fail=1
+            fi
+          done
+
+          [ "$fail" -eq 0 ] || exit 1
+          echo "All three agree with tag v$VERSION"
+
+      - name: Build ZIP
+        run: |
+          zip -r linkly-skills-latest.zip \
+            SKILL.md \
+            references/ \
+            LICENSE \
+            -x "**/.DS_Store" "**/__pycache__/*"
+          unzip -l linkly-skills-latest.zip
+
+      - name: Install rclone
+        uses: AnimMouse/setup-rclone@v1
+
+      - name: Configure rclone for R2
+        env:
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+        run: |
+          mkdir -p ~/.config/rclone
+          printf '[r2]\ntype = s3\nprovider = Cloudflare\naccess_key_id = %s\nsecret_access_key = %s\nendpoint = %s\nacl = private\nno_check_bucket = true\n' \
+            "$R2_ACCESS_KEY_ID" "$R2_SECRET_ACCESS_KEY" "$R2_ENDPOINT" \
+            > ~/.config/rclone/rclone.conf
+
+      # The versioned copy is what makes a bad release diagnosable: the rolling
+      # file alone cannot answer "which version did this user actually get".
+      - name: Upload ZIP to R2
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          rclone copyto linkly-skills-latest.zip "r2:linkly-updater/skills/v${VERSION}/linkly-skills.zip"
+          rclone copyto linkly-skills-latest.zip "r2:linkly-updater/skills/linkly-skills-latest.zip"
+
+      - name: Upload latest.json to R2
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          jq -n \
+            --arg v "$VERSION" \
+            --arg url "https://updater.linkly.ai/skills/linkly-skills-latest.zip" \
+            '{version: $v, url: $url}' > latest.json
+          cat latest.json
+          rclone copyto latest.json "r2:linkly-updater/skills/latest.json"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: linkly-skills-latest.zip
+          generate_release_notes: true

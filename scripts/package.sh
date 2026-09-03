@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 # package.sh - Release script for Linkly AI Skills
-# Packages, tags, pushes, and creates a GitHub Release with the ZIP asset.
+# Bumps the version in the three places that carry it, commits, tags and pushes.
+# Packaging and publishing are done by .github/workflows/release.yml, which the
+# pushed tag triggers -- building the ZIP locally as well would produce two
+# artifacts for the same version and make failures hard to attribute.
 #
 # Usage:
 #   ./scripts/package.sh          # interactive release flow
-#   ./scripts/package.sh --zip    # only build the ZIP, skip release
 
 set -euo pipefail
 
@@ -18,8 +20,6 @@ NC='\033[0m'
 # State
 CURRENT_VERSION=""
 NEW_VERSION=""
-ZIP_FILE=""
-ZIP_ONLY=false
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -31,20 +31,6 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 print_ok() { echo -e "  ${GREEN}✓${NC} $1"; }
 print_err() { echo -e "  ${RED}✗${NC} $1"; }
 print_step() { echo -e "\n${BOLD}$1${NC}"; }
-
-build_zip() {
-  ZIP_FILE="$ROOT_DIR/linkly-skills-latest.zip"
-  rm -f "$ZIP_FILE"
-
-  cd "$ROOT_DIR"
-  zip -r "$ZIP_FILE" \
-    SKILL.md \
-    references/ \
-    LICENSE \
-    -x "**/.DS_Store" "**/__pycache__/*" > /dev/null
-
-  print_ok "linkly-skills-latest.zip ($(du -h "$ZIP_FILE" | cut -f1 | xargs))"
-}
 
 # ============================================================================
 # Steps
@@ -112,17 +98,24 @@ show_release_notes() {
   echo "$notes" | sed 's/^/  /'
 }
 
+# The version lives in three files. release.yml asserts all three agree with the
+# tag, so any place missed here fails the release instead of shipping a mismatch.
 update_version_in_files() {
-  # Update version badge in README.md
+  # README badge
   sed -i '' "s/version-$CURRENT_VERSION-blue/version-$NEW_VERSION-blue/" "$ROOT_DIR/README.md"
+  # SKILL.md frontmatter
+  sed -i '' "s/^version: $CURRENT_VERSION$/version: $NEW_VERSION/" "$ROOT_DIR/SKILL.md"
+  # SKILL.md body marker -- the authoritative one: some platforms strip
+  # frontmatter keys they do not recognise, body text always travels with the file
+  sed -i '' "s/^linkly-ai-skill-version: $CURRENT_VERSION$/linkly-ai-skill-version: $NEW_VERSION/" "$ROOT_DIR/SKILL.md"
 }
 
 confirm_and_execute() {
   print_step "Step 4: Confirm"
   echo -e "  Version : ${BOLD}$CURRENT_VERSION -> $NEW_VERSION${NC}"
   echo -e "  Tag     : v$NEW_VERSION"
-  echo -e "  Asset   : linkly-ai-skills-v$NEW_VERSION.zip"
-  echo -e "  Actions : bump version -> commit -> tag -> push -> gh release"
+  echo -e "  Actions : bump version -> commit -> tag -> push"
+  echo -e "  Then    : release.yml packages, uploads to R2 and creates the GitHub Release"
   echo ""
   read -r -p "  Type 'yes' to release: " response
   if [[ "$response" != "yes" ]]; then
@@ -136,14 +129,10 @@ confirm_and_execute() {
   update_version_in_files
   echo -e "${GREEN}OK${NC}"
 
-  # -- Build ZIP --
-  echo -n "  Building ZIP... "
-  build_zip
-
   # -- Commit & Tag --
   echo -n "  Committing and tagging... "
   cd "$ROOT_DIR"
-  git add README.md
+  git add README.md SKILL.md
   git commit -m "chore: release v$NEW_VERSION" > /dev/null
   git tag "v$NEW_VERSION"
   echo -e "${GREEN}OK${NC}"
@@ -167,51 +156,21 @@ confirm_and_execute() {
   fi
   echo -e "${GREEN}OK${NC}"
 
-  # -- Create GitHub Release --
-  echo -n "  Creating GitHub Release... "
-  local notes
-  local last_tag
-  last_tag=$(git describe --tags --abbrev=0 "v$NEW_VERSION^" 2>/dev/null || echo "")
-  if [[ -n "$last_tag" ]]; then
-    notes=$(git log "${last_tag}..v$NEW_VERSION" --pretty=format:"- %s" --no-merges)
-  else
-    notes=$(git log "v$NEW_VERSION" --pretty=format:"- %s" --no-merges)
-  fi
-
-  gh release create "v$NEW_VERSION" "$ZIP_FILE#linkly-ai-skills-v${NEW_VERSION}.zip" \
-    --title "v$NEW_VERSION" \
-    --notes "$notes" \
-    > /dev/null 2>&1
-  echo -e "${GREEN}OK${NC}"
-
-  # -- Done (keep ZIP for manual R2 upload) --
-
   echo ""
-  echo -e "  ${GREEN}${BOLD}Released v$NEW_VERSION${NC}"
-  echo -e "  ${DIM}https://github.com/LinklyAI/linkly-ai-skills/releases/tag/v$NEW_VERSION${NC}"
+  echo -e "  ${GREEN}${BOLD}Tagged v$NEW_VERSION${NC}"
+  echo -e "  ${DIM}release.yml is now packaging and publishing it:${NC}"
+  echo -e "  ${DIM}https://github.com/LinklyAI/linkly-ai-skills/actions${NC}"
 }
 
 # ============================================================================
 # Main
 # ============================================================================
 
-# Parse args
-if [[ "${1:-}" == "--zip" ]]; then
-  ZIP_ONLY=true
-fi
-
 echo ""
 echo -e "${BOLD}Linkly AI Skills Release${NC}"
 echo "────────────────────────"
 
-if $ZIP_ONLY; then
-  print_step "Build ZIP only"
-  build_zip
-  echo ""
-  echo -e "  Output: ${BOLD}$ZIP_FILE${NC}"
-else
-  check_workdir
-  select_version
-  show_release_notes
-  confirm_and_execute
-fi
+check_workdir
+select_version
+show_release_notes
+confirm_and_execute
