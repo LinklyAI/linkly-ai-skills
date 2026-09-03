@@ -6,7 +6,7 @@
 
 [Agent Skills](https://agentskills.io) for [Linkly AI](https://linkly.ai) — search, browse, and read your local documents (and linked cloud libraries) from any AI coding agent.
 
-This skill teaches AI agents how to use Linkly AI's document search capabilities, enabling them to find and read your locally indexed documents (PDF, Markdown, DOCX, PPTX, EPUB, TXT, HTML, images, audio, video) as well as cloud libraries you've linked via Linkly Web — and to capture short Markdown notes back into your library.
+This skill teaches AI agents how to use Linkly AI's document search capabilities, enabling them to find and read your locally indexed documents (PDF, Markdown, DOCX, DOC, PPTX, EPUB, RTF, TXT, HTML, images, audio, video) as well as cloud libraries you've linked via Linkly Web — and to capture short Markdown notes back into your library.
 
 ## What is Linkly AI?
 
