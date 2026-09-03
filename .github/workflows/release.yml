@@ -83,12 +83,18 @@ jobs:
           rclone copyto linkly-skills-latest.zip "r2:linkly-updater/skills/v${VERSION}/linkly-skills.zip"
           rclone copyto linkly-skills-latest.zip "r2:linkly-updater/skills/linkly-skills-latest.zip"
 
+      # url points at the versioned archive, not the rolling file. The rolling
+      # URL sits behind a 4-hour CDN cache, so for that long after a release it
+      # still serves the previous package — which is exactly the "told there is
+      # a new version, handed the old one" case this file's upload order is
+      # meant to prevent. A versioned path is immutable, so it can never be
+      # stale, and it also records which build a user actually received.
       - name: Upload latest.json to R2
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           jq -n \
             --arg v "$VERSION" \
-            --arg url "https://updater.linkly.ai/skills/linkly-skills-latest.zip" \
+            --arg url "https://updater.linkly.ai/skills/v${VERSION}/linkly-skills.zip" \
             '{version: $v, url: $url}' > latest.json
           cat latest.json
           rclone copyto latest.json "r2:linkly-updater/skills/latest.json"
