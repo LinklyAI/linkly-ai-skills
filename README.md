@@ -1,6 +1,6 @@
 # Linkly AI Skills
 
-![Version](https://img.shields.io/badge/version-0.6.0-blue)
+![Version](https://img.shields.io/badge/version-0.7.0-blue)
 ![License](https://img.shields.io/badge/license-Apache--2.0-green)
 ![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey)
 
@@ -124,6 +124,18 @@ clawhub install linkly-ai
 ### Other AI Agents
 
 Any AI agent that supports the [Agent Skills](https://agentskills.io) open standard can use this skill. Copy the `SKILL.md` file and the `references/` directory to the appropriate skills location for your agent.
+
+## Versioning
+
+The version appears in three places, and the release workflow refuses to publish unless all three match the git tag:
+
+| Where                                                  | Purpose                                                                                                            |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| `linkly-ai-skill-version:` at the bottom of `SKILL.md` | Authoritative. Some platforms strip frontmatter keys they don't recognise; body text always travels with the file. |
+| `version:` in the `SKILL.md` frontmatter               | Convenience for tools that already parse frontmatter.                                                              |
+| The badge at the top of this README                    | Human-facing.                                                                                                      |
+
+`linkly skills status` reports the installed version against the latest published one; `linkly skills update` upgrades it.
 
 ## Skill Contents
 

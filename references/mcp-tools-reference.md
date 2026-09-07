@@ -518,20 +518,22 @@ Inline `#tags` in the body (outside code) **are** the note's tag set — the bod
 
 ## Supported Document Types
 
-| Type       | `doc_types` value | Extensions                                      | Outline Support             |
-| ---------- | ----------------- | ----------------------------------------------- | --------------------------- |
-| Markdown   | `md`              | `.md`, `.mdx`                                   | Yes (parsed)                |
-| PDF        | `pdf`             | `.pdf`                                          | No                          |
-| Word       | `docx`            | `.docx`                                         | Yes (parsed)                |
-| PowerPoint | `pptx`            | `.pptx`                                         | Yes (slide outlines)        |
-| Excel      | `xlsx`            | `.xlsx`                                         | Yes (per-sheet summaries)   |
-| CSV        | `csv`             | `.csv`                                          | Yes (table summary)         |
-| Text       | `txt`             | `.txt`                                          | No                          |
-| HTML       | `html`            | `.html`                                         | No                          |
-| EPUB       | `epub`            | `.epub`                                         | Yes (from ToC)              |
-| Image      | `image`           | `.png`, `.jpg`, `.jpeg`, `.bmp`, `.webp`        | No (OCR text)               |
-| Audio      | `audio`           | `.mp3`, `.wav`, `.m4a`, `.flac`, `.aac`, `.ogg` | Yes (chapters / time spans) |
-| Video      | `video`           | `.mp4`, `.mov`, `.mkv`, `.webm`                 | Yes (chapters / time spans) |
+| Type         | `doc_types` value | Extensions                                      | Outline Support                      |
+| ------------ | ----------------- | ----------------------------------------------- | ------------------------------------ |
+| Markdown     | `md`              | `.md`, `.mdx`                                   | Yes (parsed)                         |
+| PDF          | `pdf`             | `.pdf`                                          | No                                   |
+| Word         | `docx`            | `.docx`                                         | Yes (parsed)                         |
+| Word 97-2003 | `doc`             | `.doc`                                          | Yes (heading styles)                 |
+| RTF          | `rtf`             | `.rtf`                                          | Yes (heading styles / outline level) |
+| PowerPoint   | `pptx`            | `.pptx`                                         | Yes (slide outlines)                 |
+| Excel        | `xlsx`            | `.xlsx`                                         | Yes (per-sheet summaries)            |
+| CSV          | `csv`             | `.csv`                                          | Yes (table summary)                  |
+| Text         | `txt`             | `.txt`                                          | No                                   |
+| HTML         | `html`            | `.html`                                         | No                                   |
+| EPUB         | `epub`            | `.epub`                                         | Yes (from ToC)                       |
+| Image        | `image`           | `.png`, `.jpg`, `.jpeg`, `.bmp`, `.webp`        | No (OCR text)                        |
+| Audio        | `audio`           | `.mp3`, `.wav`, `.m4a`, `.flac`, `.aac`, `.ogg` | Yes (chapters / time spans)          |
+| Video        | `video`           | `.mp4`, `.mov`, `.mkv`, `.webm`                 | Yes (chapters / time spans)          |
 
 The middle column is what you pass to `doc_types` / `--type` — filter by type name, not by extension.
 

@@ -247,9 +247,9 @@ When the MCP tool definitions evolve (e.g., adding `list_libraries` / `find_path
 
 ### Skills version outdated
 
-This skill itself may be outdated — it might reference commands or parameters that no longer exist, or miss newly added features. There is currently no automatic version check for skills.
+This skill may be outdated — it might reference commands or parameters that no longer exist, or miss newly added features. The installed version is the `linkly-ai-skill-version` line at the bottom of `SKILL.md`.
 
-**Fix:** As a fallback when other troubleshooting steps don't help, try reinstalling or updating the skill. See the [Skills installation guide](https://linkly.ai/docs/en/use-skills) for instructions.
+**Fix:** Run `linkly skills status` to compare the installed version against the latest, then `linkly skills update` to upgrade. The CLI also appends a one-line notice to tool results when an update is available; that notice is informational and safe to ignore. See the [Skills installation guide](https://linkly.ai/docs/en/use-skills) for other installation methods.
 
 ## General Tips
 
