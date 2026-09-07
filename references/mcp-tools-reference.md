@@ -1,8 +1,8 @@
 # Linkly AI MCP Tools Reference
 
-The Linkly AI MCP server exposes nine tools: seven read-only document tools (`list_libraries`, `explore`, `find_paths`, `search`, `outline`, `grep`, `read`), one enumeration tool (`list`), and one write tool (`note_save`). Local documents require the Linkly AI desktop app to be running with its MCP server enabled; linked cloud libraries are served directly by the cloud gateway and stay reachable even when the desktop is offline.
+The Linkly AI desktop MCP server exposes nine tools: seven read-only document tools (`list_libraries`, `explore`, `find_paths`, `search`, `outline`, `grep`, `read`), one enumeration tool (`list`), and one write tool (`note_save`). The cloud gateway exposes those nine plus two **cloud-only** tools: `search_libraries` (read-only catalog search) and `link_library` (a write: it links a cloud library to the account) — see their sections below. Local documents require the Linkly AI desktop app to be running with its MCP server enabled; linked cloud libraries are served directly by the cloud gateway and stay reachable even when the desktop is offline.
 
-**Server name:** `linkly-ai` (local Desktop MCP) or `linkly-ai-cloud` (the cloud gateway at `mcp.linkly.ai`, which exposes both your local libraries — via the desktop tunnel — and your linked cloud libraries). Both servers advertise the same nine tools.
+**Server name:** `linkly-ai` (local Desktop MCP) or `linkly-ai-cloud` (the cloud gateway at `mcp.linkly.ai`, which exposes both your local libraries — via the desktop tunnel — and your linked cloud libraries). The local server advertises nine tools; the cloud gateway (and `linkly mcp --remote`) advertises eleven.
 
 **Notes are Desktop-only.** `note_save`, `list` with `scope="notes"`, and `search` with `scope="notes"` operate on plain Markdown files on the user's computer; there is no cloud notes store. On the cloud gateway all three are forwarded to the Desktop over the tunnel — so they need the Desktop online (which over the tunnel also means Pro) and have **no cloud library to fall back on** when it is not. `note_save` has no `library` parameter at all and rejects one as an unknown field; `list` and `search` do have one, but pairing it with `scope="notes"` is rejected when it names a cloud library — notes have no cloud counterpart to search.
 
@@ -53,7 +53,70 @@ local indexed content. To search a cloud library, specify it explicitly via
 
 A library may carry a display title in addition to its identifier; when set it appears in quotes after the name. On a **local or LAN** connection there are no cloud libraries to reach, so only the local section is returned — see ["Know what your connection reaches"](../SKILL.md#3-know-what-your-connection-reaches) before concluding the user has none.
 
-**When to use:** When the user asks what libraries exist, before scoping a `search` / `explore` / `find_paths` to a specific library, or to discover linked cloud libraries (the only way to learn their `cloud://owner/slug` identifiers).
+**When to use:** When the user asks what libraries exist, before scoping a `search` / `explore` / `find_paths` to a specific library, or to see which cloud libraries are linked. It only lists what is searchable right now — for a cloud library that is **not linked yet**, use `search_libraries` (below) to find it and `link_library` to link it.
+
+## search_libraries (cloud gateway only)
+
+Search the **catalog** of cloud knowledge libraries — including libraries the user has not linked yet — by title, description or owner username, optionally filtered by category. Read-only: nothing is linked, starred or changed. Available on the `linkly-ai-cloud` server and `linkly mcp --remote`; never on a local / LAN connection.
+
+Boundary: `search_libraries` finds **libraries**; `search` finds **documents**; `list_libraries` lists what is already searchable. "Find a Rust knowledge base" → `search_libraries`. "Search my libraries for Rust" → `search`.
+
+### Parameters
+
+| Parameter       | Type    | Required | Default    | Description                                                                                                                                                              |
+| --------------- | ------- | -------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `query`         | string  | No       | —          | Keywords matched case-insensitively as a substring of title, description and owner username. Omit (or `null`) to browse. Max 200 characters.                            |
+| `category`      | string  | No       | all        | One of `ai-ml`, `programming`, `design`, `science`, `business`, `lifestyle`, `education`, `other`.                                                                       |
+| `owner`         | string  | No       | all        | Exact owner username. The response starts with `You are signed in as @<you>` — pass that name to list the user's own libraries, private ones included.                   |
+| `limit`         | integer | No       | 10         | Maximum entries per page (1–50).                                                                                                                                         |
+| `offset`        | integer | No       | 0          | Pagination offset. Fetch the next page only while `has_more` is `true`; results are ordered by last update (newest first), so entries can shift if the catalog changes. |
+| `output_format` | string  | No       | `markdown` | `markdown` or `json`.                                                                                                                                                    |
+
+Every parameter accepts an explicit `null` (same as omitting it).
+
+### Response
+
+Markdown starts with `You are signed in as @<username>` and `Showing <first>–<last> of <total> … has_more: <bool>`, then one entry per library:
+
+```
+- **cloud://alice/rust-docs** — Rust Docs (public · programming · 120 docs · 5 stars · 3 links)
+  can_link: yes — link_library({ library: "cloud://alice/rust-docs" }) — Everything about Rust
+- **cloud://me/mine** — Mine (private · other · 3 docs · 0 stars · 1 links) [yours] [linked]
+  already linked — use it directly with search / explore / list
+- **cloud://alice/shop** — Shop (showcase · business · 40 docs · 9 stars · 2 links) [invite required]
+  can_link: no (invite_required) — the owner must invite the user first
+```
+
+JSON fields per entry: `library` (the exact `cloud://owner/slug` to pass to other tools), `title`, `description`, `owner`, `category`, `visibility`, `document_count`, `stars_count`, `links_count`, `updated_at`, `is_owner`, `is_linked`, `can_link`, `cannot_link_reason` (`invite_required` or `null`); top level: `viewer_username`, `query`, `category`, `owner`, `total`, `offset`, `limit`, `has_more`, `_meta.now`.
+
+Visibility: Public and Showcase libraries are always listed. Private libraries appear only to their owner and invited readers — other users never see them, not even in `total`. `is_linked: true` means the library is already searchable: do **not** call `link_library` again.
+
+## link_library (cloud gateway only)
+
+Link a cloud library to the account so it becomes searchable through this MCP server. The library appears in `list_libraries` immediately and `search` / `explore` / `list` accept its `cloud://owner/slug` right away. Same rules as the **Link** button on the website. This is a **write** (`readOnlyHint: false`, `destructiveHint: false`, `idempotentHint: true`) — the only one besides `note_save`.
+
+### Parameters
+
+| Parameter | Type   | Required | Description                                                                                                                                      |
+| --------- | ------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `library` | string | Yes      | The full `cloud://<owner>/<slug>` reference, exactly as returned by `search_libraries`. Bare `owner/slug`, `local://…` and document ids are rejected. |
+
+### Response
+
+Success text states whether it was `already_linked`, the Slots used (`current/limit`), and the three follow-up calls to copy (`search`, `explore`, `list` with the same `cloud://` reference). Linking the same library twice is safe: it answers `already_linked: true` without using another Slot.
+
+### Errors (`error.data.kind`)
+
+| `kind`             | Code     | Meaning and what to do                                                                                                                                                                                              |
+| ------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `not_found`        | `-32002` | No such active library, **or** a private library the user cannot see. Confirm the reference with `search_libraries`; if it is not listed there either, tell the user the library is not available to this account. |
+| `invite_required`  | `-32000` | Showcase library and the user is not the owner or an invited reader. Only the owner can invite (from the library settings on the website). Do not retry with other parameters.                                      |
+| `slot_exhausted`   | `-32000` | Link quota full (`data.current` / `data.limit`, `data.is_pro`, `data.upgrade_url`). Report it and stop. **Never unlink another library on the user's behalf.**                                                       |
+| `not_ready`        | `-32000` | Server-side rollout in progress. Retry later; nothing to change on the client.                                                                                                                                      |
+| `execution_failed` | `-32000` | Transient server failure. Retry later with the same arguments.                                                                                                                                                      |
+| (none)             | `-32602` | Invalid arguments — `data.reason` explains, e.g. `library must be exactly cloud://<owner>/<slug>`.                                                                                                                  |
+
+Who can link: **Public** — any signed-in user; **Showcase** and **Private** — the owner and invited readers only. Every link uses one Slot (Free 1, Pro 99).
 
 ## explore
 
