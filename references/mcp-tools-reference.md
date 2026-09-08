@@ -544,7 +544,7 @@ When you list a local directory by explicit `path` (`scope="folder"`, or a local
 
 ## note_save
 
-Create or rewrite one of the user's local Markdown notes. **This is the only write tool** — every other tool in this reference is read-only.
+Create or rewrite one of the user's local Markdown notes. **This is the only write tool on local / LAN connections.** On the cloud gateway, `link_library` also writes: it adds a cloud library connection to the account. All remaining tools in this reference are read-only.
 
 The write always lands on the user's Desktop, including when you reach it through the cloud gateway (`--remote`): the tunnel forwards to that machine, it does not write to the cloud. There is no delete tool — deletion is user-only in the app UI.
 
