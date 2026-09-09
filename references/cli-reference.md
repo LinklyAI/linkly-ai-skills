@@ -22,7 +22,7 @@ See the [CLI installation guide](https://linkly.ai/docs/en/use-cli) for platform
 linkly list-libraries
 ```
 
-Lists all knowledge libraries with document counts. Over `--remote` this includes both local libraries (`local://<id>`) and linked cloud libraries (`cloud://<owner>/<slug>`). It shows what is searchable right now — a cloud library that is not linked yet is not listed. There is no CLI subcommand for discovering or linking cloud libraries; over `linkly mcp --remote` the bridge exposes the gateway's `search_libraries` / `link_library` tools for that (see `mcp-tools-reference.md`).
+Lists all knowledge libraries with document counts. Over `--remote` this includes both local libraries (`local://<id>`) and linked cloud libraries (`cloud://<owner>/<slug>`). It shows what is searchable right now — a cloud library that is not linked yet is not listed. There is no CLI subcommand for discovering or linking cloud libraries; over `linkly mcp --remote` the bridge exposes the gateway's `library_search` / `library_link` tools for that (see `mcp-tools-reference.md`).
 
 | Option   | Description                            |
 | -------- | -------------------------------------- |
@@ -301,7 +301,7 @@ linkly mcp
 linkly mcp --endpoint http://192.168.1.100:60606/mcp   # bridge to a LAN desktop instead of localhost
 linkly mcp --remote                                    # bridge through the cloud gateway (local + cloud libraries)
                                                        # --remote also advertises the gateway's cloud-only tools
-                                                       # search_libraries / link_library; local and LAN bridges never do
+                                                       # library_search / library_link; local and LAN bridges never do
 ```
 
 Runs the CLI as a stdio MCP server for integration with Claude Desktop, Cursor, or other MCP clients. The bridge is a transparent passthrough — whatever tools the upstream exposes are forwarded as-is.

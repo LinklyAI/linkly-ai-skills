@@ -1,6 +1,6 @@
 # Linkly AI MCP Tools Reference
 
-The Linkly AI desktop MCP server exposes nine tools: seven read-only document tools (`list_libraries`, `explore`, `find_paths`, `search`, `outline`, `grep`, `read`), one enumeration tool (`list`), and one write tool (`note_save`). The cloud gateway exposes those nine plus two **cloud-only** tools: `search_libraries` (read-only catalog search) and `link_library` (a write: it links a cloud library to the account) — see their sections below. Local documents require the Linkly AI desktop app to be running with its MCP server enabled; linked cloud libraries are served directly by the cloud gateway and stay reachable even when the desktop is offline.
+The Linkly AI desktop MCP server exposes nine tools: seven read-only document tools (`list_libraries`, `explore`, `find_paths`, `search`, `outline`, `grep`, `read`), one enumeration tool (`list`), and one write tool (`note_save`). The cloud gateway exposes those nine plus two **cloud-only** tools: `library_search` (read-only catalog search) and `library_link` (a write: it links a cloud library to the account, or with `action: "unlink"` removes a link the user named — the only tool marked destructive) — see their sections below. Local documents require the Linkly AI desktop app to be running with its MCP server enabled; linked cloud libraries are served directly by the cloud gateway and stay reachable even when the desktop is offline.
 
 **Server name:** `linkly-ai` (local Desktop MCP) or `linkly-ai-cloud` (the cloud gateway at `mcp.linkly.ai`, which exposes both your local libraries — via the desktop tunnel — and your linked cloud libraries). The local server advertises nine tools; the cloud gateway (and `linkly mcp --remote`) advertises eleven.
 
@@ -53,13 +53,13 @@ local indexed content. To search a cloud library, specify it explicitly via
 
 A library may carry a display title in addition to its identifier; when set it appears in quotes after the name. On a **local or LAN** connection there are no cloud libraries to reach, so only the local section is returned — see ["Know what your connection reaches"](../SKILL.md#3-know-what-your-connection-reaches) before concluding the user has none.
 
-**When to use:** When the user asks what libraries exist, before scoping a `search` / `explore` / `find_paths` to a specific library, or to see which cloud libraries are linked. It only lists what is searchable right now — for a cloud library that is **not linked yet**, use `search_libraries` (below) to find it and `link_library` to link it.
+**When to use:** When the user asks what libraries exist, before scoping a `search` / `explore` / `find_paths` to a specific library, or to see which cloud libraries are linked. It only lists what is searchable right now — for a cloud library that is **not linked yet**, use `library_search` (below) to find it and `library_link` to link it.
 
-## search_libraries (cloud gateway only)
+## library_search (cloud gateway only)
 
 Search the **catalog** of cloud knowledge libraries — including libraries the user has not linked yet — by title, description or owner username, optionally filtered by category. Read-only: nothing is linked, starred or changed. Available on the `linkly-ai-cloud` server and `linkly mcp --remote`; never on a local / LAN connection.
 
-Boundary: `search_libraries` finds **libraries**; `search` finds **documents**; `list_libraries` lists what is already searchable. "Find a Rust knowledge base" → `search_libraries`. "Search my libraries for Rust" → `search`.
+Boundary: `library_search` finds **libraries**; `search` finds **documents**; `list_libraries` lists what is already searchable. "Find a Rust knowledge base" → `library_search`. "Search my libraries for Rust" → `search`.
 
 ### Parameters
 
@@ -80,7 +80,7 @@ Markdown starts with `You are signed in as @<username>` and `Showing <first>–<
 
 ```
 - **cloud://alice/rust-docs** — Rust Docs (public · programming · 120 docs · 5 stars · 3 links)
-  can_link: yes — link_library({ library: "cloud://alice/rust-docs" }) — Everything about Rust
+  can_link: yes — library_link({ library: "cloud://alice/rust-docs" }) — Everything about Rust
 - **cloud://me/mine** — Mine (private · other · 3 docs · 0 stars · 1 links) [yours] [linked]
   already linked — use it directly with search / explore / list
 - **cloud://alice/shop** — Shop (showcase · business · 40 docs · 9 stars · 2 links) [invite required]
@@ -89,17 +89,18 @@ Markdown starts with `You are signed in as @<username>` and `Showing <first>–<
 
 JSON fields per entry: `library` (the exact `cloud://owner/slug` to pass to other tools), `title`, `description`, `owner`, `category`, `visibility`, `document_count`, `stars_count`, `links_count`, `updated_at`, `is_owner`, `is_linked`, `can_link`, `cannot_link_reason` (`invite_required` or `null`); top level: `viewer_username`, `query`, `category`, `owner`, `total`, `offset`, `limit`, `has_more`, `_meta.now`.
 
-Visibility: Public and Showcase libraries are always listed. Private libraries appear only to their owner and invited readers — other users never see them, not even in `total`. `is_linked: true` means the library is already searchable: do **not** call `link_library` again.
+Visibility: Public and Showcase libraries are always listed. Private libraries appear only to their owner and invited readers — other users never see them, not even in `total`. `is_linked: true` means the library is already searchable: do **not** link it again (an explicit `action: "link"`, an omitted action and `null` all mean link). `action: "unlink"` on such a library is still fine when the user has named it as the one to release ("replace A with B" is enough; a mere mention of A is not).
 
-## link_library (cloud gateway only)
+## library_link (cloud gateway only)
 
-Link a cloud library to the account so it becomes searchable through this MCP server. The library appears in `list_libraries` immediately and `search` / `explore` / `list` accept its `cloud://owner/slug` right away. Same rules as the **Link** button on the website. This is a **write** (`readOnlyHint: false`, `destructiveHint: false`, `idempotentHint: true`) — the only one besides `note_save`.
+Link a cloud library to the account so it becomes searchable through this MCP server — or, with `action: "unlink"`, remove one the user named (see **Unlink** below). Linking: the library appears in `list_libraries` immediately and `search` / `explore` / `list` accept its `cloud://owner/slug` right away. Same rules as the **Link** button on the website. This is a **write** (`readOnlyHint: false`, `destructiveHint: true` because the same tool can unlink, `idempotentHint: true`); the other writer is `note_save`. Clients that confirm destructive tools will ask before running it.
 
 ### Parameters
 
 | Parameter | Type   | Required | Description                                                                                                                                      |
 | --------- | ------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `library` | string | Yes      | The full `cloud://<owner>/<slug>` reference, exactly as returned by `search_libraries`. Bare `owner/slug`, `local://…` and document ids are rejected. |
+| `library` | string | Yes      | The full `cloud://<owner>/<slug>` reference, exactly as returned by `library_search`. Bare `owner/slug`, `local://…` and document ids are rejected. |
+| `action`  | string | No       | `"link"` (default) or `"unlink"`. Omit or send null to link. Any other value is rejected. |
 
 ### Response
 
@@ -109,14 +110,24 @@ Success text states whether it was `already_linked`, the Slots used (`current/li
 
 | `kind`             | Code     | Meaning and what to do                                                                                                                                                                                              |
 | ------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `not_found`        | `-32002` | No such active library, **or** a private library the user cannot see. Confirm the reference with `search_libraries`; if it is not listed there either, tell the user the library is not available to this account. |
+| `not_found`        | `-32002` | No such active library, **or** a private library the user cannot see. Confirm the reference with `library_search`; if it is not listed there either, tell the user the library is not available to this account. |
 | `invite_required`  | `-32000` | Showcase library and the user is not the owner or an invited reader. Only the owner can invite (from the library settings on the website). Do not retry with other parameters.                                      |
-| `slot_exhausted`   | `-32000` | Link quota full (`data.current` / `data.limit`, `data.is_pro`, `data.upgrade_url`). Report it and stop. **Never unlink another library on the user's behalf.**                                                       |
+| `slot_exhausted`   | `-32000` | Link quota full (`data.current` / `data.limit`, `data.is_pro`, `data.upgrade_url`). Report the numbers; if the user named a library to release, call this tool with `action: "unlink"` on it and retry, otherwise `list_libraries` and ask. **Never pick the library yourself.**                                                       |
 | `not_ready`        | `-32000` | Server-side rollout in progress. Retry later; nothing to change on the client.                                                                                                                                      |
 | `execution_failed` | `-32000` | Transient server failure. Retry later with the same arguments.                                                                                                                                                      |
 | (none)             | `-32602` | Invalid arguments — `data.reason` explains, e.g. `library must be exactly cloud://<owner>/<slug>`.                                                                                                                  |
 
 Who can link: **Public** — any signed-in user; **Showcase** and **Private** — the owner and invited readers only. Every link uses one Slot (Free 1, Pro 99).
+
+### Unlink (`action: "unlink"`)
+
+Remove a cloud library from the account's linked set: it disappears from `list_libraries`, stops being searchable through this MCP server — for every client of the account, not just this session — and its Slot is freed. Reader access, invitation and star stay, so the library can be linked again later. Same `library` parameter, exactly as listed by `list_libraries`.
+
+**When to call it:** only for a library the user has **named** — typically after `slot_exhausted`, when the user says which linked library to give up ("replace A with B"): `library_link({ library: "cloud://<owner>/<A>", action: "unlink" })`, then `library_link({ library: "cloud://<owner>/<B>" })`. If the user has not named one, call `list_libraries`, show the linked cloud libraries and ask; never choose on their behalf, and never unlink to make room without being told which one.
+
+**Response:** states whether it was `already_unlinked`, the Slots still used (`current/limit`), and — after a real unlink — reminds you to link the library the user actually wanted. Unlinking a library that is not linked is safe: it answers `already_unlinked: true`.
+
+**Errors:** `not_found` (`-32002`) — no such active library, **or** a private library the user cannot see; confirm the reference with `list_libraries` and, if it is not there, tell the user it is not linked to this account. `execution_failed` (`-32000`) — transient, retry later. `-32602` — invalid arguments (`data.reason` explains, e.g. an `action` other than `link` / `unlink`).
 
 ## explore
 
@@ -544,7 +555,7 @@ When you list a local directory by explicit `path` (`scope="folder"`, or a local
 
 ## note_save
 
-Create or rewrite one of the user's local Markdown notes. **This is the only write tool on local / LAN connections.** On the cloud gateway, `link_library` also writes: it adds a cloud library connection to the account. All remaining tools in this reference are read-only.
+Create or rewrite one of the user's local Markdown notes. **This is the only write tool on local / LAN connections.** On the cloud gateway, `library_link` also writes: it adds a cloud library connection to the account, or (with `action: "unlink"`) removes one the user named. All remaining tools in this reference are read-only.
 
 The write always lands on the user's Desktop, including when you reach it through the cloud gateway (`--remote`): the tunnel forwards to that machine, it does not write to the cloud. There is no delete tool — deletion is user-only in the app UI.
 
