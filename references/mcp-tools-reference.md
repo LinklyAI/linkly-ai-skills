@@ -89,7 +89,7 @@ Markdown starts with `You are signed in as @<username>` and `Showing <first>–<
 
 JSON fields per entry: `library` (the exact `cloud://owner/slug` to pass to other tools), `title`, `description`, `owner`, `category`, `visibility`, `document_count`, `stars_count`, `links_count`, `updated_at`, `is_owner`, `is_linked`, `can_link`, `cannot_link_reason` (`invite_required` or `null`); top level: `viewer_username`, `query`, `category`, `owner`, `total`, `offset`, `limit`, `has_more`, `_meta.now`.
 
-Visibility: Public and Showcase libraries are always listed. Private libraries appear only to their owner and invited readers — other users never see them, not even in `total`. `is_linked: true` means the library is already searchable: do **not** call `library_link` again.
+Visibility: Public and Showcase libraries are always listed. Private libraries appear only to their owner and invited readers — other users never see them, not even in `total`. `is_linked: true` means the library is already searchable: do **not** link it again (an explicit `action: "link"`, an omitted action and `null` all mean link). `action: "unlink"` on such a library is still fine when the user has named it as the one to release ("replace A with B" is enough; a mere mention of A is not).
 
 ## library_link (cloud gateway only)
 
