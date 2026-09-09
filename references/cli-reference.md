@@ -301,7 +301,7 @@ linkly mcp
 linkly mcp --endpoint http://192.168.1.100:60606/mcp   # bridge to a LAN desktop instead of localhost
 linkly mcp --remote                                    # bridge through the cloud gateway (local + cloud libraries)
                                                        # --remote also advertises the gateway's cloud-only tools
-                                                       # search_libraries / link_library; local and LAN bridges never do
+                                                       # search_libraries / link_library / unlink_library; local and LAN bridges never do
 ```
 
 Runs the CLI as a stdio MCP server for integration with Claude Desktop, Cursor, or other MCP clients. The bridge is a transparent passthrough — whatever tools the upstream exposes are forwarded as-is.
