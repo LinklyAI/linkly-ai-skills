@@ -419,12 +419,28 @@ The flag is opt-in because it changes what `1` means: without it, `1` is "failed
 
 ## Global Options
 
-| Flag            | Description                                                                        |
-| --------------- | ---------------------------------------------------------------------------------- |
-| `--json`        | Output in structured JSON format (useful for scripting)                            |
-| `--exit-code`   | Distinguish "no results" (`1`) from "failed" (`2`) — see [Exit Codes](#exit-codes) |
-| `-V, --version` | Print version                                                                      |
-| `-h, --help`    | Print help                                                                         |
+| Flag              | Description                                                                        |
+| ----------------- | ---------------------------------------------------------------------------------- |
+| `--json`          | Output in structured JSON format (useful for scripting)                            |
+| `--exit-code`     | Distinguish "no results" (`1`) from "failed" (`2`) — see [Exit Codes](#exit-codes) |
+| `--client <name>` | Name the calling application — see [Naming yourself](#naming-yourself)             |
+| `-V, --version`   | Print version                                                                      |
+| `-h, --help`      | Print help                                                                         |
+
+### Naming yourself
+
+Desktop keeps a local access log of every call so the user can see which AI applications read their documents. `--client` is what gives a call a name there.
+
+```bash
+linkly search "budget report" --client claude-code
+linkly mcp --client cursor
+```
+
+**Agents should pass it on every call**, including in the `linkly mcp` command line they are configured with. Without it the entry shows only where the call came from — local, LAN or remote — and the user cannot tell one agent from another.
+
+It is a label, not a credential: it grants nothing, is never checked against anything, and never changes what the call can reach. That is also why it cannot be required — someone typing commands in a terminal should not have to name themselves.
+
+Printable ASCII, up to 64 characters. A value outside that is ignored rather than rejected, so a bad name never fails a call; it just leaves the entry unnamed.
 
 ## JSON Output Format
 

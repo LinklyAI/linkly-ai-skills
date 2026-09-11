@@ -35,11 +35,11 @@ Run both checks independently (skip a check if its prerequisite isn't there):
 
 **The connection mode decides which content is visible, and no tool call can cross that boundary.** This is the single most common source of "the document is there but Linkly can't find it".
 
-| Connection                                                                                        | Reaches                                                                                                                             |
-| ------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| **Local** (`linkly` default) / **LAN** (`--endpoint`), or a `linkly-ai` MCP server on localhost   | The user's **local** indexed content only. Cloud libraries are **not reachable** — `cloud://` references are rejected on this path. |
-| **Cloud gateway** (`linkly --remote`, `linkly mcp --remote`, or the `linkly-ai-cloud` MCP server) | Both local content (through the desktop tunnel) and linked **cloud** libraries.                                                     |
-| **Cloud gateway only** — the `library_search` / `library_link` tools                            | The cloud library **catalog** (including libraries not linked yet) and the link / unlink actions (`library_link`, `action: "unlink"` to release). Not advertised on Local / LAN — if the user needs them there, tell them to switch connection. |
+| Connection                                                                                        | Reaches                                                                                                                                                                                                                                         |
+| ------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Local** (`linkly` default) / **LAN** (`--endpoint`), or a `linkly-ai` MCP server on localhost   | The user's **local** indexed content only. Cloud libraries are **not reachable** — `cloud://` references are rejected on this path.                                                                                                             |
+| **Cloud gateway** (`linkly --remote`, `linkly mcp --remote`, or the `linkly-ai-cloud` MCP server) | Both local content (through the desktop tunnel) and linked **cloud** libraries.                                                                                                                                                                 |
+| **Cloud gateway only** — the `library_search` / `library_link` tools                              | The cloud library **catalog** (including libraries not linked yet) and the link / unlink actions (`library_link`, `action: "unlink"` to release). Not advertised on Local / LAN — if the user needs them there, tell them to switch connection. |
 
 If the user asks for cloud-library content while you are on a local or LAN connection, **tell them to switch connection** (`--remote`, or configure the cloud gateway connector). Do not retry, and do not attempt a `cloud://` reference from a local connection — it will fail every time.
 
@@ -54,6 +54,20 @@ The CLI's three connection modes:
 - **Remote**: `--remote` connects through the `https://mcp.linkly.ai` gateway. Linked cloud libraries are served by the gateway and stay reachable even when the desktop is offline; local content additionally needs the desktop online and its tunnel connected. Requires `linkly auth set-key <api-key>` first. (Reaching **local** content over the tunnel is a Pro feature; linked **cloud** libraries are served on all plans.)
 
 If you have no path to Linkly at all (neither CLI nor an MCP connection), tell the user instead of retrying.
+
+### 4. Name yourself on every CLI call
+
+Linkly AI Desktop keeps a local access log so the user can see which AI applications read their documents. **Pass `--client <your-app-name>` on every `linkly` command** — `--client claude-code`, `--client cursor`, `--client codex-cli`, whatever your host application is called. Use lowercase with hyphens.
+
+```bash
+linkly search "budget report" --client claude-code
+```
+
+Without it your calls appear in that log as an anonymous local entry, and the user cannot tell you apart from anything else running on their machine.
+
+It is a label, not a credential: it grants nothing, is never checked against anything, and never changes what you can reach. The examples below leave it out to keep them about the flag they demonstrate — add it anyway.
+
+On MCP there is nothing to pass: the connection itself carries the name.
 
 See `references/mcp-tools-reference.md` for MCP parameter schemas and response formats.
 
@@ -248,7 +262,7 @@ Libraries let you scope a search to one knowledge domain. There are **two kinds*
 - **Local libraries** — user-curated collections of folders on the Desktop. Addressed as `local://<id>` (a plain library name also works, for backward compatibility).
 - **Cloud libraries** — libraries the user linked via Linkly Web, served by the cloud gateway. Addressed as `cloud://<owner>/<slug>` (the two-segment `owner/slug` form is required; a single segment is rejected).
 
-Call `list_libraries` to see both kinds and their identifiers — it lists everything that is **searchable right now**. A cloud library that is **not linked yet** does not appear there. On the cloud gateway, find it with `library_search` (returns the exact `cloud://owner/slug`, plus `is_linked` and `can_link`), link it with `library_link`, then search it. Those two tools are the only way to reach an unlinked library from an agent; on Local / LAN there is no way at all. `library_search` finds *libraries*; `search` finds *documents* — never use one for the other.
+Call `list_libraries` to see both kinds and their identifiers — it lists everything that is **searchable right now**. A cloud library that is **not linked yet** does not appear there. On the cloud gateway, find it with `library_search` (returns the exact `cloud://owner/slug`, plus `is_linked` and `can_link`), link it with `library_link`, then search it. Those two tools are the only way to reach an unlinked library from an agent; on Local / LAN there is no way at all. `library_search` finds _libraries_; `search` finds _documents_ — never use one for the other.
 
 ### When to use libraries
 
@@ -334,6 +348,7 @@ For detailed troubleshooting steps, see `references/troubleshooting.md`.
 16. **Never invent note tags.** Pass only tags the user explicitly asked for; `available_tags` is for filtering, not for decorating new notes. `note_save`'s `tags` only adds — remove a tag by deleting its `#token` from the note body, the source of truth for tags.
 17. **"Searchable but unreadable" is a valid end state.** When `read` reports content unavailable (cloud placeholder, no audio track, failed transcription, signature mismatch), relay the reason and stop — re-searching and retrying will not produce text that isn't there.
 18. **Notes stay local.** They are plain Markdown files in the user's library folder and are never uploaded to a cloud library. Don't offer to sync or publish them.
+19. **Name yourself on every CLI call.** `--client <your-app-name>` — see ["Name yourself on every CLI call"](#4-name-yourself-on-every-cli-call). The examples in this document omit it for brevity; your calls should not.
 
 ## References
 
