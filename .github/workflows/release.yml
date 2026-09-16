@@ -89,13 +89,17 @@ jobs:
       # a new version, handed the old one" case this file's upload order is
       # meant to prevent. A versioned path is immutable, so it can never be
       # stale, and it also records which build a user actually received.
+      # `sha256` is the archive's checksum so the desktop can verify what it
+      # downloaded. Added as a new field: shipped desktops read only version/url.
       - name: Upload latest.json to R2
         run: |
           VERSION="${{ steps.version.outputs.version }}"
+          SHA=$(sha256sum linkly-skills-latest.zip | cut -d' ' -f1)
           jq -n \
             --arg v "$VERSION" \
             --arg url "https://updater.linkly.ai/skills/v${VERSION}/linkly-skills.zip" \
-            '{version: $v, url: $url}' > latest.json
+            --arg sha "$SHA" \
+            '{version: $v, url: $url, sha256: $sha}' > latest.json
           cat latest.json
           rclone copyto latest.json "r2:linkly-updater/skills/latest.json"
 
