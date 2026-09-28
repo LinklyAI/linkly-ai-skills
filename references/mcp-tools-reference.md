@@ -21,12 +21,17 @@ Errors (`isError: true`) do **not** include this metadata — the error body its
 
 `search`, `outline`, `read` and `list` report a document's size in two different units. Don't substitute one for the other:
 
-- **`word_count`** counts words: one per CJK character or Latin word, with whitespace, punctuation and markup excluded. On Chinese text it reads well below what a Chinese user calls 字数.
-- **`char_count`** counts the Unicode characters of the extracted body — whitespace, punctuation and Markdown markup included, `\r` excluded (CRLF and LF copies of a text count the same). This is the figure to match against what the user sees: an editor's character count, or the 字数 printed on a book.
+- **`word_count`** is a scan of the extracted body: every CJK character (ideographs, kana, Hangul syllables) counts as one word, and every run of letters, digits or `_` counts as one more; everything else only separates words. Markdown is counted as-is — a link's URL adds words, and a `___` rule counts as one. It is not a character count, and how far it sits from `char_count` depends on the content: for CJK text without punctuation or spaces the two are equal.
+- **`char_count`** counts the Unicode scalar values of the currently available extracted body — whitespace, punctuation and Markdown markup included, `\r` excluded (CRLF and LF copies of a text count the same). Use it to report how much extracted text a document has, e.g. when the user asks about 字数 or a character count. Before comparing it with an editor's count or a book's printed 字数, make sure the text and the counting basis match: editors differ on line breaks, combining characters and emoji, and the extracted body includes Markdown.
 
-`char_count` is `null` (and omitted from Markdown output) when it has not been computed — the document was indexed before the field existed, or an older Desktop served the request. It never means an empty body; the value fills in when the file is next re-extracted or the index is rebuilt. On a current Desktop, `read` always returns it for local documents, computed live over the whole available body regardless of `offset` / `limit`; while `ocr_pending` is `true` it covers only the text extracted so far. Cloud-library documents (`cloud://…`) do not carry `char_count` yet.
+A missing `char_count` means one of two things:
 
-Markdown output labels the two fields `Words` and `Characters`.
+- **A Desktop that supports the field (v0.14.1+)** returns `null` in JSON, and omits the line in Markdown, for a document indexed before the field existed. It never means an empty body; the value fills in when the file is next re-extracted or the index is rebuilt.
+- **An older Desktop** doesn't know the field: the key is absent altogether, and re-indexing won't add it — the Desktop needs an upgrade.
+
+On a supporting Desktop, `read` always returns `char_count` for local documents, computed live over the whole available body regardless of `offset` / `limit`. While `ocr_pending` is `true` (OCR or transcription still pending, or extraction truncated) it covers only the text extracted so far, not the whole document. Cloud-library documents (`cloud://…`) do not carry `char_count` yet.
+
+In Markdown output a supporting Desktop labels the two fields `Words` and `Characters`. Cloud-library `outline` still renders `word_count` as `N字` — that number is the word count, not a character count.
 
 ## list_libraries
 
@@ -269,8 +274,8 @@ Each result item:
 | `title`       | `string`   | Document title                                                                                                                                                                                                                                                                                      |
 | `path`        | `string`   | Full absolute file path                                                                                                                                                                                                                                                                             |
 | `relevance`   | `number`   | Hybrid (BM25 + vector) relevance score, rendered to 2 decimals; higher = more relevant. Not normalized to a fixed range — use it for ordering, not as a 0–1 threshold.                                                                                                                              |
-| `word_count`  | `number?`  | Total word count — one per CJK character or Latin word, so not a character count (see [Size Fields](#size-fields))                                                                                                                                                                                  |
-| `char_count`  | `number?`  | Character count of the extracted body — the figure to match what the user sees; `null` = not computed yet, not an empty body (see [Size Fields](#size-fields))                                                                                                                                      |
+| `word_count`  | `number?`  | Word count (one per CJK character or letter/digit run) — not a character count; see [Size Fields](#size-fields)                                                                                                                                                                                     |
+| `char_count`  | `number?`  | Character count of the currently available extracted body, `\r` excluded; `null` = not computed yet, not an empty body. See [Size Fields](#size-fields) before comparing it with other counts                                                                                                       |
 | `total_lines` | `number?`  | Total line count                                                                                                                                                                                                                                                                                    |
 | `has_outline` | `boolean`  | Whether a structural outline is available                                                                                                                                                                                                                                                           |
 | `modified_at` | `number`   | Last modified timestamp (Unix ms)                                                                                                                                                                                                                                                                   |
@@ -297,19 +302,19 @@ Get metadata and structural outlines of documents by their IDs. Works the same o
 
 Each document object:
 
-| Field               | Type      | Description                                                                                        |
-| ------------------- | --------- | -------------------------------------------------------------------------------------------------- |
-| `doc_id`            | `string`  | Document identifier                                                                                |
-| `title`             | `string`  | Document title                                                                                     |
-| `path`              | `string`  | Full absolute file path                                                                            |
-| `word_count`        | `number?` | Total word count — not a character count (see [Size Fields](#size-fields))                         |
-| `char_count`        | `number?` | Character count of the extracted body; `null` = not computed yet (see [Size Fields](#size-fields)) |
-| `total_lines`       | `number?` | Total line count                                                                                   |
-| `has_outline`       | `boolean` | Whether a parsed outline exists                                                                    |
-| `outline_text`      | `string`  | Pre-rendered outline tree with node IDs and line ranges                                            |
-| `abstract_text`     | `string?` | Document abstract or first paragraph                                                               |
-| `is_brief`          | `boolean` | True if document is short (<500 words, determined at index time)                                   |
-| `no_outline_reason` | `string?` | Reason if outline is unavailable                                                                   |
+| Field               | Type      | Description                                                                                                            |
+| ------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `doc_id`            | `string`  | Document identifier                                                                                                    |
+| `title`             | `string`  | Document title                                                                                                         |
+| `path`              | `string`  | Full absolute file path                                                                                                |
+| `word_count`        | `number?` | Total word count — not a character count (see [Size Fields](#size-fields))                                             |
+| `char_count`        | `number?` | Character count of the currently available extracted body; `null` = not computed yet (see [Size Fields](#size-fields)) |
+| `total_lines`       | `number?` | Total line count                                                                                                       |
+| `has_outline`       | `boolean` | Whether a parsed outline exists                                                                                        |
+| `outline_text`      | `string`  | Pre-rendered outline tree with node IDs and line ranges                                                                |
+| `abstract_text`     | `string?` | Document abstract or first paragraph                                                                                   |
+| `is_brief`          | `boolean` | True if document is short (<500 words, determined at index time)                                                       |
+| `no_outline_reason` | `string?` | Reason if outline is unavailable                                                                                       |
 
 ### Outline Text Format
 
@@ -402,21 +407,21 @@ Read document content by ID with line-based pagination.
 
 ### Response Fields (JSON mode)
 
-| Field               | Type      | Description                                                                                                                                                                                                                         |
-| ------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `doc_id`            | `string`  | Document identifier                                                                                                                                                                                                                 |
-| `title`             | `string`  | Document title                                                                                                                                                                                                                      |
-| `path`              | `string`  | Full absolute file path                                                                                                                                                                                                             |
-| `word_count`        | `number?` | Total word count — not a character count (see [Size Fields](#size-fields))                                                                                                                                                          |
-| `char_count`        | `number?` | Character count of the whole available body, not just the shown lines. Present for Desktop-local documents on current Desktops; cloud documents don't carry it yet (see [Size Fields](#size-fields))                                |
-| `author`            | `string?` | Document author or summary                                                                                                                                                                                                          |
-| `content`           | `string`  | Content with line numbers (prefixed)                                                                                                                                                                                                |
-| `total_lines`       | `number`  | Total lines in the document (always present, computed from actual file content)                                                                                                                                                     |
-| `shown_from`        | `number`  | First line shown (1-based)                                                                                                                                                                                                          |
-| `shown_to`          | `number`  | Last line shown (1-based, inclusive)                                                                                                                                                                                                |
-| `ocr_pending`       | `boolean` | The body shown is incomplete — a background job (OCR or audio/video transcription) still owes text, or the extracted text was truncated. The wire name says OCR for backward compatibility, but it covers any partial-content case. |
-| `partial_notice`    | `string?` | Human-readable explanation accompanying `ocr_pending`.                                                                                                                                                                              |
-| `referenced_images` | `array`   | Markdown image references found in the shown range, resolved to indexed image documents. Omitted when empty. Detail per entry depends on `image_text`.                                                                              |
+| Field               | Type      | Description                                                                                                                                                                                                                                      |
+| ------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `doc_id`            | `string`  | Document identifier                                                                                                                                                                                                                              |
+| `title`             | `string`  | Document title                                                                                                                                                                                                                                   |
+| `path`              | `string`  | Full absolute file path                                                                                                                                                                                                                          |
+| `word_count`        | `number?` | Total word count — not a character count (see [Size Fields](#size-fields))                                                                                                                                                                       |
+| `char_count`        | `number?` | Character count of the whole available body, not just the shown lines — partial while `ocr_pending` is `true`. Present for Desktop-local documents on a supporting Desktop; cloud documents don't carry it yet (see [Size Fields](#size-fields)) |
+| `author`            | `string?` | Document author or summary                                                                                                                                                                                                                       |
+| `content`           | `string`  | Content with line numbers (prefixed)                                                                                                                                                                                                             |
+| `total_lines`       | `number`  | Total lines in the document (always present, computed from actual file content)                                                                                                                                                                  |
+| `shown_from`        | `number`  | First line shown (1-based)                                                                                                                                                                                                                       |
+| `shown_to`          | `number`  | Last line shown (1-based, inclusive)                                                                                                                                                                                                             |
+| `ocr_pending`       | `boolean` | The body shown is incomplete — a background job (OCR or audio/video transcription) still owes text, or the extracted text was truncated. The wire name says OCR for backward compatibility, but it covers any partial-content case.              |
+| `partial_notice`    | `string?` | Human-readable explanation accompanying `ocr_pending`.                                                                                                                                                                                           |
+| `referenced_images` | `array`   | Markdown image references found in the shown range, resolved to indexed image documents. Omitted when empty. Detail per entry depends on `image_text`.                                                                                           |
 
 ### Content Format
 
