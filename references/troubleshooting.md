@@ -59,6 +59,28 @@ linkly doctor --remote
 
 - **Cause:** Invalid or expired token/API key.
 - **Fix (LAN):** Copy the current access token from the desktop app (Settings → MCP → LAN Access → Access Token) and save it again: `linkly auth set-key <token> --lan --endpoint <url>`. The token changes whenever the user regenerates it in the desktop app. With explicit flags, pass it via `--token` instead.
+- **Fix (Remote):** The stored key was revoked or is wrong. Run `linkly auth logout`, then sign in again with `linkly auth login` (see "Remote sign-in" below). Pasting a fresh key from [linkly.ai](https://linkly.ai) with `linkly auth set-key <your-api-key>` also works.
+
+#### "No API key configured for remote mode"
+
+- **Cause:** `--remote` was used, but this config directory has no key. With `LINKLY_CONFIG_DIR` set, the key lives in that directory, not `~/.linkly`.
+- **Fix:** Sign in with `linkly auth login` (see "Remote sign-in" below).
+
+#### Remote sign-in (`linkly auth login`)
+
+If you cannot wait in the foreground, use the two steps, in the same environment and config directory: `linkly auth login --no-wait --json`, give the user the `url` and `user_code`, wait for their reply, then `linkly auth login --wait --json`. Trust the CLI's result, not the user's "done". With `--json`, a failure carries a `code`:
+
+| `code`              | Meaning and next step                                                                                                    |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `timeout`           | Not authorized yet; the link is still valid. Run `linkly auth login --wait` again.                                       |
+| `expired`           | The 10-minute link expired. Start over with `linkly auth login --no-wait`.                                               |
+| `denied`            | The user clicked Deny. Ask before starting again.                                                                        |
+| `no_pending_login`  | `--wait` found nothing to finish. Start with `linkly auth login --no-wait` — check you are in the same config directory. |
+| `login_in_progress` | A link is already waiting. Finish it with `--wait`, or `--restart` to discard it and get a new link.                     |
+| `already_logged_in` | A key is already stored here. Check it with `linkly auth status`; `linkly auth logout` first only if it should change.   |
+| `network`           | The website or gateway was unreachable. Retry the same command.                                                          |
+
+If the authorization page says the API key limit is reached, the user must revoke a key in the dashboard (Integrations → API Keys) and click Authorize again; meanwhile `--wait` just keeps waiting.
 
 #### "No LAN connection saved"
 
@@ -69,7 +91,6 @@ linkly doctor --remote
 
 - **Cause:** The stdio bridge only serves the desktop on the same machine or the cloud gateway; it does not bridge to a desktop on the LAN.
 - **Fix:** Configure the MCP client to connect to the desktop's LAN HTTP endpoint directly (URL plus `Authorization: Bearer <token>` header, from Settings → MCP), or use `linkly mcp --remote`.
-- **Fix (Remote):** Re-save your API key: `linkly auth set-key <your-api-key>`. Get your key from [linkly.ai](https://linkly.ai).
 
 #### "Tunnel not connected" (Remote)
 

@@ -51,7 +51,7 @@ The CLI's three connection modes:
 
 - **Local** (default): auto-discovers the desktop app via `~/.linkly/port`. Requires the app running locally.
 - **LAN**: `--lan` reaches a Linkly AI instance on the local network, using the address and token saved once with `linkly auth set-key <token> --lan --endpoint <url>` (both from the desktop app's Settings → MCP). `--endpoint <url> --token <token>` does the same for a one-off call without saving anything.
-- **Remote**: `--remote` connects through the `https://mcp.linkly.ai` gateway. Linked cloud libraries are served by the gateway and stay reachable even when the desktop is offline; local content additionally needs the desktop online and its tunnel connected. Requires `linkly auth set-key <api-key>` first. (Reaching **local** content over the tunnel is a Pro feature; linked **cloud** libraries are served on all plans.)
+- **Remote**: `--remote` connects through the `https://mcp.linkly.ai` gateway. Linked cloud libraries are served by the gateway and stay reachable even when the desktop is offline; local content additionally needs the desktop online and its tunnel connected. Requires signing in first with `linkly auth login` (or `linkly auth set-key <api-key>`). (Reaching **local** content over the tunnel is a Pro feature; linked **cloud** libraries are served on all plans.)
 
 If you have no path to Linkly at all (neither CLI nor an MCP connection), tell the user instead of retrying.
 

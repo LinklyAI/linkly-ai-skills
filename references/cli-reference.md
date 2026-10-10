@@ -329,7 +329,10 @@ Claude Desktop configuration (`claude_desktop_config.json`):
 ### auth — Manage credentials
 
 ```bash
-linkly auth set-key <API_KEY>                                       # remote (same as --remote)
+linkly auth login                                                   # remote: sign in through the browser
+linkly auth login --no-wait --json                                  # agents, step 1: get the link
+linkly auth login --wait --json                                     # agents, step 2: finish after approval
+linkly auth set-key <API_KEY>                                       # remote: paste a key instead (same as --remote)
 linkly auth set-key <LAN_TOKEN> --lan --endpoint http://192.168.1.100:60606
 linkly auth status
 linkly auth logout                                                  # remote (same as --remote)
@@ -338,14 +341,35 @@ linkly auth logout --lan
 
 | Command                                  | Description                                                                                                                                   |
 | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `login`                                  | Sign in through the browser: prints a one-time link and confirmation code, then saves a newly issued API key for `--remote` (see below)       |
 | `set-key <key>`                          | Save an API key from the linkly.ai dashboard (format: `lkai_<32-char hex>`, 37 chars total) to `~/.linkly/credentials.json` for `--remote`    |
 | `set-key <token> --lan --endpoint <url>` | Save the LAN address and token (both from the desktop app's Settings → MCP) for `--lan`. Not checked against the desktop — run `doctor --lan` |
 | `status`                                 | Show which key is in use, whether it is valid, the account's plan, and the saved LAN connection (token masked)                                |
-| `logout [--lan]`                         | Remove the stored API key, or with `--lan` the saved LAN connection. The other one is kept                                                    |
+| `logout [--lan]`                         | Remove the stored API key (revoking it on the server if `login` issued it), or with `--lan` the saved LAN connection. The other one is kept   |
 
 The remote key and the LAN connection are stored side by side; saving or removing one never touches the other.
 
-Linkly AI CLI authenticates with an API key rather than a browser sign-in, so it works in headless and agent environments.
+**`login` for agents.** The link works on any device, so a user can authorize from their phone while the CLI runs on a server. Split the login so the link reaches the user before anything blocks, and run both steps in the same environment and config directory:
+
+```bash
+linkly auth login --no-wait --json
+# {"status":"pending","url":"https://linkly.ai/cli/auth?code=ABCD-EFGH","user_code":"ABCD-EFGH","expires_in":600}
+# → send the user url and user_code, then wait for their reply
+linkly auth login --wait --json
+# {"status":"ok","account":"user@example.com","plan":"pro","key_preview":"lkai_…3f9a"}
+```
+
+| Option             | Effect                                                                                    |
+| ------------------ | ----------------------------------------------------------------------------------------- |
+| `--no-wait`        | Start and return the link immediately                                                     |
+| `--wait`           | Finish the pending login; repeatable while the link (10 minutes) is valid                 |
+| `--timeout <secs>` | Stop this wait after `secs` (default 300 with `--wait`; plain `login` waits until expiry) |
+| `--restart`        | Discard a pending login and start a new one                                               |
+| `--no-browser`     | Only print the link                                                                       |
+
+Failures in `--json` mode are `{"status":"error","code":…,"message":…}`; the codes are `timeout`, `expired`, `denied`, `no_pending_login`, `login_in_progress`, `already_logged_in`, `network` — see `troubleshooting.md` for what to do with each. A successful login proves the account only: check reach with `linkly doctor --remote` (local content needs Pro and the desktop online; linked cloud libraries work on any plan).
+
+**`LINKLY_CONFIG_DIR`** moves `credentials.json` and the pending login out of `~/.linkly`. One directory holds one account: an agent serving several users gives each user their own directory. Desktop discovery (`~/.linkly/port`) is not affected.
 
 ### completions — Shell completion script
 
