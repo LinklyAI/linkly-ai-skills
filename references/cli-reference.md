@@ -287,7 +287,7 @@ linkly doctor --endpoint http://192.168.1.100:60606/mcp --token <token>
 linkly doctor --json
 ```
 
-Without a flag, `doctor` checks every connection at once and reports them in groups: the local desktop always, the remote gateway and the LAN desktop when credentials for them are saved (otherwise the group says "not configured" and how to set it up). It exits 0 when at least one connection works — e.g. no desktop on this machine but a working `--remote` is a healthy setup. With a flag it checks only that connection, and the exit code reflects only that one.
+Without a flag, `doctor` checks every connection at once and reports them in groups: the local desktop always, the remote gateway and the LAN desktop when credentials for them are saved (otherwise the group says "not configured" and how to set it up). It exits 0 when at least one connection works — e.g. no desktop on this machine but a working `--remote` is a healthy setup. With a flag it checks only that connection, in the same grouped format, and the exit code reflects only that one.
 
 Checks per connection:
 
@@ -295,7 +295,7 @@ Checks per connection:
 - **LAN**: Credentials → HTTP connectivity → Auth token → App status → MCP round-trip
 - **Remote**: Credentials → Server reachability → Auth → Tunnel status → MCP round-trip
 
-`--json` without a flag returns `{"status": "ok"|"warning"|"error", "groups": [{"mode": "local"|"remote"|"lan", "configured": bool, "status": "ok"|"warning"|"error"|"not_configured", "checks": [...], …}]}`; with a flag it returns the single-connection object (`{"status", "mode", "checks", "issues", "hard_failures", "warnings", "advice"}`). Use `doctor` as the first step when troubleshooting any connection problem.
+`--json` returns `{"status": "ok"|"warning"|"error", "groups": [{"mode": "local"|"remote"|"lan", "configured": bool, "status": "ok"|"warning"|"error"|"not_configured", "checks": [...], …}]}` with or without a flag; with a flag the earlier single-connection fields (`mode`, `checks`, `issues`, `hard_failures`, `warnings`, `advice`) are also kept at the top level. Use `doctor` as the first step when troubleshooting any connection problem.
 
 ### mcp — Run as MCP stdio bridge
 
