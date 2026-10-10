@@ -280,20 +280,22 @@ Shows CLI version, app version, MCP endpoint, indexed document count, and index 
 ### doctor — Diagnose connection issues
 
 ```bash
-linkly doctor
-linkly doctor --remote
+linkly doctor            # all connections this machine can use, grouped
+linkly doctor --remote   # one connection only
 linkly doctor --lan
 linkly doctor --endpoint http://192.168.1.100:60606/mcp --token <token>
 linkly doctor --json
 ```
 
-Runs a series of diagnostic checks based on the connection mode:
+Without a flag, `doctor` checks every connection at once and reports them in groups: the local desktop always, the remote gateway and the LAN desktop when credentials for them are saved (otherwise the group says "not configured" and how to set it up). It exits 0 when at least one connection works — e.g. no desktop on this machine but a working `--remote` is a healthy setup. With a flag it checks only that connection, and the exit code reflects only that one.
 
-- **Local**: Port file readability → HTTP connectivity → App status
-- **LAN**: HTTP connectivity → Auth token → App status
+Checks per connection:
+
+- **Local**: Port file → HTTP connectivity → App status → MCP round-trip
+- **LAN**: Credentials → HTTP connectivity → Auth token → App status → MCP round-trip
 - **Remote**: Credentials → Server reachability → Auth → Tunnel status → MCP round-trip
 
-Each check reports pass/fail with actionable advice on failures. Use this as the first step when troubleshooting any connection problem.
+`--json` without a flag returns `{"status": "ok"|"warning"|"error", "groups": [{"mode": "local"|"remote"|"lan", "configured": bool, "status": "ok"|"warning"|"error"|"not_configured", "checks": [...], …}]}`; with a flag it returns the single-connection object (`{"status", "mode", "checks", "issues", "hard_failures", "warnings", "advice"}`). Use `doctor` as the first step when troubleshooting any connection problem.
 
 ### mcp — Run as MCP stdio bridge
 

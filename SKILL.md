@@ -323,7 +323,7 @@ After getting an overview, use the top keywords, directory names, and recent act
 When users report connection issues, search failures, or other problems with Linkly AI:
 
 1. **First, ask what the connection reaches.** If the user expected cloud-library content on a local or LAN connection, nothing is broken — the content is simply out of scope. Tell them to switch connection rather than debugging the index.
-2. **CLI mode:** Run `linkly doctor` to diagnose. It checks port file, HTTP connectivity, app status, and MCP round-trip. Share the output with the user and follow the advice printed for each failing check.
+2. **CLI mode:** Run `linkly doctor` to diagnose. It checks every connection this machine can use — the local desktop, plus remote and LAN when credentials are saved — each through port file / credentials, HTTP connectivity, app status and MCP round-trip, reported in groups. Share the output with the user and follow the advice printed for each failing check.
 3. **MCP mode:** For a failed **local** query, check that the Linkly AI desktop app is running and the MCP server is enabled (Settings → MCP) — or, in remote mode, that the tunnel is connected. Note that a disabled MCP server answers with **403**, not a refused connection. A failed **cloud library** query is independent of the desktop; re-check the `cloud://owner/slug` id with `list_libraries`.
 
 For detailed troubleshooting steps, see `references/troubleshooting.md`.

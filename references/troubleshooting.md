@@ -18,16 +18,16 @@ When Linkly AI is not working as expected, follow these steps based on your conn
 This is the single most useful diagnostic command. It checks every link in the connection chain and gives specific advice for each failure.
 
 ```bash
-# Local mode (default)
+# Every connection at once: local desktop, plus remote and LAN when configured
 linkly doctor
 
-# LAN mode (saved connection, or pass it explicitly)
+# One connection only
+linkly doctor --remote
 linkly doctor --lan
 linkly doctor --endpoint http://192.168.1.100:60606/mcp --token <token>
-
-# Remote mode
-linkly doctor --remote
 ```
+
+Read the groups separately: "local failed, remote ok" on a server without a desktop is a working setup — use `--remote`. A group marked "not configured" just has no saved credentials.
 
 ### Common Issues and Solutions
 
