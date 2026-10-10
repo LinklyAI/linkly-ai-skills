@@ -338,7 +338,7 @@ For detailed troubleshooting steps, see `references/troubleshooting.md`.
 6. **Filter by type when possible.** If the user mentions "my PDFs" or "markdown notes", use the type filter.
 7. **Use explore for discovery.** When the user wants an overview or doesn't know what to search for, use `explore` first, then follow up with targeted searches based on the keywords and directories it reveals.
 8. **Omit `library` by default.** Add it only when the user names a library — but remember that omitting it covers **local** content only, never cloud libraries.
-9. **Use `--json` for search, default output for read.** JSON output is easier to scan programmatically when processing many search results; default Markdown output is more readable when displaying document content to the user.
+9. **Read the default output; use `--json` only when a program parses it.** The default Markdown is shorter and is what you should read yourself. Add `--json` when you pipe the result into `jq` or another tool, or need exact fields such as `auth login`'s `url` / `user_code`.
 10. **Present results clearly.** When showing search results, include the title, path, and relevance. When reading, include line numbers for reference.
 11. **Handle errors gracefully.** If a document is not found or the app is disconnected, run `linkly doctor` and inform the user with actionable next steps.
 12. **Locate the container first** when the user names a fuzzy folder ("in my WeChat / Notion"). Run `find_paths` before `search`; pipe a distinctive segment into `--path-glob`.
