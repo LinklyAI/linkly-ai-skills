@@ -7,7 +7,7 @@ When Linkly AI is not working as expected, follow these steps based on your conn
 | Mode             | How you're connected                                                                                                                                    | Typical setup                                      |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
 | **CLI (Local)**  | Running `linkly` commands in a terminal on the same machine as the desktop app                                                                          | Default — no extra flags needed                    |
-| **CLI (LAN)**    | Running `linkly` with `--endpoint` and `--token` flags                                                                                                  | Connecting from another device on the same network |
+| **CLI (LAN)**    | Running `linkly` with `--lan` (saved LAN connection), or with `--endpoint` and `--token` flags                                                          | Connecting from another device on the same network |
 | **CLI (Remote)** | Running `linkly` with `--remote` flag                                                                                                                   | Connecting via internet tunnel                     |
 | **MCP**          | AI tool (Claude, Cursor, etc.) connects to the desktop's MCP server, or to the `mcp.linkly.ai` cloud gateway (which also serves linked cloud libraries) | Configured in the AI tool's MCP settings           |
 
@@ -21,7 +21,8 @@ This is the single most useful diagnostic command. It checks every link in the c
 # Local mode (default)
 linkly doctor
 
-# LAN mode
+# LAN mode (saved connection, or pass it explicitly)
+linkly doctor --lan
 linkly doctor --endpoint http://192.168.1.100:60606/mcp --token <token>
 
 # Remote mode
@@ -52,12 +53,22 @@ linkly doctor --remote
 #### "Connection refused"
 
 - **Cause:** Outside a network sandbox, nothing is listening on that port — usually a stale port file left by a crashed or force-quit app, or a wrong `--endpoint` in LAN mode. Inside an AI-agent sandbox, the same low-level failure may instead mean that localhost or LAN access is blocked.
-- **Fix:** Follow the `App: Unreachable` recovery order above. If an approved retry outside the sandbox still gets connection refused, confirm the desktop app is actually running (relaunch if unsure). In LAN mode, re-check the `--endpoint` host and port.
+- **Fix:** Follow the `App: Unreachable` recovery order above. If an approved retry outside the sandbox still gets connection refused, confirm the desktop app is actually running (relaunch if unsure). In LAN mode, re-check the host and port (`linkly auth status` shows the saved one).
 
 #### "Authentication failed" (LAN/Remote)
 
 - **Cause:** Invalid or expired token/API key.
-- **Fix (LAN):** Check the access token in the desktop app: Settings → MCP → LAN Access → Access Token. Copy and use with `--token`.
+- **Fix (LAN):** Copy the current access token from the desktop app (Settings → MCP → LAN Access → Access Token) and save it again: `linkly auth set-key <token> --lan --endpoint <url>`. The token changes whenever the user regenerates it in the desktop app. With explicit flags, pass it via `--token` instead.
+
+#### "No LAN connection saved"
+
+- **Cause:** `--lan` was used, but no LAN address and token have been saved on this machine.
+- **Fix:** Ask the user for the LAN address and access token from the desktop app's Settings → MCP, then run `linkly auth set-key <token> --lan --endpoint <url>`.
+
+#### `linkly mcp --endpoint` is not supported
+
+- **Cause:** The stdio bridge only serves the desktop on the same machine or the cloud gateway; it does not bridge to a desktop on the LAN.
+- **Fix:** Configure the MCP client to connect to the desktop's LAN HTTP endpoint directly (URL plus `Authorization: Bearer <token>` header, from Settings → MCP), or use `linkly mcp --remote`.
 - **Fix (Remote):** Re-save your API key: `linkly auth set-key <your-api-key>`. Get your key from [linkly.ai](https://linkly.ai).
 
 #### "Tunnel not connected" (Remote)

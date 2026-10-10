@@ -37,7 +37,7 @@ Run both checks independently (skip a check if its prerequisite isn't there):
 
 | Connection                                                                                        | Reaches                                                                                                                                                                                                                                         |
 | ------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Local** (`linkly` default) / **LAN** (`--endpoint`), or a `linkly-ai` MCP server on localhost   | The user's **local** indexed content only. Cloud libraries are **not reachable** — `cloud://` references are rejected on this path.                                                                                                             |
+| **Local** (`linkly` default) / **LAN** (`--lan`), or a `linkly-ai` MCP server on localhost        | The user's **local** indexed content only. Cloud libraries are **not reachable** — `cloud://` references are rejected on this path.                                                                                                             |
 | **Cloud gateway** (`linkly --remote`, `linkly mcp --remote`, or the `linkly-ai-cloud` MCP server) | Both local content (through the desktop tunnel) and linked **cloud** libraries.                                                                                                                                                                 |
 | **Cloud gateway only** — the `library_search` / `library_link` tools                              | The cloud library **catalog** (including libraries not linked yet) and the link / unlink actions (`library_link`, `action: "unlink"` to release). Not advertised on Local / LAN — if the user needs them there, tell them to switch connection. |
 
@@ -50,7 +50,7 @@ If the user asks for cloud-library content while you are on a local or LAN conne
 The CLI's three connection modes:
 
 - **Local** (default): auto-discovers the desktop app via `~/.linkly/port`. Requires the app running locally.
-- **LAN**: `--endpoint <url> --token <token>` reaches a Linkly AI instance on the local network.
+- **LAN**: `--lan` reaches a Linkly AI instance on the local network, using the address and token saved once with `linkly auth set-key <token> --lan --endpoint <url>` (both from the desktop app's Settings → MCP). `--endpoint <url> --token <token>` does the same for a one-off call without saving anything.
 - **Remote**: `--remote` connects through the `https://mcp.linkly.ai` gateway. Linked cloud libraries are served by the gateway and stay reachable even when the desktop is offline; local content additionally needs the desktop online and its tunnel connected. Requires `linkly auth set-key <api-key>` first. (Reaching **local** content over the tunnel is a Pro feature; linked **cloud** libraries are served on all plans.)
 
 If you have no path to Linkly at all (neither CLI nor an MCP connection), tell the user instead of retrying.
