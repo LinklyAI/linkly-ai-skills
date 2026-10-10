@@ -108,3 +108,27 @@ jobs:
         with:
           files: linkly-skills-latest.zip
           generate_release_notes: true
+
+  # Tag every PR shipped in this release with a milestone named after it.
+  # Runs after release so a failed release never milestones PRs; a failure here
+  # leaves the release intact and can be re-run locally with
+  # scripts/release-milestone.sh. Beta-style tags are skipped by the script.
+  milestone:
+    needs: release
+    if: ${{ !contains(github.ref_name, '-') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Assign release milestone to shipped PRs
+        run: bash scripts/release-milestone.sh "${{ github.ref_name }}"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
