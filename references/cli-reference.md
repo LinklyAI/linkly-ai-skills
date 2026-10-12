@@ -8,7 +8,7 @@ The CLI connects to the Linkly AI desktop app's MCP server (locally or over LAN)
 
 For **local** documents, the **Linkly AI desktop app** must be running with its MCP server enabled (the CLI auto-discovers it via `~/.linkly/port`). Use LAN mode (`--lan` with a saved LAN token, or `--endpoint` + `--token`) or Remote mode (`--remote` with a saved API key) to connect over the network. Linked **cloud** libraries reached via `--remote` do not require the desktop to be online — see below.
 
-Remote mode reaches both your local libraries and your linked cloud libraries through the `mcp.linkly.ai` gateway. Linked cloud libraries are served even when the desktop tunnel is disconnected; local / default-scope calls additionally need the desktop online and its tunnel connected. Reaching **local** content over the tunnel is a Pro feature — on a Free plan those calls return `-32000` telling you the tunnel requires Pro, while linked cloud libraries stay available on all plans.
+Remote mode reaches both your local libraries and your linked cloud libraries through the `mcp.linkly.ai` gateway. Linked cloud libraries are served even when the desktop tunnel is disconnected; local / default-scope calls additionally need the desktop online and its tunnel connected. Reaching **local** content over the tunnel is a Pro feature — on a Free plan those calls fail with `Tool error: Pro subscription required …`, while linked cloud libraries stay available on all plans.
 
 ## Installation
 
@@ -534,16 +534,23 @@ Printable ASCII, up to 64 characters. A value outside that is ignored rather tha
 }
 ```
 
-Errors from the cloud gateway also carry a JSON-RPC `code` and a `data` object (with `guidance` / `example` for recovery):
+Protocol errors from the cloud gateway (bad arguments, an unknown cloud library) also carry a JSON-RPC `code` and a `data` object with `reason` and `guidance` for recovery:
 
 ```json
 {
   "status": "error",
-  "code": -32000,
-  "message": "Desktop is offline",
-  "data": { "guidance": "Reconnect the MCP Connector in Desktop settings." }
+  "code": -32002,
+  "message": "Cloud library not found for search.",
+  "data": {
+    "reason": "…",
+    "guidance": [
+      "Call list_libraries to see which cloud libraries this account can search right now."
+    ]
+  }
 }
 ```
+
+When the request was fine but something on your side blocked it — desktop offline, no desktop paired, the tunnel needs Pro, a timeout — the error has no `code`: `message` starts with `Tool error:` and holds the full explanation, including what to do.
 
 ## Shell Composition Tips
 

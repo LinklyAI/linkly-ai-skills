@@ -187,28 +187,39 @@ When using Linkly AI through an AI tool's MCP connection (Claude, Cursor, ChatGP
 - **"Document not found":** The document may have been moved or deleted. Search again to get fresh IDs.
 - **Timeout:** The desktop app may be busy indexing. Check the app's tray icon status.
 
-### Gateway error codes
+### Gateway errors
 
-Errors coming back from the `mcp.linkly.ai` gateway carry a JSON-RPC `code` and a `data` object with recovery guidance. Read the `data.reason` — it names which side failed.
+The `mcp.linkly.ai` gateway reports failures in two forms.
 
-| Code     | Situation                   | What it means and what to do                                                                                                                                 |
-| -------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `-32000` | Desktop unavailable         | The call defaulted to local scope but the desktop couldn't be reached. Start the desktop and reconnect its tunnel, **or** scope the call to a cloud library. |
-| `-32000` | No local Desktop paired     | No desktop is paired with this account at all. Either pair one, or use an explicit cloud library.                                                            |
-| `-32000` | Tunnel requires Pro         | The call targeted **local** content, which needs tunnel access — a Pro feature. See "Free vs Pro" below.                                                     |
-| `-32000` | Cloud tool execution failed | The cloud backend errored while running the tool. Retry; if it persists, report it.                                                                          |
-| `-32001` | Stale session               | The desktop went away mid-session. Reconnect the MCP connection in your AI tool.                                                                             |
-| `-32002` | Cloud library not found     | The `cloud://owner/slug` doesn't resolve. Re-check it with `list_libraries` — slugs can be renamed on the web side.                                          |
-|          | Namespace conflict          | `doc_id` and `library` point to different namespaces (one local, one cloud). Pass a matching pair, or drop `library`.                                        |
-|          | Mixed outline doc_ids       | One `outline` call mixed `local://` and `cloud://` IDs. Split into one call per backend.                                                                     |
-|          | Invalid doc_id              | The ID is stale (documents were re-indexed) or never existed. Search again for fresh IDs — never hand-edit a `doc_id`.                                       |
-|          | Unknown tool                | The tool name isn't recognized by this server — usually a version gap. See "Version Mismatch Issues" below.                                                  |
+**Tool errors** come back as a normal tool result marked as an error (`isError: true`). They mean the request was fine but something on the user's side blocked it. The text starts with a one-line summary, then the reason, a "What to do" list and, where one exists, an `Example:` of the call rewritten to work. Over the CLI they print as `Tool error: <text>`.
+
+| Summary starts with         | What it means and what to do                                                                                                                                                             |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Desktop unavailable`       | The call defaulted to local scope but the desktop couldn't be reached, or its MCP session expired. Start the desktop and reconnect its tunnel, **or** scope the call to a cloud library. |
+| `No local Desktop paired`   | No desktop is paired with this account at all. Either pair one, or use an explicit cloud library.                                                                                        |
+| `Pro subscription required` | The call targeted **local** content, which needs tunnel access — a Pro feature. See "Free vs Pro" below.                                                                                 |
+| `Desktop timed out`         | The desktop didn't answer within 30 seconds — it may be busy indexing or asleep. Retry once with a narrower request (smaller `limit`, a specific library or folder).                     |
+| `UPDATE_REQUIRED`           | The connected desktop is too old for this tool over the tunnel. Update the desktop app, or scope the call to a cloud library.                                                            |
+
+Notes tools (`note_save`, and `search` / `list` with `scope="notes"`) never get the cloud-library suggestion: notes exist only on the desktop, so the only fix is to make it reachable. Don't report the notes as lost.
+
+**Protocol errors** carry a JSON-RPC `code` and a `data` object with `reason` and `guidance`. They mean the request itself needs changing, or the cloud side failed.
+
+| Code     | Situation                   | What it means and what to do                                                                                           |
+| -------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `-32602` | Invalid arguments           | A parameter is missing or malformed. `data.reason` names it; check the tool's schema.                                  |
+| `-32602` | Namespace conflict          | `doc_id` and `library` point to different namespaces (one local, one cloud). Pass a matching pair, or drop `library`.  |
+| `-32602` | Mixed outline doc_ids       | One `outline` call mixed `local://` and `cloud://` IDs. Split into one call per backend.                               |
+| `-32602` | Invalid doc_id              | The ID is stale (documents were re-indexed) or never existed. Search again for fresh IDs — never hand-edit a `doc_id`. |
+| `-32601` | Unknown tool                | The tool name isn't recognized by this server — usually a version gap. See "Version Mismatch Issues" below.            |
+| `-32002` | Cloud library not found     | The `cloud://owner/slug` doesn't resolve. Re-check it with `list_libraries` — slugs can be renamed on the web side.    |
+| `-32000` | Cloud tool execution failed | The cloud backend errored while running the tool. Retry; if it persists, report it.                                    |
 
 ### Free vs Pro
 
 The gateway gates by **what the call targets**, not by where it came from:
 
-- **Local content over the tunnel is Pro-only.** On a Free plan, a call that defaults to local scope (or explicitly names a local library) returns `-32000` saying the tunnel requires Pro.
+- **Local content over the tunnel is Pro-only.** On a Free plan, a call that defaults to local scope (or explicitly names a local library) returns a `Pro subscription required` tool error.
 - **Linked cloud libraries are served on all plans.** Scoping to `library="cloud://owner/slug"` works on Free.
 - Purely local connections (no gateway) are unaffected — the desktop's own MCP server has no plan gating.
 
