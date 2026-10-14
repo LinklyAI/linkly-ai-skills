@@ -148,6 +148,8 @@ Search uses BM25 + vector hybrid retrieval (OR logic for keywords, semantic matc
 
 **Don't:** guess `--path-glob` when the user names a fuzzy container — run `find_paths` (Step 0) first to get the real on-disk path.
 
+**Re-ranked results:** if the user has turned on search result re-ranking (a Pro setting in the Desktop app), results may carry a `verdict` and an `answer_probability` (in Markdown, a `- Verdict: answers (0.91)` line). Read `answers` first; `related` may help; `unrelated` rarely does. A result without `answer_probability` was not judged (its text is not extracted yet, or it ranked below the checked range) — treat it as unverified, not irrelevant. A probability without a `verdict` means the results were only re-ordered: judge relevance yourself. When `no_answer` is true, only the top results were checked, not the whole library: tell the user this search did not find it, and if other wording could match (synonyms, another language, a specific name), try at most one rephrased search before concluding. When `reranked` is false, the results are in the default order. Either way, open a hit with `read`, `grep` or `outline` before citing it.
+
 **Silent-drop check:** if you used `--modified-after` / `--modified-before` / `--time-sort` and the response has no `[meta] now=` footer (Markdown) or `_meta.now` field (JSON), the desktop app is below v0.4.1 and silently dropped your filter. Run `linkly status` to confirm and ask the user to update — see `references/troubleshooting.md` ("Desktop app version outdated").
 
 ### Step 2a: Outline (structural navigation)
