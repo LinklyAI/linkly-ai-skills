@@ -531,11 +531,11 @@ Notes are enumerated from the filesystem, not the index, so **a note appears in 
 
 A local `list` distinguishes them, and you should relay which one you got instead of telling the user their folder is empty:
 
-| What happened                          | How it comes back                                                                                                                  |
-| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| The path doesn't exist on disk         | Error: `path does not exist on disk. Verify the directory with find_paths.`                                                        |
-| The path is outside every watched root | Error naming the watched roots (capped at ~10) — Linkly only indexes what the user added                                           |
-| The directory is genuinely empty       | `total: 0` plus the hint `Directory exists but contains no indexed files (unsupported types, still indexing, or genuinely empty).` |
+| What happened                          | How it comes back                                                                                                                                                      |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| The path doesn't exist on disk         | Error: `path does not exist on disk. Verify the directory with find_paths.`                                                                                            |
+| The path is outside every watched root | Error naming the watched roots (capped at ~10) — Linkly only indexes what the user added                                                                               |
+| The directory has nothing indexed      | `total: 0` plus the hint `Directory exists but contains no indexed files (unsupported types, excluded by the user's index rules, still indexing, or genuinely empty).` |
 
 A **cloud** library cannot tell a missing prefix from an empty one; it returns `total: 0` with a hint saying exactly that and pointing you at `find_paths`.
 
