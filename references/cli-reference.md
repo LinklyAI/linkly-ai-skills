@@ -313,7 +313,7 @@ Runs the CLI as a stdio MCP server for integration with Claude Desktop, Cursor, 
 - default (no flag) — the local desktop. Local content only; `cloud://` references are rejected.
 - `--remote` — the `mcp.linkly.ai` gateway. Reaches local content (through the desktop tunnel) **and** linked cloud libraries. Requires `linkly auth set-key` first.
 
-There is no LAN bridge: `linkly mcp --endpoint` exits with an error. An MCP client on another machine should connect to the desktop's LAN HTTP endpoint directly (URL plus `Authorization: Bearer <token>` header, from the desktop app's Settings → MCP), or bridge with `--remote`.
+There is no LAN bridge: `linkly mcp --endpoint` exits with an error. An MCP client on another machine should connect to the desktop's LAN HTTP endpoint directly (URL plus `Authorization: Bearer <token>` header, from the desktop app's Agent usage → View MCP connection settings), or bridge with `--remote`.
 
 Claude Desktop configuration (`claude_desktop_config.json`):
 
@@ -341,13 +341,13 @@ linkly auth logout                                                  # remote (sa
 linkly auth logout --lan
 ```
 
-| Command                                  | Description                                                                                                                                   |
-| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `login`                                  | Sign in through the browser: prints a one-time link and confirmation code, then saves a newly issued API key for `--remote` (see below)       |
-| `set-key <key>`                          | Save an API key from the linkly.ai dashboard (format: `lkai_<32-char hex>`, 37 chars total) to `~/.linkly/credentials.json` for `--remote`    |
-| `set-key <token> --lan --endpoint <url>` | Save the LAN address and token (both from the desktop app's Settings → MCP) for `--lan`. Not checked against the desktop — run `doctor --lan` |
-| `status`                                 | Show which key is in use, whether it is valid, the account's plan, and the saved LAN connection (token masked)                                |
-| `logout [--lan]`                         | Remove the stored API key (revoking it on the server if `login` issued it), or with `--lan` the saved LAN connection. The other one is kept   |
+| Command                                  | Description                                                                                                                                                               |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `login`                                  | Sign in through the browser: prints a one-time link and confirmation code, then saves a newly issued API key for `--remote` (see below)                                   |
+| `set-key <key>`                          | Save an API key from the linkly.ai dashboard (format: `lkai_<32-char hex>`, 37 chars total) to `~/.linkly/credentials.json` for `--remote`                                |
+| `set-key <token> --lan --endpoint <url>` | Save the LAN address and token (both from the desktop app's Agent usage → View MCP connection settings) for `--lan`. Not checked against the desktop — run `doctor --lan` |
+| `status`                                 | Show which key is in use, whether it is valid, the account's plan, and the saved LAN connection (token masked)                                                            |
+| `logout [--lan]`                         | Remove the stored API key (revoking it on the server if `login` issued it), or with `--lan` the saved LAN connection. The other one is kept                               |
 
 The remote key and the LAN connection are stored side by side; saving or removing one never touches the other.
 

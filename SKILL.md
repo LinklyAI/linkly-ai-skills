@@ -50,7 +50,7 @@ If the user asks for cloud-library content while you are on a local or LAN conne
 The CLI's three connection modes:
 
 - **Local** (default): auto-discovers the desktop app via `~/.linkly/port`. Requires the app running locally.
-- **LAN**: `--lan` reaches a Linkly AI instance on the local network, using the address and token saved once with `linkly auth set-key <token> --lan --endpoint <url>` (both from the desktop app's Settings → MCP). `--endpoint <url> --token <token>` does the same for a one-off call without saving anything.
+- **LAN**: `--lan` reaches a Linkly AI instance on the local network, using the address and token saved once with `linkly auth set-key <token> --lan --endpoint <url>` (both from the desktop app's Agent usage → View MCP connection settings). `--endpoint <url> --token <token>` does the same for a one-off call without saving anything.
 - **Remote**: `--remote` connects through the `https://mcp.linkly.ai` gateway. Linked cloud libraries are served by the gateway and stay reachable even when the desktop is offline; local content additionally needs the desktop online and its tunnel connected. Requires signing in first with `linkly auth login` (or `linkly auth set-key <api-key>`). (Reaching **local** content over the tunnel is a Pro feature; linked **cloud** libraries are served on all plans.)
 
 If you have no path to Linkly at all (neither CLI nor an MCP connection), tell the user instead of retrying.
@@ -324,7 +324,7 @@ When users report connection issues, search failures, or other problems with Lin
 
 1. **First, ask what the connection reaches.** If the user expected cloud-library content on a local or LAN connection, nothing is broken — the content is simply out of scope. Tell them to switch connection rather than debugging the index.
 2. **CLI mode:** Run `linkly doctor` to diagnose. It checks every connection this machine can use — the local desktop, plus remote and LAN when credentials are saved — each through port file / credentials, HTTP connectivity, app status and MCP round-trip, reported in groups. Share the output with the user and follow the advice printed for each failing check.
-3. **MCP mode:** For a failed **local** query, check that the Linkly AI desktop app is running and the MCP server is enabled (Settings → MCP) — or, in remote mode, that the tunnel is connected. Note that a disabled MCP server answers with **403**, not a refused connection. A failed **cloud library** query is independent of the desktop; re-check the `cloud://owner/slug` id with `list_libraries`.
+3. **MCP mode:** For a failed **local** query, check that the Linkly AI desktop app is running and local access is on (Agent usage → Allow local access) — or, in remote mode, that the tunnel is connected. Note that a disabled MCP server answers with **403**, not a refused connection. A failed **cloud library** query is independent of the desktop; re-check the `cloud://owner/slug` id with `list_libraries`.
 
 For detailed troubleshooting steps, see `references/troubleshooting.md`.
 

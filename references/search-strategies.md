@@ -225,7 +225,7 @@ linkly search "we should postpone the launch" --type audio,video
 linkly outline <MEDIA_ID>                                 # chapters + time spans
 ```
 
-If media searches return nothing at all, transcription may simply be switched off — it is opt-in per media kind in Desktop Settings → Indexing. Check that before concluding the content isn't there.
+If media searches return nothing at all, transcription may simply be switched off — it is opt-in per media kind in the desktop app's Index management → Extraction enhancements. Check that before concluding the content isn't there.
 
 To pull the text out of images _referenced by_ another document (a clipped article, a report with screenshots), don't search for the images separately — read the host document with `--image-text full`.
 

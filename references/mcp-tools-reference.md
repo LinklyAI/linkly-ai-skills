@@ -633,7 +633,7 @@ The middle column is what you pass to `doc_types` / `--type` — filter by type 
 
 Notes on the derived types:
 
-- **Audio and video** are indexed from their **transcript**, produced by on-device speech recognition. Searching them matches transcript text; `outline` returns chapters and time spans (`HH:MM:SS`) rather than headings. Transcription is opt-in per media kind in Desktop Settings → Indexing — if the user's recordings return nothing, that toggle is the first thing to check.
+- **Audio and video** are indexed from their **transcript**, produced by on-device speech recognition. Searching them matches transcript text; `outline` returns chapters and time spans (`HH:MM:SS`) rather than headings. Transcription is opt-in per media kind in the desktop app's Index management → Extraction enhancements — if the user's recordings return nothing, that toggle is the first thing to check.
 - **Images and scanned PDFs** are indexed from their **OCR text**. Images referenced from within another document also surface through `read`'s `image_text` parameter.
 - **Spreadsheets** (`xlsx`, `csv`) are indexed from their **cell text**, rendered as Markdown tables. `outline` returns one entry per sheet with its row and column counts, header row and a few preview rows — use it to pick a sheet before `read`. A CSV that is not UTF-8 is decoded when its encoding can be settled from the file itself or from its neighbours in the same folder; one that cannot be settled is skipped rather than indexed as mojibake, and says so.
 - **Subtitle sidecars** (`.srt`, `.vtt`) sitting next to a media file are paired with that file rather than indexed as separate documents.

@@ -38,9 +38,9 @@ Read the groups separately: "local failed, remote ok" on a server without a desk
 
 #### HTTP 403 "MCP is disabled in settings"
 
-- **Cause:** The desktop app **is** running, but its MCP server is switched off in settings.
+- **Cause:** The desktop app **is** running, but **Allow local access** is switched off on its Agent usage page.
 - **Important:** the port file still exists and the port still answers. The local API server stays up to serve other features (browser clipping, health checks) and only the `/mcp` route is gated. So "the port is reachable" does **not** mean MCP is enabled, and a disabled MCP server does **not** produce "connection refused".
-- **Fix:** Open Settings → MCP → enable the MCP server. It takes effect on the next request; no restart needed.
+- **Fix:** Open the desktop app's Agent usage page (sidebar Agent icon → Show more) and turn on **Allow local access**. It takes effect on the next request; no restart needed.
 
 #### `App: Unreachable` / `desktop_unreachable`
 
@@ -58,7 +58,7 @@ Read the groups separately: "local failed, remote ok" on a server without a desk
 #### "Authentication failed" (LAN/Remote)
 
 - **Cause:** Invalid or expired token/API key.
-- **Fix (LAN):** Copy the current access token from the desktop app (Settings → MCP → LAN Access → Access Token) and save it again: `linkly auth set-key <token> --lan --endpoint <url>`. The token changes whenever the user regenerates it in the desktop app. With explicit flags, pass it via `--token` instead.
+- **Fix (LAN):** Copy the current access token from the desktop app (Agent usage → View MCP connection settings → LAN → Copy token) and save it again: `linkly auth set-key <token> --lan --endpoint <url>`. The token changes whenever the user regenerates it in the desktop app. With explicit flags, pass it via `--token` instead.
 - **Fix (Remote):** The stored key was revoked or is wrong. Run `linkly auth logout`, then sign in again with `linkly auth login` (see "Remote sign-in" below). Pasting a fresh key from [linkly.ai](https://linkly.ai) with `linkly auth set-key <your-api-key>` also works.
 
 #### "No API key configured for remote mode"
@@ -85,23 +85,23 @@ If the authorization page says the API key limit is reached, the user must revok
 #### "No LAN connection saved"
 
 - **Cause:** `--lan` was used, but no LAN address and token have been saved on this machine.
-- **Fix:** Ask the user for the LAN address and access token from the desktop app's Settings → MCP, then run `linkly auth set-key <token> --lan --endpoint <url>`.
+- **Fix:** Ask the user for the LAN address and access token from the desktop app's Agent usage → View MCP connection settings, then run `linkly auth set-key <token> --lan --endpoint <url>`.
 
 #### `linkly mcp --endpoint` is not supported
 
 - **Cause:** The stdio bridge only serves the desktop on the same machine or the cloud gateway; it does not bridge to a desktop on the LAN.
-- **Fix:** Configure the MCP client to connect to the desktop's LAN HTTP endpoint directly (URL plus `Authorization: Bearer <token>` header, from Settings → MCP), or use `linkly mcp --remote`.
+- **Fix:** Configure the MCP client to connect to the desktop's LAN HTTP endpoint directly (URL plus `Authorization: Bearer <token>` header, from Agent usage → View MCP connection settings), or use `linkly mcp --remote`.
 
 #### "Tunnel not connected" (Remote)
 
 - **Cause:** The desktop app's remote tunnel is not connected.
-- **Fix:** Open Settings → MCP → Remote Access → Connect Tunnel. Ensure you have an API key configured.
+- **Fix:** On the desktop app's Agent usage page, sign in and turn on **Allow remote access (internet)** (requires a Pro plan).
 - **Note:** This only blocks access to **local** content. Linked **cloud** libraries are served by the gateway directly and stay searchable even while the tunnel is down — scope to one with `library="cloud://owner/slug"`. (Requires CLI ≥ v0.4.1; older CLIs aborted on a disconnected tunnel even for cloud-only queries.)
 
 #### "No documents indexed"
 
 - **Cause:** No folders have been added for indexing.
-- **Fix:** Open Settings → Folders → Add Folder. Wait for scanning and indexing to complete.
+- **Fix:** In the desktop app, open Library → Add folder. Wait for scanning and indexing to complete.
 
 #### Search returns no results
 
@@ -111,7 +111,7 @@ If the authorization page says the API key limit is reached, the user must revok
   2. Try broader keywords or natural language queries.
   3. Remove `--type` or `--library` filters to widen the search across all local content.
   4. Confirm the user's target content is a supported document type (PDF, Markdown, Excel, CSV, DOCX, TXT, PPTX, DOC, RTF, EPUB, HTML, image, audio, video). Files outside this list are not indexed even if they live under indexed folders — check by running `linkly explore` and looking at the document-type distribution.
-  5. For audio or video, check that transcription is switched on — it is opt-in per media kind in Desktop Settings → Indexing. Until it is enabled those files are indexed by filename only.
+  5. For audio or video, check that transcription is switched on — it is opt-in per media kind in the desktop app's Index management → Extraction enhancements (Audio transcription / Video transcription). Until it is enabled those files are indexed by filename only.
   6. If the user expects content from a **cloud** library, confirm the connection mode reaches it — see "Cloud library content is missing" below.
 
 #### `Invalid modified_after` / `Invalid modified_before`
@@ -175,9 +175,9 @@ When using Linkly AI through an AI tool's MCP connection (Claude, Cursor, ChatGP
 ### MCP tools not available
 
 - **Check:** Is the Linkly AI desktop app running?
-- **Check:** Is the MCP server enabled? (Settings → MCP → toggle on)
+- **Check:** Is local access on? (Agent usage → Allow local access)
 - **Check:** Is the AI tool configured to connect to the correct MCP endpoint?
-  - Local: `http://localhost:<port>/mcp` (port shown in Settings → MCP)
+  - Local: `http://localhost:<port>/mcp` (port shown in Agent usage → View MCP connection settings)
   - Tunnel: configured through the AI tool's connector settings
 - **Note:** A running desktop is required only for **local** content. If you only need a linked **cloud** library, the gateway serves it without the desktop — scope to it with `library="cloud://owner/slug"`.
 
