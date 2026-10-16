@@ -58,8 +58,8 @@ Read the groups separately: "local failed, remote ok" on a server without a desk
 #### "Authentication failed" (LAN/Remote)
 
 - **Cause:** Invalid or expired token/API key.
-- **Fix (LAN):** Copy the current access token from the desktop app (Agent usage → View MCP connection settings → LAN → Copy token) and save it again: `linkly auth set-key <token> --lan --endpoint <url>`. The token changes whenever the user regenerates it in the desktop app. With explicit flags, pass it via `--token` instead.
-- **Fix (Remote):** The stored key was revoked or is wrong. Run `linkly auth logout`, then sign in again with `linkly auth login` (see "Remote sign-in" below). Pasting a fresh key from [linkly.ai](https://linkly.ai) with `linkly auth set-key <your-api-key>` also works.
+- **Fix (LAN):** The token changes whenever the user regenerates it in the desktop app. Ask the user to copy the current token (Agent usage → View MCP connection settings → LAN → Copy token) and save it **themselves, in their own terminal**: `linkly auth set-key <token> --lan --endpoint <url>`. Do not ask them to paste the token into the chat, and do not run the command for them.
+- **Fix (Remote):** The stored key was revoked or is wrong. Run `linkly auth logout`, then sign in again with `linkly auth login` (see "Remote sign-in" below). Do not ask the user for a key.
 
 #### "No API key configured for remote mode"
 
@@ -85,12 +85,12 @@ If the authorization page says the API key limit is reached, the user must revok
 #### "No LAN connection saved"
 
 - **Cause:** `--lan` was used, but no LAN address and token have been saved on this machine.
-- **Fix:** Ask the user for the LAN address and access token from the desktop app's Agent usage → View MCP connection settings, then run `linkly auth set-key <token> --lan --endpoint <url>`.
+- **Fix:** Ask the user to save the LAN connection **themselves, in their own terminal**: `linkly auth set-key <token> --lan --endpoint <url>`, with the address and token from the desktop app's Agent usage → View MCP connection settings. Do not ask for the token in the chat. If the user would rather not, use `--remote` instead.
 
 #### `linkly mcp --endpoint` is not supported
 
 - **Cause:** The stdio bridge only serves the desktop on the same machine or the cloud gateway; it does not bridge to a desktop on the LAN.
-- **Fix:** Configure the MCP client to connect to the desktop's LAN HTTP endpoint directly (URL plus `Authorization: Bearer <token>` header, from Agent usage → View MCP connection settings), or use `linkly mcp --remote`.
+- **Fix:** Use `linkly mcp --remote`, or have the user configure their MCP client to connect to the desktop's LAN HTTP endpoint directly (URL plus `Authorization: Bearer <token>` header, from Agent usage → View MCP connection settings). The user edits that config themselves; do not put the token into it for them.
 
 #### "Tunnel not connected" (Remote)
 

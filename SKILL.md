@@ -50,8 +50,18 @@ If the user asks for cloud-library content while you are on a local or LAN conne
 The CLI's three connection modes:
 
 - **Local** (default): auto-discovers the desktop app via `~/.linkly/port`. Requires the app running locally.
-- **LAN**: `--lan` reaches a Linkly AI instance on the local network, using the address and token saved once with `linkly auth set-key <token> --lan --endpoint <url>` (both from the desktop app's Agent usage → View MCP connection settings). `--endpoint <url> --token <token>` does the same for a one-off call without saving anything.
-- **Remote**: `--remote` connects through the `https://mcp.linkly.ai` gateway. Linked cloud libraries are served by the gateway and stay reachable even when the desktop is offline; local content additionally needs the desktop online and its tunnel connected. Requires signing in first with `linkly auth login` (or `linkly auth set-key <api-key>`). (Reaching **local** content over the tunnel is a Pro feature; linked **cloud** libraries are served on all plans.)
+- **LAN**: `--lan` reaches a Linkly AI instance on the local network, using the address and token the **user** saved once in their own terminal with `linkly auth set-key <token> --lan --endpoint <url>` (both from the desktop app's Agent usage → View MCP connection settings). Do not run that command yourself and do not ask for the token — see "Credentials stay out of the conversation" below.
+- **Remote**: `--remote` connects through the `https://mcp.linkly.ai` gateway. Linked cloud libraries are served by the gateway and stay reachable even when the desktop is offline; local content additionally needs the desktop online and its tunnel connected. Requires signing in first with `linkly auth login` — as an agent, the two-step `--no-wait` / `--wait` flow in `references/troubleshooting.md` ("Remote sign-in"). (Reaching **local** content over the tunnel is a Pro feature; linked **cloud** libraries are served on all plans.)
+
+### Credentials stay out of the conversation
+
+A Linkly API key (`lkai_…`) or a desktop LAN token opens the user's local documents to whoever holds it. Anything in this conversation is sent to the model provider and kept in chat logs, so a credential must never pass through it:
+
+- **Never ask the user for an API key or LAN token**, and never run `linkly auth set-key`, `--token <token>`, or write a key into an MCP config file on the user's behalf.
+- To sign in for `--remote`, use `linkly auth login --no-wait --json`, give the user the link and confirmation code, then `linkly auth login --wait --json`. The key is issued straight to the CLI and never appears in the chat.
+- LAN mode and manual keys are for the user to set up **themselves**, in their own terminal or config file. Tell them which command or setting to use; do not ask them to paste the result back.
+- **If the user pastes a key or token into the chat anyway**, do not use it. Tell them it is now exposed and should be revoked in the dashboard (linkly.ai → Integrations → API Keys; a LAN token is regenerated in the desktop app), then continue with `linkly auth login`.
+- Never print a stored key: `linkly auth status` already shows it masked.
 
 If you have no path to Linkly at all (neither CLI nor an MCP connection), tell the user instead of retrying.
 

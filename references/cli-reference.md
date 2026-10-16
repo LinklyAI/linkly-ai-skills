@@ -311,9 +311,9 @@ Runs the CLI as a stdio MCP server for integration with Claude Desktop, Cursor, 
 **Choose the upstream deliberately, because it decides what the MCP client can reach:**
 
 - default (no flag) — the local desktop. Local content only; `cloud://` references are rejected.
-- `--remote` — the `mcp.linkly.ai` gateway. Reaches local content (through the desktop tunnel) **and** linked cloud libraries. Requires `linkly auth set-key` first.
+- `--remote` — the `mcp.linkly.ai` gateway. Reaches local content (through the desktop tunnel) **and** linked cloud libraries. Requires signing in first with `linkly auth login`.
 
-There is no LAN bridge: `linkly mcp --endpoint` exits with an error. An MCP client on another machine should connect to the desktop's LAN HTTP endpoint directly (URL plus `Authorization: Bearer <token>` header, from the desktop app's Agent usage → View MCP connection settings), or bridge with `--remote`.
+There is no LAN bridge: `linkly mcp --endpoint` exits with an error. An MCP client on another machine should bridge with `--remote`, or the user can configure it to connect to the desktop's LAN HTTP endpoint directly (URL plus `Authorization: Bearer <token>` header, from the desktop app's Agent usage → View MCP connection settings) — the user writes that token into the config themselves, never through the chat.
 
 Claude Desktop configuration (`claude_desktop_config.json`):
 
@@ -334,8 +334,8 @@ Claude Desktop configuration (`claude_desktop_config.json`):
 linkly auth login                                                   # remote: sign in through the browser
 linkly auth login --no-wait --json                                  # agents, step 1: get the link
 linkly auth login --wait --json                                     # agents, step 2: finish after approval
-linkly auth set-key <API_KEY>                                       # remote: paste a key instead (same as --remote)
-linkly auth set-key <LAN_TOKEN> --lan --endpoint http://192.168.1.100:60606
+linkly auth set-key <API_KEY>                                       # remote, by the user in their own terminal only
+linkly auth set-key <LAN_TOKEN> --lan --endpoint http://192.168.1.100:60606  # LAN, by the user only
 linkly auth status
 linkly auth logout                                                  # remote (same as --remote)
 linkly auth logout --lan
@@ -350,6 +350,8 @@ linkly auth logout --lan
 | `logout [--lan]`                         | Remove the stored API key (revoking it on the server if `login` issued it), or with `--lan` the saved LAN connection. The other one is kept                               |
 
 The remote key and the LAN connection are stored side by side; saving or removing one never touches the other.
+
+**`set-key` is for people, not agents.** An agent signs in with `login --no-wait` / `--wait` and never asks for, receives, or types a key or LAN token: whatever passes through the conversation goes to the model provider and the chat logs. If a user pastes one into the chat, don't use it; tell them to revoke it (linkly.ai → Integrations → API Keys, or regenerate the LAN token in the desktop app).
 
 **`login` for agents.** The link works on any device, so a user can authorize from their phone while the CLI runs on a server. Split the login so the link reaches the user before anything blocks, and run both steps in the same environment and config directory:
 
@@ -403,12 +405,12 @@ linkly self-update
 
 `--lan`, `--endpoint` and `--token` are available on the document commands (`search`, `grep`, `outline`, `read`, `list`, `note-save`, `list-libraries`, `explore`, `find-paths`) plus `status` and `doctor`. `--remote` is available on those same commands and on `mcp`. Without `--lan` or `--remote` the CLI only ever talks to the desktop on this machine — a saved LAN connection is never used implicitly.
 
-| Flag               | Scope  | Description                                                                                                                                                                            |
-| ------------------ | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `--lan`            | LAN    | Connect to the LAN desktop saved by `auth set-key <token> --lan --endpoint <url>` (conflicts with `--remote` and `--endpoint`)                                                         |
-| `--endpoint <url>` | LAN    | Connect to a specific MCP endpoint (e.g. `http://192.168.1.100:60606/mcp`), requires `--token`; ignores the saved LAN connection                                                       |
-| `--token <token>`  | LAN    | Bearer token for LAN authentication (required with `--endpoint`, conflicts with `--remote`)                                                                                            |
-| `--remote`         | Remote | Connect via `https://mcp.linkly.ai` — reaches local + linked cloud libraries (cloud works even when the desktop tunnel is down); requires `auth set-key` (conflicts with `--endpoint`) |
+| Flag               | Scope  | Description                                                                                                                                                                                 |
+| ------------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--lan`            | LAN    | Connect to the LAN desktop saved by `auth set-key <token> --lan --endpoint <url>` (conflicts with `--remote` and `--endpoint`)                                                              |
+| `--endpoint <url>` | LAN    | Connect to a specific MCP endpoint (e.g. `http://192.168.1.100:60606/mcp`), requires `--token`; ignores the saved LAN connection                                                            |
+| `--token <token>`  | LAN    | Bearer token for LAN authentication (required with `--endpoint`, conflicts with `--remote`). For the user at a terminal; agents use the saved `--lan` connection and never handle the token |
+| `--remote`         | Remote | Connect via `https://mcp.linkly.ai` — reaches local + linked cloud libraries (cloud works even when the desktop tunnel is down); requires `auth login` (conflicts with `--endpoint`)        |
 
 `--remote` changes **how you reach your Desktop**, not where the data lives: the gateway forwards to that machine over the tunnel. Linked cloud libraries are the one exception — the gateway serves those itself, so they stay available while the Desktop is offline. Notes are the opposite extreme: they exist only on the Desktop, so `list --scope notes` and `note-save` over `--remote` fail outright when it is unreachable, with nothing to retry against.
 
