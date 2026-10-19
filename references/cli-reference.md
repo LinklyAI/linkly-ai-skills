@@ -83,19 +83,19 @@ linkly find-paths --patterns Slack --json
 linkly search <QUERY> [OPTIONS]
 ```
 
-| Option                    | Description                                                                                                                                                                                                                      |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `<QUERY>`                 | Search keywords or phrases (required)                                                                                                                                                                                            |
-| `--limit <N>`             | Maximum results, 1–50 (default: 20)                                                                                                                                                                                              |
-| `--type <types>`          | Filter by document type name, comma-separated — `pdf`, `md`, `xlsx`, `csv`, `docx`, `txt`, `pptx`, `doc`, `rtf`, `epub`, `html`, `image`, `audio`, `video` (e.g. `pdf,md`). Type name, not extension.                            |
-| `--library <name>`        | Restrict search to one library: a local name / `local://<id>`, or `cloud://<owner>/<slug>` (over `--remote`; cloud must be the two-segment `owner/slug` form). Omit = all local content.                                         |
-| `--path-glob <pat>`       | Glob **substring-matched** against the file path (no leading/trailing `*` needed). `*` matches any chars including `/`, `?` one char. Full dir path `/Users/me/notes/` scopes to that dir. When unknown, run `find-paths` first. |
-| `--modified-after <iso>`  | Inclusive lower bound on modification time (ISO 8601 UTC; bare date or RFC 3339)                                                                                                                                                 |
-| `--modified-before <iso>` | Inclusive upper bound on modification time (same format as `--modified-after`)                                                                                                                                                   |
-| `--time-sort <mode>`      | Reorder by modification time: `newest`, `oldest`, or `default`. `default` and omitting the flag are equivalent — both keep relevance order.                                                                                      |
-| `--scope <scope>`         | `folder` (default) searches all indexed content; `notes` restricts results to the user's local Markdown card notes and **ignores `--library` and `--path-glob`**.                                                                |
-| `--tags <tags>`           | Comma-separated note tags; returns only documents carrying **all** of them (AND). Leading `#` is stripped and ASCII lowercased. Most useful with `--scope notes`.                                                                |
-| `--json`                  | Output structured JSON (global option)                                                                                                                                                                                           |
+| Option                    | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `<QUERY>`                 | Search keywords or phrases (required)                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `--limit <N>`             | Maximum results, 1–50 (default: 20)                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `--type <types>`          | Filter by document type name, comma-separated — `pdf`, `md`, `xlsx`, `csv`, `docx`, `txt`, `pptx`, `doc`, `rtf`, `epub`, `html`, `image`, `audio`, `video` (e.g. `pdf,md`). Type name, not extension.                                                                                                                                                                                                                                                                                     |
+| `--library <name>`        | Restrict search to one library: a local name / `local://<id>`, or `cloud://<owner>/<slug>` (over `--remote`; cloud must be the two-segment `owner/slug` form). Omit = all local content.                                                                                                                                                                                                                                                                                                  |
+| `--path-glob <pat>`       | Glob **substring-matched** against the file path (no leading/trailing `*` needed). `*` matches any chars including `/`, `?` one char. Full dir path `/Users/me/notes/` scopes to that dir. When unknown, run `find-paths` first.                                                                                                                                                                                                                                                          |
+| `--modified-after <iso>`  | Inclusive lower bound on modification time (ISO 8601 UTC; bare date or RFC 3339)                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `--modified-before <iso>` | Inclusive upper bound on modification time (same format as `--modified-after`)                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `--time-sort <mode>`      | Reorder by modification time: `newest`, `oldest`, or `default`. `default` and omitting the flag are equivalent — both keep relevance order.                                                                                                                                                                                                                                                                                                                                               |
+| `--scope <scope>`         | `folder` (default) searches all indexed content, the user's clip annotations included; `notes` restricts results to the user's local Markdown card notes and **ignores `--library` and `--path-glob`**; `annotations` matches only the text of the user's own clip annotations (highlights, notes and comments made in the clip reader) and returns only annotated documents — keyword-only, the other filters still apply, and a field-qualified clause such as `content:x` is rejected. |
+| `--tags <tags>`           | Comma-separated note tags; returns only documents carrying **all** of them (AND). Leading `#` is stripped and ASCII lowercased. Most useful with `--scope notes`.                                                                                                                                                                                                                                                                                                                         |
+| `--json`                  | Output structured JSON (global option)                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 
 Examples:
 
@@ -111,10 +111,13 @@ linkly search "weekly retro" --time-sort newest --limit 5
 linkly search "standup recording" --type audio,video
 linkly search "quarterly planning" --scope notes
 linkly search "meeting" --scope notes --tags work
+linkly search "doubt disagree unsourced" --scope annotations --time-sort newest
 linkly search "budget" --json
 ```
 
 Read the `[meta] now=<iso>` footer (Markdown output) or top-level `_meta.now` (JSON output) of any tool response to compute relative dates ("last 7 days", "after July 1, 2024", "in 2024") rather than guessing the current date.
+
+**Annotation hits:** the default scope searches the user's clip annotations alongside the body. A hit that came from them is marked in front of its snippet — `(in annotations)`, or `(in content and annotations)` when the body matched too; with `--json` each result carries `matched_in` (`"content"` and/or `"annotations"`). `--scope annotations` answers "which articles did I have doubts about?" — only the user's own words are matched, so only annotated documents come back. Not the same as `--scope notes`, which is the Markdown card notes.
 
 **Document IDs:** each search result's `doc_id` is an opaque string — pass it verbatim to `outline` / `grep` / `read`, never reshape or fabricate it. Local documents look like `local://<integer>` (older desktops return a bare integer, still accepted); cloud documents look like `cloud://<owner>/<slug>/<root-hash>/<path>`.
 
@@ -174,13 +177,14 @@ linkly grep "function\s+\w+" 1044 -A 5 --json
 linkly read <IDS>... [OPTIONS]
 ```
 
-| Option                  | Description                                                                                                                                                                                                                                                                                                                     |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `<IDS>...`              | One or more document IDs from search (required). Pass `-` to read the IDs from stdin, one per line.                                                                                                                                                                                                                             |
-| `--offset <N>`          | Starting line number, 1-based                                                                                                                                                                                                                                                                                                   |
-| `--limit <N>`           | Number of lines to read, max 500                                                                                                                                                                                                                                                                                                |
-| `--image-text <detail>` | Detail for the referenced-images block: `none` (mapping only), `abstract` (default — plus excerpt and word count), `full` (plus inline OCR text; 2000 chars per image, 20000 total, over-budget images degrade to `abstract`). Cloud documents never inline full text — `full` degrades to `abstract` with a per-image pointer. |
-| `--json`                | Output structured JSON (global option)                                                                                                                                                                                                                                                                                          |
+| Option                     | Description                                                                                                                                                                                                                                                                                                                                                             |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `<IDS>...`                 | One or more document IDs from search (required). Pass `-` to read the IDs from stdin, one per line.                                                                                                                                                                                                                                                                     |
+| `--offset <N>`             | Starting line number, 1-based                                                                                                                                                                                                                                                                                                                                           |
+| `--limit <N>`              | Number of lines to read, max 500                                                                                                                                                                                                                                                                                                                                        |
+| `--image-text <detail>`    | Detail for the referenced-images block: `none` (mapping only), `abstract` (default — plus excerpt and word count), `full` (plus inline OCR text; 2000 chars per image, 20000 total, over-budget images degrade to `abstract`). Cloud documents never inline full text — `full` degrades to `abstract` with a per-image pointer.                                         |
+| `--annotations-offset <N>` | 0-based offset into the document's user annotations (highlights, notes and comments made in the clip reader), default 0. The "User annotations" block follows the content on the first page (`--offset 1`) and whenever this flag is given; it pages independently of the lines, 20 per call. Pair it with `--limit 1` to page annotations without re-reading the body. |
+| `--json`                   | Output structured JSON (global option)                                                                                                                                                                                                                                                                                                                                  |
 
 Examples:
 
@@ -188,8 +192,11 @@ Examples:
 linkly read 1044
 linkly read 1044 --offset 50 --limit 100
 linkly read 1044 --image-text full
+linkly read 1044 --annotations-offset 20 --limit 1
 linkly read 1044 --json
 ```
+
+**User annotations:** a Markdown clip the user has highlighted, noted or commented comes back with a `## User annotations (a-b of N)` block after the content — one line per item, `21. [note, L42] "quoted passage" — what the user wrote`, `[highlight, L58] "…"`, `[comment] …`, `[note, lost] "…" — …` for an anchor that no longer resolves; `L<n>` is the body line. When the block ends with `N more annotations; call read with annotations_offset=K`, run `linkly read <ID> --annotations-offset K --limit 1` for the next page. The quoted passage is the source's words; the text after `—` is the user's — keep them apart when you summarize. With `--json` the page is the top-level `annotations` object (`shown`, `total`, `has_more`, `next_annotations_offset`).
 
 ### list — Enumerate a container
 
@@ -488,7 +495,7 @@ Printable ASCII, up to 64 characters. A value outside that is ignored rather tha
   "status": "success",
   "query": "machine learning",
   "total": 10,
-  "results": [{ "doc_id": "1044", "title": "...", "relevance": 0.85, ... }]
+  "results": [{ "doc_id": "1044", "title": "...", "relevance": 0.85, "matched_in": ["content"], ... }]
 }
 ```
 
@@ -523,9 +530,12 @@ Printable ASCII, up to 64 characters. A value outside that is ignored rather tha
   "content": "...",
   "total_lines": 84,
   "shown_from": 1,
-  "shown_to": 50
+  "shown_to": 50,
+  "annotations": { "shown": [...], "total": 47, "has_more": true, "next_annotations_offset": 20 }
 }
 ```
+
+`annotations` is present only when the document carries user annotations or `--annotations-offset` was given.
 
 **Error:**
 

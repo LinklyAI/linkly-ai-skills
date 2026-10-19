@@ -141,6 +141,7 @@ linkly search "Q3 report" --modified-after 2024-07-01 --modified-before 2024-09-
 linkly search "weekly retro" --time-sort newest --limit 5
 linkly search "购物订单" --path-glob "*xinWeChat*" --time-sort newest --limit 5
 linkly search "standup recording" --type audio,video --limit 5
+linkly search "doubt disagree unsourced" --scope annotations --time-sort newest --limit 10
 ```
 
 Search uses BM25 + vector hybrid retrieval (OR logic for keywords, semantic matching for meaning). **One exception:** searching a **cloud** library with a path, type, or time filter drops to keyword-only ranking — the vector index cannot apply those filters before its top-K cut, so they would silently eat recall. Phrase such queries with real keywords rather than a natural-language sentence. For advanced query strategies, see `references/search-strategies.md`.
@@ -151,6 +152,7 @@ Search uses BM25 + vector hybrid retrieval (OR logic for keywords, semantic matc
 - Add `--type` filter when the user mentions a specific format (`pdf`, `md`, `xlsx`, `csv`, `docx`, `txt`, `pptx`, `doc`, `rtf`, `epub`, `html`, `image`, `audio`, `video`). Audio and video match against their transcripts; images and scanned PDFs against their OCR text; spreadsheets against their cell text.
 - Use `--library` only when the user explicitly specifies a library name.
 - To search the user's notes, use `--scope notes` — see ["Notes"](#notes-local-markdown-cards) below. Note that `--scope notes` ignores `--library` and `--path-glob`.
+- To search what the user **wrote about** their clips — the highlights, notes and comments made in the clip reader — use `--scope annotations` ("which articles did I have doubts about?"). Only the user's own words are matched, so only annotated documents come back; `--library`, `--path-glob` and the time filters still apply, and a field-qualified clause (`content:x`) is rejected. The default scope searches annotations too: a hit's `matched_in` (JSON) or the `(in annotations)` marker before its snippet (Markdown) tells you whether it came from the body or from the user's own words. Not the same as `--scope notes`, which is the Markdown card notes.
 - Use `--path-glob` to filter by file path: the pattern is **substring-matched** against the path (it may appear anywhere — no leading/trailing `*` needed), always case-sensitive. `*` matches any chars (incl. `/`), `?` one char. A full directory path like `/Users/me/notes/` scopes to that directory. When the actual path is unknown, run Step 0 (`find_paths`) first.
 - For time scope: `--modified-after` / `--modified-before` (ISO 8601 UTC) for explicit windows like "in 2024" / "after July 1, 2024"; `--time-sort newest|oldest|default` for "most recent / earliest" without a fixed window (`default` or omitting the flag both keep relevance ordering). See ["Tool Response Metadata"](#tool-response-metadata) below for how to derive relative dates.
 - Start with a small limit (5–10) to scan relevance before requesting more.
@@ -197,6 +199,7 @@ Read document content with line numbers and pagination.
 linkly read <ID>
 linkly read <ID> --offset 50 --limit 100
 linkly read <ID> --image-text full
+linkly read <ID> --annotations-offset 20 --limit 1
 ```
 
 **Reading strategies:**
@@ -206,6 +209,8 @@ linkly read <ID> --image-text full
 - To paginate: advance `offset` by `limit` on each call (e.g., offset=1 limit=200, then offset=201 limit=200).
 
 **Images referenced in the text:** markdown image references inside the shown line range are resolved to indexed image documents and appended as a mapping block. `--image-text` / `image_text` controls the detail: `none` (mapping only), `abstract` (default — plus a one-line excerpt and word count per image), `full` (plus inline OCR text). Use `full` only when the images carry content you actually need — it is capped at 2000 chars per image and 20000 chars total, and over-budget images silently degrade to `abstract`. On **cloud** documents `full` never inlines text: matched images degrade to `abstract` with a per-image pointer, and you `read` the image's own `doc_id` for its full text.
+
+**User annotations on clips:** a Markdown clip the user has highlighted, noted or commented in the clip reader comes back with a `## User annotations (a-b of N)` block after the content on the first page (`offset=1`) — one line per item, `21. [note, L42] "quoted passage" — what the user wrote`, `[highlight, L58] "…"`, `[comment] …`, with `L<n>` pointing at the body line. Annotations page on their own, 20 per call: when the block ends with `N more annotations; call read with annotations_offset=K`, call `read` again with `--annotations-offset K --limit 1` to fetch the next page without re-reading the body. **Keep the two voices apart:** the quoted passage is what the source says, the text after `—` is what the user thinks. When summarizing or answering from an annotated clip, attribute each ("the article claims X; you noted the figure is unsourced") rather than folding the user's view into the article's.
 
 **Don't:** call `read` without a real `doc_id` from a `search` or `list` response. Document IDs are stable but never invented — guessing one returns "Document not found".
 
@@ -359,6 +364,7 @@ For detailed troubleshooting steps, see `references/troubleshooting.md`.
 17. **"Searchable but unreadable" is a valid end state.** When `read` reports content unavailable (cloud placeholder, no audio track, failed transcription, signature mismatch), relay the reason and stop — re-searching and retrying will not produce text that isn't there.
 18. **Notes stay local.** They are plain Markdown files in the user's library folder and are never uploaded to a cloud library. Don't offer to sync or publish them.
 19. **Name yourself on every CLI call.** `--client <your-app-name>` — see ["Name yourself on every CLI call"](#4-name-yourself-on-every-cli-call). The examples in this document omit it for brevity; your calls should not.
+20. **Annotations are the user's voice, not the document's.** A `(in annotations)` hit or a `User annotations` block tells you what the user _thinks_ about a passage. Answer "what does the article say" from the body and "what did I think of it" from the annotations (`--scope annotations` to find them), and say which is which.
 
 ## References
 
