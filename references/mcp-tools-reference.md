@@ -596,7 +596,7 @@ The write always lands on the user's Desktop, including when you reach it throug
 
 **Rejected** with `NOTE_INVALID_INPUT` (the error lists the offending constructs): headings, italics, blockquotes, inline code, code blocks, links, images, raw HTML, thematic breaks, tables, task lists, footnotes. An edit may keep constructs the note already contains, but must not introduce new forbidden kinds.
 
-Inline `#tags` in the body (outside code) **are** the note's tag set — the body is the single source of truth for tags. Remove a tag by deleting its `#token`; keep tags by keeping their `#tokens`. Legacy tags stored only in YAML are materialized into the body on the first agent edit (one-time migration). Every success response returns the note's effective `content` — base any follow-up edit on it, never on what you sent.
+Inline `#tags` in the body (outside code) **are** the note's tag set — the body is the single source of truth for tags. Remove a tag by deleting its `#token`; keep tags by keeping their `#tokens`. To write a literal `#` that must **not** become a tag (issue or PR numbers such as `#114` or `api#43`), escape it as `\#114` — the app shows it as `#114`. Legacy tags stored only in YAML are materialized into the body on the first agent edit (one-time migration). Every success response returns the note's effective `content` — base any follow-up edit on it, never on what you sent.
 
 ### Tag policy
 

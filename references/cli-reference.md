@@ -260,7 +260,7 @@ With `--remote` the write still lands on the Desktop machine — the tunnel forw
 | `--base-version <hash>` | The note's current version (sha256 of the raw file), from `linkly list --scope notes`. Required for `edit`. A stale value returns `NOTE_VERSION_CONFLICT` with the actual version. |
 | `--tags <tags>`         | Comma-separated. Optional on both modes; only **adds** tags (the server appends the missing `#tokens` to the body). Remove a tag by deleting its `#token` from the content.        |
 
-**Content whitelist.** Allowed: paragraphs, line breaks, bold, strikethrough, ordered and unordered lists, plain text. Rejected with `NOTE_INVALID_INPUT`: headings, italics, blockquotes, inline code, code blocks, links, images, raw HTML, thematic breaks, tables, task lists, footnotes. Inline `#tags` in the body **are** the note's tags — the body is the source of truth; remove a tag by deleting its `#token` from the content.
+**Content whitelist.** Allowed: paragraphs, line breaks, bold, strikethrough, ordered and unordered lists, plain text. Rejected with `NOTE_INVALID_INPUT`: headings, italics, blockquotes, inline code, code blocks, links, images, raw HTML, thematic breaks, tables, task lists, footnotes. Inline `#tags` in the body **are** the note's tags — the body is the source of truth; remove a tag by deleting its `#token` from the content. Write a literal `#` that must not become a tag (issue numbers and the like) as `\#114`.
 
 **Tag policy.** Do not add tags on your own initiative; pass only tags the user explicitly asked for.
 
