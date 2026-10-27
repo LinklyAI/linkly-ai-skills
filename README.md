@@ -143,6 +143,7 @@ The version appears in three places, and the release workflow refuses to publish
 ├── SKILL.md                           # Core skill instructions
 ├── references/
 │   ├── cli-reference.md               # CLI commands and options
+│   ├── guide.md                       # How to use the Linkly AI app itself
 │   ├── mcp-tools-reference.md         # MCP tool schemas and responses
 │   ├── search-strategies.md           # Advanced query crafting patterns
 │   └── troubleshooting.md             # Diagnosing and resolving issues
@@ -157,6 +158,7 @@ The version appears in three places, and the release workflow refuses to publish
 | `references/mcp-tools-reference.md` | MCP tool parameters, response schemas, supported document types    |
 | `references/search-strategies.md`   | Advanced query crafting, multi-round search, library scoping       |
 | `references/troubleshooting.md`     | Connection issues, version mismatches, and diagnostic steps        |
+| `references/guide.md`               | Using the desktop app: setup, indexing, chat, connecting AI apps   |
 
 ## Compatibility
 

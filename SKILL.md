@@ -1,6 +1,6 @@
 ---
 name: linkly-ai
-description: "Search, browse, read, and take notes across the user's documents indexed by Linkly AI — local files and linked cloud libraries. Use when the user asks to 'search my documents', 'find files about a topic', 'read a local document', 'what's in this folder', 'list the files in that library', 'browse document outlines', 'list knowledge libraries', 'save this as a note', 'list my notes', or any task involving searching, listing, reading, or noting stored content (PDF, Markdown, Excel, CSV, DOCX, TXT, PPTX, DOC, RTF, EPUB, HTML, images, audio, video). Also triggered by: 'linkly not working', 'cloud library', '搜索我的文档', '查找文件', '这个文件夹里有什么', '列出文件', '知识库搜索', '云端知识库', '记笔记', '我的笔记', '连接不上', '故障排查'. Provides full-text search, container enumeration, structural outlines, paginated reading, and local note capture via CLI or MCP tools."
+description: "Search, browse, read, and take notes across the user's documents indexed by Linkly AI — local files and linked cloud libraries. Use when the user asks to 'search my documents', 'find files about a topic', 'read a local document', 'what's in this folder', 'list the files in that library', 'browse document outlines', 'list knowledge libraries', 'save this as a note', 'list my notes', or any task involving searching, listing, reading, or noting stored content (PDF, Markdown, Excel, CSV, DOCX, TXT, PPTX, DOC, RTF, EPUB, HTML, images, audio, video). Also triggered by: 'linkly not working', 'cloud library', '搜索我的文档', '查找文件', '这个文件夹里有什么', '列出文件', '知识库搜索', '云端知识库', '记笔记', '我的笔记', '连接不上', '故障排查'. Provides full-text search, container enumeration, structural outlines, paginated reading, and local note capture via CLI or MCP tools. Also answers how to use the Linkly AI app itself ('how do I add a folder', 'connect ChatGPT', '怎么用 Linkly')."
 license: Apache-2.0
 version: 0.9.3
 ---
@@ -328,6 +328,10 @@ linkly explore --library my-research
 
 After getting an overview, use the top keywords, directory names, and recent activity from the explore output to craft targeted search queries with `search`.
 
+## Questions About the App Itself
+
+When the user asks how to use the Linkly AI app rather than about their documents — how to give Linkly access to their files, where a setting is, why indexing or semantic search isn't working, how to connect ChatGPT or another AI app, what Pro adds — read `references/guide.md` first and answer from it. Quote its UI labels exactly and never guess a menu or button that isn't there; if the guide doesn't cover it, point to `https://linkly.ai/docs/llms.txt`.
+
 ## Troubleshooting
 
 When users report connection issues, search failures, or other problems with Linkly AI:
@@ -366,6 +370,7 @@ For detailed troubleshooting steps, see `references/troubleshooting.md`.
 - `references/mcp-tools-reference.md` — MCP tool schemas, parameters, and response formats.
 - `references/search-strategies.md` — Advanced query crafting, multi-round search, and complex retrieval patterns.
 - `references/troubleshooting.md` — Diagnosing and resolving connection and search issues.
+- `references/guide.md` — Using the Linkly AI desktop app: where things are, setup, indexing, chat, notes, libraries, connecting AI apps, account and data.
 
 ## Version
 
