@@ -198,6 +198,8 @@ linkly read 1044 --json
 
 **User annotations:** a Markdown clip the user has highlighted, noted or commented comes back with a `## User annotations (a-b of N)` block after the content — one line per item, `21. [note, L42] "quoted passage" — what the user wrote`, `[highlight, L58] "…"`, `[comment] …`, `[note, lost] "…" — …` for an anchor that no longer resolves; `L<n>` is the body line. When the block ends with `N more annotations; call read with annotations_offset=K`, run `linkly read <ID> --annotations-offset K --limit 1` for the next page. The quoted passage is the source's words; the text after `—` is the user's — keep them apart when you summarize. With `--json` the page is the top-level `annotations` object (`shown`, `total`, `has_more`, `next_annotations_offset`).
 
+`linkly read` prints text only. To hand an image itself to the model, use the MCP `read` tool with `include_image=true` (the `linkly mcp` bridge forwards it).
+
 ### list — Enumerate a container
 
 ```bash
