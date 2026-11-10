@@ -8,6 +8,8 @@ Linkly AI uses **BM25 + vector hybrid retrieval**. Understanding how both signal
 - **Vector (semantic)**: The entire query string is encoded into a single embedding vector. Documents are ranked by cosine similarity. Results with vector distance > 0.6 are filtered as noise.
 - **Hybrid fusion**: Both result sets are merged using RRF (Reciprocal Rank Fusion) with equal 50/50 weighting.
 - **Graceful degradation**: If the embedding model is not ready, search falls back to pure BM25.
+- **Number queries are keyword-only**: a query that is just a number — an ID, a tax or phone number such as `98.765.432/0001-10` — skips the vector leg, which has nothing to match a number on. No results then means the number, as written, is not in the indexed text (`12345678000190` does not find `12.345.678/0001-90`). This holds for Desktop-local search; a cloud library may still run semantic search.
+- **Which leg found a result**: each result's `matched_by` is `keyword`, `semantic` or `both`. A `semantic`-only hit may not contain the query's words — treat it as weaker evidence.
 - **Pre-search path discovery**: when the user names a container by a fuzzy / cross-language word ("in my WeChat", "在 Notion 笔记里"), `find_paths` aggregates indexed paths by keyword and returns top folder candidates — pipe one as `path_glob` to scope the subsequent `search`. See ["Locate the container first"](#locate-the-container-first-with-find_paths) below.
 - **Time-aware filtering and sorting**: `search` accepts `modified_after` / `modified_before` (ISO 8601 UTC) for explicit windows and `time_sort` (`newest` / `oldest`) for relative ordering. See ["Constraining by time"](#constraining-by-time) below.
 
