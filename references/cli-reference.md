@@ -184,6 +184,7 @@ linkly read <IDS>... [OPTIONS]
 | `--limit <N>`              | Number of lines to read, max 500                                                                                                                                                                                                                                                                                                                                        |
 | `--image-text <detail>`    | Detail for the referenced-images block: `none` (mapping only), `abstract` (default — plus excerpt and word count), `full` (plus inline OCR text; 2000 chars per image, 20000 total, over-budget images degrade to `abstract`). Cloud documents never inline full text — `full` degrades to `abstract` with a per-image pointer.                                         |
 | `--annotations-offset <N>` | 0-based offset into the document's user annotations (highlights, notes and comments made in the clip reader), default 0. The "User annotations" block follows the content on the first page (`--offset 1`) and whenever this flag is given; it pages independently of the lines, 20 per call. Pair it with `--limit 1` to page annotations without re-reading the body. |
+| `--image <ID>`             | ID of an image inside the document, as its placeholder `[Image p3-1]` shows it. Saves that image to a file and prints `Image saved to: <path>` (`image_file` with `--json`), with any text printed in it. Takes exactly one document ID; local documents only.                                                                                                          |
 | `--json`                   | Output structured JSON (global option)                                                                                                                                                                                                                                                                                                                                  |
 
 Examples:
@@ -193,12 +194,13 @@ linkly read 1044
 linkly read 1044 --offset 50 --limit 100
 linkly read 1044 --image-text full
 linkly read 1044 --annotations-offset 20 --limit 1
+linkly read 1044 --image p3-1
 linkly read 1044 --json
 ```
 
 **User annotations:** a Markdown clip the user has highlighted, noted or commented comes back with a `## User annotations (a-b of N)` block after the content — one line per item, `21. [note, L42] "quoted passage" — what the user wrote`, `[highlight, L58] "…"`, `[comment] …`, `[note, lost] "…" — …` for an anchor that no longer resolves; `L<n>` is the body line. When the block ends with `N more annotations; call read with annotations_offset=K`, run `linkly read <ID> --annotations-offset K --limit 1` for the next page. The quoted passage is the source's words; the text after `—` is the user's — keep them apart when you summarize. With `--json` the page is the top-level `annotations` object (`shown`, `total`, `has_more`, `next_annotations_offset`).
 
-`linkly read` prints text only. To hand an image itself to the model, use the MCP `read` tool with `include_image=true` (the `linkly mcp` bridge forwards it).
+**Images inside a scanned PDF** appear in its text as `[Image p3-1]` (page 3, first image). `linkly read <ID> --image p3-1` saves that image to a file under your user cache directory and prints `Image saved to: <path>` (`image_file` with `--json`) along with any text printed in it; when the image is withheld, the `Image:` line says why and no file is written. To hand an image document itself to the model, use the MCP `read` tool with `include_image=true` (the `linkly mcp` bridge forwards it, and `image` too).
 
 ### list — Enumerate a container
 
