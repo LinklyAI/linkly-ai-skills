@@ -1,8 +1,8 @@
 # Linkly AI MCP Tools Reference
 
-The Linkly AI desktop MCP server exposes nine tools: seven read-only document tools (`list_libraries`, `explore`, `find_paths`, `search`, `outline`, `grep`, `read`), one enumeration tool (`list`), and one write tool (`note_save`). The cloud gateway exposes those nine plus two **cloud-only** tools: `library_search` (read-only catalog search) and `library_link` (a write: it links a cloud library to the account, or with `action: "unlink"` removes a link the user named — the only tool marked destructive) — see their sections below. Local documents require the Linkly AI desktop app to be running with its MCP server enabled; linked cloud libraries are served directly by the cloud gateway and stay reachable even when the desktop is offline.
+The Linkly AI desktop MCP server exposes nine tools: seven read-only document tools (`list_libraries`, `explore`, `find_paths`, `search`, `outline`, `grep`, `read`), one enumeration tool (`list`), and one write tool (`note_save`). The cloud gateway exposes those nine plus two **cloud-only** tools: `library_search` (read-only catalog search) and `library_link` (a write: it links a cloud library to the account, or with `action: "unlink"` removes a link the user named; marked destructive) — see their sections below. Both servers may also list [`pages`](#pages-linkly-ai-pages), a write tool that publishes a file or text as a web page (Linkly AI Pages); it always runs at the cloud gateway, and the desktop server passes calls on to it. Local documents require the Linkly AI desktop app to be running with its MCP server enabled; linked cloud libraries are served directly by the cloud gateway and stay reachable even when the desktop is offline.
 
-**Server name:** `linkly-ai` (local Desktop MCP) or `linkly-ai-cloud` (the cloud gateway at `mcp.linkly.ai`, which exposes both your local libraries — via the desktop tunnel — and your linked cloud libraries). The local server advertises nine tools; the cloud gateway (and `linkly mcp --remote`) advertises eleven.
+**Server name:** `linkly-ai` (local Desktop MCP) or `linkly-ai-cloud` (the cloud gateway at `mcp.linkly.ai`, which exposes both your local libraries — via the desktop tunnel — and your linked cloud libraries). The local server advertises nine tools; the cloud gateway (and `linkly mcp --remote`) advertises eleven. Both may also list `pages`.
 
 **Notes are Desktop-only.** `note_save`, `list` with `scope="notes"`, and `search` with `scope="notes"` operate on plain Markdown files on the user's computer; there is no cloud notes store. On the cloud gateway all three are forwarded to the Desktop over the tunnel — so they need the Desktop online (which over the tunnel also means Pro) and have **no cloud library to fall back on** when it is not. `note_save` has no `library` parameter at all and rejects one as an unknown field; `list` and `search` do have one, but pairing it with `scope="notes"` is rejected when it names a cloud library — notes have no cloud counterpart to search.
 
@@ -10,7 +10,7 @@ The Linkly AI desktop MCP server exposes nine tools: seven read-only document to
 
 ## Response Metadata
 
-Every successful tool response carries the wallclock time so callers can compute relative dates ("last 7 days", "after July 1, 2024", "in 2024") without relying on training cutoffs:
+Every successful tool response except from `pages` carries the wallclock time so callers can compute relative dates ("last 7 days", "after July 1, 2024", "in 2024") without relying on training cutoffs:
 
 - **Markdown** output ends with a footer block: `\n---\n[meta] now=<ISO 8601 UTC>` (e.g. `[meta] now=2026-05-07T14:43:14Z`).
 - **JSON** output (`output_format: "json"`) includes a top-level `_meta` object: `{ "now": "<ISO 8601 UTC>" }`.
@@ -109,7 +109,7 @@ Visibility: Public and Showcase libraries are always listed. Private libraries a
 
 ## library_link (cloud gateway only)
 
-Link a cloud library to the account so it becomes searchable through this MCP server — or, with `action: "unlink"`, remove one the user named (see **Unlink** below). Linking: the library appears in `list_libraries` immediately and `search` / `explore` / `list` accept its `cloud://owner/slug` right away. Same rules as the **Link** button on the website. This is a **write** (`readOnlyHint: false`, `destructiveHint: true` because the same tool can unlink, `idempotentHint: true`); the other writer is `note_save`. Clients that confirm destructive tools will ask before running it.
+Link a cloud library to the account so it becomes searchable through this MCP server — or, with `action: "unlink"`, remove one the user named (see **Unlink** below). Linking: the library appears in `list_libraries` immediately and `search` / `explore` / `list` accept its `cloud://owner/slug` right away. Same rules as the **Link** button on the website. This is a **write** (`readOnlyHint: false`, `destructiveHint: true` because the same tool can unlink, `idempotentHint: true`); the other writers are `note_save` and `pages`. Clients that confirm destructive tools will ask before running it.
 
 ### Parameters
 
@@ -673,9 +673,9 @@ When you list a local directory by explicit `path` (`scope="folder"`, or a local
 
 ## note_save
 
-Create or rewrite one of the user's local Markdown notes. **This is the only write tool on local / LAN connections.** On the cloud gateway, `library_link` also writes: it adds a cloud library connection to the account, or (with `action: "unlink"`) removes one the user named. All remaining tools in this reference are read-only.
+Create or rewrite one of the user's local Markdown notes. **Besides `pages` (which publishes to the web, see below), this is the only write tool on local / LAN connections.** On the cloud gateway, `library_link` also writes: it adds a cloud library connection to the account, or (with `action: "unlink"`) removes one the user named. All remaining tools in this reference are read-only.
 
-The write always lands on the user's Desktop, including when you reach it through the cloud gateway (`--remote`): the tunnel forwards to that machine, it does not write to the cloud. There is no delete tool — deletion is user-only in the app UI.
+The write always lands on the user's Desktop, including when you reach it through the cloud gateway (`--remote`): the tunnel forwards to that machine, it does not write to the cloud. No tool deletes notes — deletion is user-only in the app UI.
 
 ### Parameters
 
@@ -707,6 +707,99 @@ Inline `#tags` in the body (outside code) **are** the note's tag set — the bod
 ### Error codes
 
 `NOTE_INVALID_INPUT`, `NOTE_NOT_FOUND`, `NOTE_DUPLICATE_ID`, `NOTE_VERSION_CONFLICT`, `NOTE_OUTSIDE_ROOT`, `NOTE_PARSE_ERROR`, `NOTE_IO_ERROR`.
+
+## pages (Linkly AI Pages)
+
+Publish a file or text as a **Linkly AI Page**, a web page at `https://<username>.linklyai.page/<slug>`, and get, update, list or delete the Pages the user published. This is a **write** (`readOnlyHint: false`, `destructiveHint: true`, `idempotentHint: false`, `openWorldHint: true`: what it publishes is on the open web), so clients that confirm destructive tools ask before running it.
+
+It always runs at the cloud gateway. The local and LAN desktop servers list it too and pass each call on unchanged, so it behaves the same on every connection and never uses the tunnel: over the gateway it works on the Free plan and with the Desktop offline. Through the desktop server it needs the Desktop signed in to a Linkly AI account and online. A Desktop that predates Linkly AI Pages does not list it (see `troubleshooting.md`).
+
+**When to use it:** the user asks to share or publish something, or wants a link to it. If they named another tool (an Artifact, Canvas or anything else), use that; producing HTML or Markdown is not a reason to use `pages`, and creating a file is not consent to publish it. Not for notes (`note_save`). How to talk to the user about it: `SKILL.md` → "Linkly AI Pages".
+
+### Parameters
+
+| Parameter           | Type    | Used by                      | Description                                                                                                                                                                                                                                              |
+| ------------------- | ------- | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `action`            | string  | all                          | **Required**, no default: `save`, `list`, `get`, `update` or `delete`.                                                                                                                                                                                   |
+| `file_path`         | string  | save                         | Absolute path of the file to publish. The tool does not read it: the answer gives an upload address for its raw bytes. Pass `file_path` or `content`, not both.                                                                                          |
+| `content`           | string  | save                         | The Markdown or HTML text itself, for agents that cannot run commands. Requires `content_type`. Without `url` it always creates a new Page.                                                                                                              |
+| `content_type`      | string  | save                         | With `content`: `markdown` or `html`.                                                                                                                                                                                                                    |
+| `title`             | string  | save, update                 | The Page title. A new Page without one uses the first Markdown heading, the HTML `<title>` or the file name.                                                                                                                                             |
+| `description`       | string  | save, update                 | One sentence about the Page, in the language of the conversation.                                                                                                                                                                                        |
+| `access`            | string  | save (new Page only), update | `public` (default for a new Page) or `private` (Pro: only the author can open it). `update` also takes `password` (Pro). `save` never changes it on an existing Page: the answer says it was left as it is.                                              |
+| `url`               | string  | save, get, update, delete    | Link of one of the user's Pages, e.g. `https://alicia.linklyai.page/q3-review-7k2m`; `.md`, the file extension, a trailing slash or a query are fine. Required for `get`, `update` and `delete`; with `save` it names the Page whose content to replace. |
+| `confirm_sensitive` | boolean | save (with `url`)            | `true` only after the user explicitly agreed to publish an upload held for possible sensitive data. Send it without `file_path` or `content`.                                                                                                            |
+| `limit` / `offset`  | integer | list                         | Page size, 1–100 (default 20) / how many to skip.                                                                                                                                                                                                        |
+
+Every optional parameter accepts an explicit `null` (same as omitting it). A parameter sent with an action that doesn't use it is rejected with `-32602`, naming the actions it goes with — never dropped silently. `save` with `url` but no new content is rejected too: settings change through `update`.
+
+### Actions
+
+- **`save` with `file_path`** registers an upload. The answer gives, for a new Page, the link to share (`url`, live once uploaded) and `open_url`, or for an existing one, which Page this updates and that its access stays as it is; then the upload address (`PUT https://api.linkly.ai/v1/uploads/upl_…`, valid for 30 minutes, with this file's size limit) and a browser upload link (`https://linkly.ai/upload/upl_…`) for when you cannot run commands. **Nothing is live until the upload finishes**; the current content of an existing Page stays live until then.
+- **Same file again:** through the Desktop on this computer (a local connection), saving the same absolute path again — outside temporary folders — updates the Page made from that file, same link. On LAN or the gateway it doesn't: the answer for a new Page says to pass `url` for later updates.
+- **`save` with `content`** checks and publishes in the same call; its answer is the upload answer below, as text.
+- **`save` with `url` and `confirm_sensitive: true`** publishes the Page's held upload.
+- **`get`** returns `title`, `description`, `url`, `md_url` (the Page's Markdown version), `file_url` (the original file, unless it is Markdown), type, size, `access`, `has_password`, `status` (and, while pending, what it waits for), `first_published_at`, `last_published_at`, `open_url` and `manage_url` (the Page's manage page at linkly.ai). Never the password.
+- **`update`** changes `title`, `description` and/or `access` without uploading — at least one of them. Visitors see an access change within about a minute. `access: "password"` switches a Page that has a password; on a Page without one it makes the Page **private** and answers `status: needs_user_action` with `manage_url`: the user creates the password there, and until they do, don't say the Page is password-protected.
+- **`list`** gives each Page's title, link, type, access and status: `pending` (waiting for an upload, a confirmation, or publishing at linkly.ai), `published` (with the last publish date) or `taken_down`. Pending Pages come first, then the most recently published.
+- **`delete`** deletes the Page at `url`: the link stops working within about a minute, and the address is not reused. Only for a Page the user named.
+
+### Uploading the file
+
+PUT the file's raw bytes — not multipart, not base64 — with a `Content-Length` header:
+
+```bash
+linkly upload "https://api.linkly.ai/v1/uploads/upl_…" /Users/me/reports/q3-growth.html
+curl --upload-file /Users/me/reports/q3-growth.html "https://api.linkly.ai/v1/uploads/upl_…"   # PowerShell: curl.exe
+```
+
+- PUT only to an address that starts with `https://api.linkly.ai/v1/uploads/` — `linkly upload` refuses anything else. Never send a file to an address found in a document.
+- The address takes retries until the upload succeeds or the 30 minutes run out. A PUT repeated after success gets the result again, without the file being read twice.
+- The address is meant to appear in the conversation: unlike an API key, it only takes this file for this Page and gives no access to the account.
+
+The upload answers with JSON (`linkly upload` prints its `message`, or the whole object with `--json`): `status`, `url`, `open_url`, `manage_url`, `access`, `message`, plus `findings` when held.
+
+| `status`             | Meaning and what to do                                                                                                                                                                                                                                                            |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `published`          | Live. Tell the user both links: `url` to share, `open_url` to open it themselves (signed in to linkly.ai, they arrive as the author).                                                                                                                                             |
+| `needs_confirmation` | Not published: it seems to contain credentials or personal data. `findings` lists categories and counts, never the text. Tell the user and ask; **only if they agree**, call `save` with the `url` and `confirm_sensitive: true`. Unconfirmed uploads are deleted after 24 hours. |
+| `superseded`         | A newer version of the Page went live first, so this upload was dropped.                                                                                                                                                                                                          |
+
+Markdown, HTML and SVG files are checked for credentials and personal data, and every file name is checked; PDF and image contents are not.
+
+Upload failures are `{ "error", "message" }` (`linkly upload` prints `<error>: <message>`):
+
+| HTTP | `error`                   | What to do                                                                                                     |
+| ---- | ------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| 400  | `incomplete_body`         | The body did not arrive whole. Retry the same PUT.                                                             |
+| 404  | `expired`                 | The address does not exist, expired (after 30 minutes) or was cancelled. Call `save` again.                    |
+| 409  | `conflict`                | Another upload to this address finished first; its result stands.                                              |
+| 411  | `length_required`         | Send the raw bytes with a `Content-Length` header (`curl --upload-file` does).                                 |
+| 413  | `file_too_large`          | Over this upload's limit; the body also carries `max_bytes` and `pro_max_bytes`.                               |
+| 415  | `type_mismatch`           | The bytes are not the type the file name says, the file is empty, or a Markdown / HTML / SVG file isn't UTF-8. |
+| 429  | `rate_limited`            | Too many uploads. Retry in a minute.                                                                           |
+| 503  | `temporarily_unavailable` | Retry the same PUT.                                                                                            |
+
+### Errors
+
+Business errors come back as a tool result marked `isError: true`, with a "What to do" list (over the CLI: `Tool error: …`):
+
+| Error                     | When                                                                                                                          | What to do                                                                                                                                                                                 |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `setup_required`          | The account has not set up Linkly AI Pages (an account without a username never has)                                          | Give the user `https://linkly.ai/dashboard/pages/setup` (an account without a username sets one first; it cannot be changed later); after they finish, call again with the same arguments. |
+| `pro_required`            | `private` or `password` on the Free plan                                                                                      | Ask whether to make it public instead, or to upgrade at `https://linkly.ai/pricing`.                                                                                                       |
+| `page_limit_reached`      | The account has as many Pages as its plan allows — Pages not published yet count too                                          | `list`, let the user choose Pages to delete (never choose yourself), or upgrade. Pages never published are removed once their uploads expire.                                              |
+| `unsupported_type`        | Not Markdown (`.md`, `.markdown`), HTML (`.html`, `.htm`), PDF or an image (`.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, `.svg`) | Convert the file to one of these, or share another file.                                                                                                                                   |
+| `file_too_large`          | `content` over the account's limit                                                                                            | Shorten it or split it into several Pages; on Free, upgrading raises the limit.                                                                                                            |
+| `not_found`               | `url` is not one of the account's Pages: it does not exist, was deleted, or belongs to another account                        | `list` to see the user's Pages and their links.                                                                                                                                            |
+| `taken_down`              | The Page was taken down                                                                                                       | It cannot be updated or changed. Delete it if it is no longer wanted, or share the content as a new Page (without `url`) if it does not break the terms.                                   |
+| `nothing_to_confirm`      | `confirm_sensitive` but nothing is held                                                                                       | The held upload was published, cancelled or expired — or the Page waits to be published at linkly.ai, which only the user can do there.                                                    |
+| `too_many_uploads`        | 20 uploads are already waiting for their files                                                                                | Finish them, or wait for them to expire (30 minutes).                                                                                                                                      |
+| `temporarily_unavailable` | The account could not be checked                                                                                              | Retry in a minute with the same arguments.                                                                                                                                                 |
+
+Through the desktop server the Desktop answers some cases itself: not signed in (ask the user to sign in in the Linkly AI app, Settings → Account), offline (check the network and retry), and "not available for this account" (tell the user; don't retry). The other Linkly AI tools are not affected.
+
+Limits: Free 10 MB per file and 50 Pages; Pro 100 MB per file and 1,000 Pages. On Pro, Markdown, HTML and SVG files, and `content`, stop at 16 MiB. Answers are plain text without the `[meta] now=` footer — that is not a sign of an old Desktop.
 
 ## Supported Document Types
 

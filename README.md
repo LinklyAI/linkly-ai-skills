@@ -31,10 +31,10 @@ When installed, this skill enables AI agents to:
 
 The skill supports two access modes:
 
-| Mode | When Used                      | How It Works                                                                                                                                                                                                                       |
-| ---- | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| CLI  | Agent has Bash/terminal access | Runs `linkly` CLI commands (preferred when both are available)                                                                                                                                                                     |
-| MCP  | Agent has MCP tool access      | Calls `search` / `find_paths` / `outline` / `grep` / `read` / `list` / `list_libraries` / `explore` / `note_save` MCP tools — via the local server or the `mcp.linkly.ai` cloud gateway (which also serves linked cloud libraries) |
+| Mode | When Used                      | How It Works                                                                                                                                                                                                                                                                                                                   |
+| ---- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| CLI  | Agent has Bash/terminal access | Runs `linkly` CLI commands (preferred when both are available)                                                                                                                                                                                                                                                                 |
+| MCP  | Agent has MCP tool access      | Calls `search` / `find_paths` / `outline` / `grep` / `read` / `list` / `list_libraries` / `explore` / `note_save` MCP tools — via the local server or the `mcp.linkly.ai` cloud gateway (which also serves linked cloud libraries) — and `pages` to publish a file as a web page with Linkly AI Pages when you ask to share it |
 
 ## Prerequisites
 
