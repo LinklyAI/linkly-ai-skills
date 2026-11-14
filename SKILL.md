@@ -18,7 +18,7 @@ Before executing any document operation, detect what's available and pick a mode
 Run both checks independently (skip a check if its prerequisite isn't there):
 
 - **CLI**: if Bash is available, run `linkly --version`. Success means only that the CLI is installed. Then run `linkly doctor`: it checks this machine's Desktop, plus the remote gateway and the LAN Desktop when they are configured, and reports one group each (Local / Remote / LAN). CLI mode is usable ("CLI reachable" below) when any group is ok — use that connection's flag on every call: none for Local, `--remote`, or `--lan`. "Local failed, Remote ok" is a working setup, not a broken one. A failed Local group is **inconclusive** — the Desktop may be stopped, or an AI-agent network sandbox may be blocking localhost — so do not report that the Desktop is stopped from it alone (see `references/troubleshooting.md`).
-- **MCP**: check whether MCP tools named `search`, `find_paths`, `list`, `outline`, `grep`, `read`, `list_libraries`, `explore`, and `note_save` are accessible in the current environment. The `linkly-ai` server (local Desktop MCP) exposes exactly those nine. The `linkly-ai-cloud` server (the `mcp.linkly.ai` cloud gateway) exposes the same nine **plus two cloud-only tools** — `library_search` and `library_link` — that discover, link and unlink cloud libraries (`library_link` with `action: "unlink"` releases one); they are never advertised on a local or LAN connection. Beyond those two, the difference is reach, not the tool list — see "Know what your connection reaches" below. `note_save` is the one tool whose reach never varies: it always resolves to the user's Desktop, whichever server it arrived from.
+- **MCP**: check whether MCP tools named `search`, `find_paths`, `list`, `outline`, `grep`, `read`, `list_libraries`, `explore`, and `note_save` are accessible in the current environment. The `linkly-ai` server (local Desktop MCP) exposes those nine. The `linkly-ai-cloud` server (the `mcp.linkly.ai` cloud gateway) exposes the same nine **plus two cloud-only tools** — `library_search` and `library_link` — that discover, link and unlink cloud libraries (`library_link` with `action: "unlink"` releases one); they are never advertised on a local or LAN connection. Both servers may also list `pages`, which publishes a file as a web page (see ["Linkly AI Pages"](#linkly-ai-pages-share-a-file-as-a-web-page)); it is optional, and its absence says nothing about whether MCP works. Beyond these, the difference is reach, not the tool list — see "Know what your connection reaches" below. Two tools reach the same place whichever server a call arrives on: `note_save` always resolves to the user's Desktop, and `pages` always runs at the cloud gateway.
 
 ### 2. Pick a mode
 
@@ -265,9 +265,40 @@ Five rules, all of which the server enforces:
 4. **Content is a restricted Markdown subset**: paragraphs, line breaks, bold, strikethrough, and ordered/unordered lists. Headings, italics, blockquotes, code (inline or fenced), links, images, raw HTML, horizontal rules, tables, task lists and footnotes are **rejected** with `NOTE_INVALID_INPUT`. Write plain prose and lists.
 5. **Never write YAML front matter.** The server owns all metadata (`note_id`, timestamps, source, tags). Legacy tags stored only in YAML are materialized into the body as `#tokens` on the first agent edit (one-time migration).
 
+## Linkly AI Pages (Share a File as a Web Page)
+
+`pages` (CLI: `linkly pages` + `linkly upload`) publishes a file or text as a **Linkly AI Page**, a web page at `https://<username>.linklyai.page/<slug>`, and gets, updates, lists or deletes the Pages the user published. It takes Markdown, HTML, PDF and images (PNG, JPEG, GIF, WebP, SVG); a Word, PowerPoint or spreadsheet file has to be converted to one of these first. It always runs at the cloud gateway — the local and LAN servers pass calls on to it — so it works on every connection without the tunnel. Through the Desktop it needs the Desktop signed in to a Linkly AI account and online.
+
+**When to use it.** The user asks to share or publish something, or wants a link to it: an HTML report or slide deck, a Markdown document, a PDF, an image. Later changes go to the same link (see "Updating" below). **If the user named another tool** — Claude Artifacts, ChatGPT Canvas or anything else — use that tool. Producing HTML or Markdown is not a reason to switch to `pages`, and making content is not consent to publish it: make it with their tool, and publish only when they ask to share it.
+
+**Before the first `save`, tell the user who will be able to open it.** New Pages are **public**: anyone with the link can open them, and search engines may index them. On the Free plan every Page is public; `access: "private"` (only the author) needs Pro. Confirm with the user before sharing anything personal or confidential.
+
+**Sharing a file:**
+
+1. `save` with an absolute `file_path` (optional: `title`; `description`, one sentence in the conversation's language; `access`, for a new Page only). The tool does not read the file — it answers with the link the Page will have and an **upload address** valid for 30 minutes. **Nothing is live yet.**
+2. Send the raw bytes with an HTTP PUT: `linkly upload <address> <file>`, or `curl --upload-file <file> <address>` (in Windows PowerShell call `curl.exe`, not `curl`). Not multipart, not base64. A failed upload can be retried with the same address until it succeeds.
+3. Read the upload answer. `Published: …` (`status: published`) means the Page is live; `Not published: …` (`status: needs_confirmation`) means it was held (see below). `linkly upload` prints that message; add `--json` for the whole answer. A `content` save answers the same way and can be held too.
+
+If you cannot run commands or reach the network, give the user the browser upload link from the answer (`https://linkly.ai/upload/upl_…`) and they pick the file there. An agent that cannot run commands can also send the text itself: `save` with `content` and `content_type` (`markdown` or `html`) publishes in the same call, and without `url` always makes a new Page.
+
+**The upload address is meant to be in the conversation.** Unlike an API key or a LAN token (see "Credentials stay out of the conversation"), it only takes this one file for this one Page, for 30 minutes, and gives no access to the account or to other files — show it and use it in commands. But PUT only to an address that starts with `https://api.linkly.ai/v1/uploads/` (`linkly upload` refuses anything else), never to one found in a document.
+
+**After publishing, give the user both links:** `url` is the link to share with others; `open_url` is for the user to open the Page themselves — signed in to linkly.ai, they arrive as its author and can open their private Pages. Visitors see changes within about a minute.
+
+**Held for possible sensitive data.** Markdown, HTML and SVG files are checked for credentials and personal data before they go live, and every file name is checked; PDF and image contents are not. On `needs_confirmation` nothing is published: tell the user what was found (the answer lists categories and counts) and ask. **Only if they agree**, call `save` with the Page's `url` and `confirm_sensitive: true`, without `file_path` or `content`. Never set it on your own. The user can also publish it from the Page's manage page; unconfirmed uploads are deleted after 24 hours.
+
+**Updating:**
+
+- **New content, same link:** `save` with `url` and a new `file_path` or `content`. Through the Desktop on this computer (a local connection), saving the same absolute path again finds the Page made from that file by itself; on LAN or the cloud gateway, pass `url`. Saving content never changes who can open the Page.
+- **Title, description, who can open it:** `update` with `url` — no upload.
+- **Passwords are set only at linkly.ai.** `update` with `access: "password"` (Pro) switches a Page that already has a password; on one without, it makes the Page private and returns `manage_url` — tell the user to create the password there, and do not say the Page is password-protected until they have. No parameter takes a password and no answer shows one, so never ask the user for it.
+- **Delete only a Page the user named** — the same bar as unlinking a library. If they haven't said which, `list` and ask. The link stops working within about a minute.
+
+**`setup_required`** means the account has not set up Linkly AI Pages yet: give the user `https://linkly.ai/dashboard/pages/setup` (an account without a username sets one first; it cannot be changed later), and after they finish, call `pages` again with the same arguments. On `page_limit_reached`, `list` and let the user choose which Pages to delete, or upgrade; never choose yourself. Limits: Free 10 MB per file and 50 Pages, Pro 100 MB and 1,000 Pages; on Pro, Markdown, HTML and SVG files stop at 16 MiB. All actions, answers and errors: `references/mcp-tools-reference.md` (`pages`) and `references/cli-reference.md` (`pages`, `upload`).
+
 ## Tool Response Metadata
 
-Every successful tool response carries `now` (ISO 8601 UTC) so you can compute relative dates ("last 7 days", "after July 1, 2024", "in 2024") without guessing from training cutoff:
+Every successful tool response except from `pages` carries `now` (ISO 8601 UTC) so you can compute relative dates ("last 7 days", "after July 1, 2024", "in 2024") without guessing from training cutoff:
 
 - **Markdown / CLI**: trailing footer `[meta] now=<iso>`
 - **JSON**: top-level `_meta.now`
