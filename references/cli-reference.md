@@ -301,7 +301,7 @@ A `save` with `--file-path` uploads nothing itself: it answers with an upload ad
 | `--description <text>`         | save, update: one sentence about the Page                                                                                   |
 | `--access <access>`            | `public` or `private` (Pro); update also takes `password` (Pro). save sets it only on a new Page                            |
 | `--url <url>`                  | Link of one of the user's Pages. Required for get, update and delete; with save it names the Page to replace                |
-| `--confirm-sensitive <ver>`    | save with `--url`: publish the held upload with this version (from the answer), only after the user agreed                  |
+| `--confirm-sensitive <upload_id>` | save with `--url`: publish the held upload with this upload_id (from the answer), only after the user agreed                |
 | `--limit <n>` / `--offset <n>` | list: how many Pages to return (default 20, max 100) / how many to skip                                                     |
 
 ### upload — Send a file to a Linkly AI Pages upload address
