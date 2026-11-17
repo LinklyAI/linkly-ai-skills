@@ -283,7 +283,7 @@ Error codes: `NOTE_INVALID_INPUT`, `NOTE_NOT_FOUND`, `NOTE_DUPLICATE_ID`, `NOTE_
 linkly pages --action save --file-path /Users/me/reports/q3-growth.html --description "Q3 growth review"
 linkly upload "https://api.linkly.ai/v1/uploads/upl_…" /Users/me/reports/q3-growth.html
 linkly pages --action list
-linkly pages --action update --url https://alicia.linklyai.page/q3-growth-7k2m --access private
+linkly pages --action update --url https://alicia.linklyai.page/q3-growth-7k2m --access public
 linkly pages --action delete --url https://alicia.linklyai.page/q3-growth-7k2m
 ```
 
@@ -299,7 +299,7 @@ A `save` with `--file-path` uploads nothing itself: it answers with an upload ad
 | `--content-type <type>`        | save with `--content`: `markdown` or `html`                                                                                 |
 | `--title <title>`              | save, update: the Page title                                                                                                |
 | `--description <text>`         | save, update: one sentence about the Page                                                                                   |
-| `--access <access>`            | `public` or `private` (Pro); update also takes `password` (Pro). save sets it only on a new Page                            |
+| `--access <access>`            | `private` (the default for a new Page) or `public`; update also takes `password` (Pro). save sets it only on a new Page     |
 | `--url <url>`                  | Link of one of the user's Pages. Required for get, update and delete; with save it names the Page to replace                |
 | `--confirm-sensitive <upload_id>` | save with `--url`: publish the held upload with this upload_id (from the answer), only after the user agreed                |
 | `--limit <n>` / `--offset <n>` | list: how many Pages to return (default 20, max 100) / how many to skip                                                     |
