@@ -183,6 +183,8 @@ Search it with `@` in the Launcher or chat, or tell an agent "search my <identif
 
 To let an agent search a cloud library — including your own — open its web page and click **Link** (uses one link slot; limits on the pricing page), or use **Use in AI** on the page and give the line to the agent. In the desktop app, linked cloud libraries appear under **Connected cloud libraries** in **Library** and in the chat's `@` picker. Sharing (**Public** / **Showcase** / **Private**, invitations, access requests) is managed on the web library's settings page. Agent-side details: `https://linkly.ai/docs/en/library-setup.md`.
 
+**Share a file as a web page (Linkly AI Pages):** right-click a file in **Library** → **Share to Linkly AI Pages**; the same option is in the preview toolbar and in a creation's **⋯** menu. The app uploads the file and opens its page on linkly.ai, where the author chooses who can see it and clicks **Publish**; nobody can open it before that. In this chat, when the `pages` tool is available and the user wants to send a report or document to someone, save it with `pages` and give the user the link to publish it on linkly.ai. If the option or the `pages` tool isn't there, Linkly AI Pages isn't available for this account. Plan limits: https://linkly.ai/pricing. All Pages: `https://linkly.ai/dashboard/pages`.
+
 ## 11. Connecting AI apps and agents
 
 **Pick the path by where the AI app runs and what it should reach:**
