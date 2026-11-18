@@ -257,7 +257,7 @@ linkly note-save --mode edit --note-id <uuid> --base-version <version> --tags <t
 some-command | linkly note-save --mode create --content - --tags research
 ```
 
-**Apart from `pages` and `upload` (Linkly AI Pages, below), this is the only write command.** It creates or rewrites one of the user's local Markdown notes.
+**Apart from `pages` (Linkly AI Pages, below), this is the only write command.** It creates or rewrites one of the user's local Markdown notes.
 
 With `--remote` the write still lands on the Desktop machine — the tunnel forwards to it, and notes are never stored in the cloud. So `note-save --remote` needs that Desktop online (which over the tunnel also means Pro), and there is no cloud library to target or to fall back on when it is offline. No command deletes notes; deletion is user-only in the app UI.
 
@@ -280,20 +280,19 @@ Error codes: `NOTE_INVALID_INPUT`, `NOTE_NOT_FOUND`, `NOTE_DUPLICATE_ID`, `NOTE_
 ### pages — Publish a file as a web page (Linkly AI Pages)
 
 ```bash
-linkly pages --action save --file-path /Users/me/reports/q3-growth.html --description "Q3 growth review"
-linkly upload "https://api.linkly.ai/v1/uploads/upl_…" /Users/me/reports/q3-growth.html
-linkly pages --action list
-linkly pages --action update --url https://alicia.linklyai.page/q3-growth-7k2m --access public
-linkly pages --action delete --url https://alicia.linklyai.page/q3-growth-7k2m
+linkly pages save --file-path /Users/me/reports/q3-growth.html --description "Q3 growth review"
+linkly pages upload "https://api.linkly.ai/v1/uploads/upl_…" /Users/me/reports/q3-growth.html
+linkly pages list
+linkly pages update --url https://alicia.linklyai.page/q3-growth-7k2m --access public
+linkly pages delete --url https://alicia.linklyai.page/q3-growth-7k2m
 ```
 
-The `pages` tool on the command line: it publishes a file or text as a Linkly AI Page (`https://<username>.linklyai.page/<slug>`), and gets, updates, lists or deletes the user's Pages. The flags are the tool's parameters, and the answer is printed as it comes. Actions, answers and errors: `mcp-tools-reference.md` (`pages`); when to use it and what to tell the user: `SKILL.md` ("Linkly AI Pages").
+The `pages` tool on the command line: it publishes a file or text as a Linkly AI Page (`https://<username>.linklyai.page/<slug>`), and gets, updates, lists or deletes the user's Pages. The subcommands are the tool's actions (`save`, `list`, `get`, `update`, `delete`) and the flags its parameters; get, update and delete need `--url`. The answer is printed as it comes. Actions, answers and errors: `mcp-tools-reference.md` (`pages`); when to use it and what to tell the user: `SKILL.md` ("Linkly AI Pages").
 
-A `save` with `--file-path` uploads nothing itself: it answers with an upload address, and the Page goes live once the file is sent there with `linkly upload` (below). `pages` works on every connection — the local or LAN Desktop passes it on to the gateway, and `--remote` goes there directly, without the Desktop. If the connection has no `pages` tool, the CLI says so: update the desktop app; if it is up to date, Linkly AI Pages is not available for this account.
+A `save` with `--file-path` uploads nothing itself: it answers with an upload address, and the Page goes live once the file is sent there with `linkly pages upload` (below). `pages` works on every connection — the local or LAN Desktop passes it on to the gateway, and `--remote` goes there directly, without the Desktop. If the connection has no `pages` tool, the CLI says so: update the desktop app; if it is up to date, Linkly AI Pages is not available for this account.
 
 | Option                         | Description                                                                                                                 |
 | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
-| `--action <action>`            | **Required.** `save`, `list`, `get`, `update` or `delete`                                                                   |
 | `--file-path <path>`           | save: absolute path of the file to publish (Markdown, HTML, PDF, PNG, JPEG, GIF, WebP, SVG)                                 |
 | `--content <text>`             | save: the Markdown or HTML text itself, instead of a file; `-` reads it from stdin (at most 16 MiB). Needs `--content-type` |
 | `--content-type <type>`        | save with `--content`: `markdown` or `html`                                                                                 |
@@ -304,10 +303,10 @@ A `save` with `--file-path` uploads nothing itself: it answers with an upload ad
 | `--confirm-sensitive <upload_id>` | save with `--url`: publish the held upload with this upload_id (from the answer), only after the user agreed                |
 | `--limit <n>` / `--offset <n>` | list: how many Pages to return (default 20, max 100) / how many to skip                                                     |
 
-### upload — Send a file to a Linkly AI Pages upload address
+### pages upload — Send a file to a Linkly AI Pages upload address
 
 ```bash
-linkly upload <address> <file>
+linkly pages upload <address> <file>
 ```
 
 Sends the file's raw bytes with an HTTP PUT to the upload address a `pages` save answered with, streaming it. It talks to that address directly — not to the Desktop or the gateway — so it takes no connection flags. The address must start with `https://api.linkly.ai/v1/uploads/upl_`; anything else is refused, so a tool answer steered by a document cannot send a local file elsewhere. Running the same command again is safe until the address expires (30 minutes).
@@ -449,7 +448,7 @@ linkly self-update
 
 ## Connection Options
 
-`--lan`, `--endpoint` and `--token` are available on the document commands (`search`, `grep`, `outline`, `read`, `list`, `note-save`, `list-libraries`, `explore`, `find-paths`) plus `pages`, `status` and `doctor`. `--remote` is available on those same commands and on `mcp`. `upload` takes none of them: it sends the file straight to the upload address. Without `--lan` or `--remote` the CLI only ever talks to the desktop on this machine — a saved LAN connection is never used implicitly.
+`--lan`, `--endpoint` and `--token` are available on the document commands (`search`, `grep`, `outline`, `read`, `list`, `note-save`, `list-libraries`, `explore`, `find-paths`) plus `pages` (except `pages upload`), `status` and `doctor`. `--remote` is available on those same commands and on `mcp`. `pages upload` takes none of them: it sends the file straight to the upload address. Without `--lan` or `--remote` the CLI only ever talks to the desktop on this machine — a saved LAN connection is never used implicitly.
 
 | Flag               | Scope  | Description                                                                                                                                                                                 |
 | ------------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
