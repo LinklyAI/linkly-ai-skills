@@ -282,6 +282,7 @@ Each result item:
 | `keywords`    | `string[]` | Extracted keywords                                                                                                                                                                                                                                                                                      |
 | `snippet`     | `string`   | Text snippet with matching context                                                                                                                                                                                                                                                                      |
 | `matched_in`  | `string[]` | Which part of the document produced the hit — `"content"` (title / filename / body / path) and/or `"annotations"` (the user's clip annotations), in that order; empty when only the semantic leg matched. Markdown output marks the snippet with `(in annotations)` instead — see below.                |
+| `matched_by`  | `string`   | Which search found the result: `"keyword"`, `"semantic"` or `"both"`. `"semantic"` means only the semantic leg did, so it may not contain the query's words — weigh it as weaker evidence. Markdown output prints `- Matched by: <value>`. Not on `cloud://` results.                                   |
 
 ### User annotations
 

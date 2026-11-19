@@ -497,7 +497,7 @@ Printable ASCII, up to 64 characters. A value outside that is ignored rather tha
   "status": "success",
   "query": "machine learning",
   "total": 10,
-  "results": [{ "doc_id": "1044", "title": "...", "relevance": 0.85, "matched_in": ["content"], ... }]
+  "results": [{ "doc_id": "1044", "title": "...", "relevance": 0.85, "matched_in": ["content"], "matched_by": "keyword", ... }]
 }
 ```
 
