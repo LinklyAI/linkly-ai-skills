@@ -244,7 +244,7 @@ The CLI evolves alongside the desktop app. An outdated CLI may be missing comman
 - `error: unexpected argument '--exit-code'` → CLI below v0.6.0; without it an empty result is indistinguishable from a failure by exit code alone
 - `linkly read` or `linkly grep` rejects a second document ID, or `-` is treated as a literal ID → CLI below v0.6.0, missing batch and stdin input
 - `error: unexpected argument '--path'` / `--type` / `--modified-after` **on `linkly list`**, or `--library` rejected there → CLI below v0.6.1, which is where `list` grew the `folder` and `library` scopes
-- `error: unrecognized subcommand 'pages'` / `'upload'` → CLI too old for Linkly AI Pages
+- `error: unrecognized subcommand 'pages'` → CLI below v1.0.7, which is where `linkly pages` arrived
 - `linkly doctor` not recognized → CLI needs updating
 - Commands fail silently or return unexpected errors after a desktop app update
 
