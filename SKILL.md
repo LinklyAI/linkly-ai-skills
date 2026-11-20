@@ -148,9 +148,9 @@ Search uses BM25 + vector hybrid retrieval and ranks mostly by meaning, with a b
 
 **Tips:**
 
-- Write the query as one complete question, keeping the names, dates and terms the user gave. A full question ranks better than a keyword list cut from it.
+- Write the query as one complete question, keeping the names, dates and terms the user gave. A full question usually ranks better than a keyword list cut from it.
 - When the document may be in a different language from the user's, put the question in both languages in the same query.
-- To look up an exact identifier, code or error message, pass it as is.
+- Keyword queries are also supported. Use the distinctive words the document itself would contain (names, terms, an exact identifier, code or error message), in the document's language.
 - Add `--type` filter when the user mentions a specific format (`pdf`, `md`, `xlsx`, `csv`, `docx`, `txt`, `pptx`, `doc`, `rtf`, `epub`, `html`, `image`, `audio`, `video`). Audio and video match against their transcripts; images and scanned PDFs against their OCR text; spreadsheets against their cell text.
 - Use `--library` only when the user explicitly specifies a library name.
 - To search the user's notes, use `--scope notes` — see ["Notes"](#notes-local-markdown-cards) below. Note that `--scope notes` ignores `--library` and `--path-glob`.
