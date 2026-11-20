@@ -119,7 +119,7 @@ Agents connect separately — see section 11. Adding a folder in the app is what
 
 1. **Found with a grey "Not indexed · …" badge** → only the name is indexed; hover for the reason, then see **Can't extract** (section 4).
 2. **Found, no badge, but its content isn't matched** → a switch is off (OCR, audio/video transcription), it is still queued, or (macOS) it is a legacy `.doc` — re-save as `.docx`.
-3. **Not found** → its folder was never added (**Library → Add folder**), its type is off or excluded (**Rules**), its name looks like a password or key file (the folder's footer in **Library** counts those), it sits in a built-in ignored folder, or the format isn't supported (e.g. `.htm`, `.avi`).
+3. **Not found** → its folder was never added (**Library → Add folder**), its type is off or excluded (**Rules**), its name looks like a password or key file (see **Password-like files**, section 5), it sits in a built-in ignored folder, or the format isn't supported (e.g. `.htm`, `.avi`).
 
 ## 7. AI chat (Ask)
 
