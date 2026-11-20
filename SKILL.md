@@ -133,7 +133,7 @@ Full parameter matrix and response shapes: `references/mcp-tools-reference.md` (
 Find documents matching a query. Start here for content questions — never guess document IDs; a real `doc_id` only ever comes from a `search` or `list` response.
 
 ```bash
-linkly search "query keywords" --limit 10
+linkly search "what did we decide about the pricing tiers in the Q3 review?" --limit 10
 linkly search "machine learning" --type pdf,md --limit 5
 linkly search "API design" --library my-research --limit 10
 linkly search "notes" --path-glob "*meeting-notes*"
@@ -144,11 +144,13 @@ linkly search "standup recording" --type audio,video --limit 5
 linkly search "doubt disagree unsourced" --scope annotations --time-sort newest --limit 10
 ```
 
-Search uses BM25 + vector hybrid retrieval (OR logic for keywords, semantic matching for meaning). **One exception:** searching a **cloud** library with a path, type, or time filter drops to keyword-only ranking — the vector index cannot apply those filters before its top-K cut, so they would silently eat recall. Phrase such queries with real keywords rather than a natural-language sentence. For advanced query strategies, see `references/search-strategies.md`.
+Search uses BM25 + vector hybrid retrieval and ranks mostly by meaning, with a bonus for documents that also contain the query's words. **One exception:** searching a **cloud** library with a path, type, or time filter drops to keyword-only ranking — the vector index cannot apply those filters before its top-K cut, so they would silently eat recall. Phrase such queries with real keywords rather than a natural-language sentence. For advanced query strategies, see `references/search-strategies.md`.
 
 **Tips:**
 
-- Both specific keywords and natural language sentences are effective queries.
+- Write the query as one complete question, keeping the names, dates and terms the user gave. A full question usually ranks better than a keyword list cut from it.
+- When the document may be in a different language from the user's, put the question in both languages in the same query.
+- Keyword queries are also supported. Use the distinctive words the document itself would contain (names, terms, an exact identifier, code or error message), in the document's language.
 - Add `--type` filter when the user mentions a specific format (`pdf`, `md`, `xlsx`, `csv`, `docx`, `txt`, `pptx`, `doc`, `rtf`, `epub`, `html`, `image`, `audio`, `video`). Audio and video match against their transcripts; images and scanned PDFs against their OCR text; spreadsheets against their cell text.
 - Use `--library` only when the user explicitly specifies a library name.
 - To search the user's notes, use `--scope notes` — see ["Notes"](#notes-local-markdown-cards) below. Note that `--scope notes` ignores `--library` and `--path-glob`.

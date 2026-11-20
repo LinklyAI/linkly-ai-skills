@@ -6,7 +6,7 @@ Linkly AI uses **BM25 + vector hybrid retrieval**. Understanding how both signal
 
 - **BM25 (keyword)**: Tokenizes the query (jieba for CJK, lowercase for Latin) and matches terms against title (3x boost), filename (2x), content (1x), and path (0.5x). Multiple keywords use **OR logic** — all matching documents are returned, with higher scores for documents matching more terms.
 - **Vector (semantic)**: The entire query string is encoded into a single embedding vector. Documents are ranked by cosine similarity. Results with vector distance > 0.6 are filtered as noise.
-- **Hybrid fusion**: Both result sets are merged using RRF (Reciprocal Rank Fusion) with equal 50/50 weighting.
+- **Hybrid fusion**: Each candidate scores its semantic similarity to the query plus a smaller bonus for its keyword score. The bonus grows when the query's words are rare in the library (an identifier, a code), so exact lookups still rank by keyword.
 - **Graceful degradation**: If the embedding model is not ready, search falls back to pure BM25.
 - **Number queries are keyword-only**: a query that is just a number of six or more digits — an ID, a tax or phone number such as `98.765.432/0001-10`, separators and up to two letters in a row allowed — skips the vector leg, which has nothing to match a number on. No results then usually means the number, as written, is not in the indexed text (`12345678000190` does not find `12.345.678/0001-90`). A document that is being re-processed can be missing from results for a while, so search again later before concluding the number is absent. A shorter number such as a year (`2021`), or a number with a word (`CNPJ 98.765.432/0001-10`), runs both legs. This holds for Desktop-local search; a cloud library may still run semantic search.
 - **Which leg found a result**: each Desktop-local result's `matched_by` is `keyword`, `semantic` or `both`. A `semantic`-only hit may not contain the query's words — treat it as weaker evidence. `cloud://` results carry no `matched_by`; the missing field says nothing about which leg found them.
@@ -45,22 +45,30 @@ For two terms a faster shortcut is to grep one (the rarer) right after `search`,
 
 ## Query Crafting Strategies
 
-### Precise keywords — leverage BM25
+### A complete question — the default
 
-Best for finding specific documents, names, or technical terms:
+Ranking leans on meaning, and a keyword list embeds worse than the question it was cut from. Write one complete question and keep the names, dates and terms the user gave:
 
 ```bash
-linkly search "quarterly financial report 2024" --limit 10
-linkly search "API authentication design" --limit 5
+linkly search "what was the operating margin in the 2024 quarterly financial report?" --limit 10
+linkly search "how do I set up a local development environment for the backend?" --limit 10
 ```
 
-### Natural language descriptions — leverage vector search
+### The question in two languages — for documents in another language
 
-Best for topical or conceptual searches where exact terms are unknown:
+When the document may be in a different language from the user's, write the question in the user's language and again in the other one, in the same query:
 
 ```bash
-linkly search "notes about improving team collaboration and communication" --limit 10
-linkly search "how to set up a local development environment for the backend" --limit 10
+linkly search "去年的年假政策有什么变化？ What changed in the annual leave policy last year?" --limit 10
+```
+
+### Exact identifiers — pass them as is
+
+For an ID, a code, an error message or an exact phrase, pass just that. Rare words get a larger keyword bonus, and a number of six or more digits skips semantic search altogether:
+
+```bash
+linkly search "ERR_CONNECTION_RESET" --limit 5
+linkly search "INV-2024-00817" --limit 5
 ```
 
 ### Synonyms and multilingual terms — leverage OR logic
