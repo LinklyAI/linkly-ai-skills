@@ -99,6 +99,7 @@ Agents connect separately — see section 11. Adding a folder in the app is what
 - **Exclusion rules for files/folders:** in **Library**, right-click → **Add exclusion rule…** (or the funnel icon on a folder), or **Rules → Exclusion rules** (**All folders** or one folder → **Edit** / **Add rules**). Syntax is `.gitignore`: `*.csv`, `drafts/` (any level), `/drafts/` (folder root only), `**/temp/**`, `!keep.md` (exception). Paths are relative to the watched folder. The editor previews matching files; after **Save** a toast offers **Undo**, and files leave the index about a minute later.
 - A `.ignore` file (gitignore syntax) inside a folder also works; it takes effect at the next full scan.
 - **Built-in rules** (listed at the bottom of **Rules**, can't be turned off): hidden files and folders, `node_modules`, `__pycache__`, NAS/OS recycle folders (`#recycle`, `@eaDir`, `$RECYCLE.BIN`), the app data folder, Office `~$` temp files, `.gitignore`d files in git repos, unsupported formats.
+- **Password-like files** (also at the bottom of **Rules**): names matching `.env*`, `*.pem`, `*.key`, `*.p12`, `*.pfx`, `id_rsa*`, or containing `password`, `secret`, `recovery`, `backup…code`, `密码`, `恢复码`, `助记词`, aren't indexed. A few common words don't count: `secretary`, `secretaria`, `secretário`, `secretion`, `password policy`, `passwordless`, `recovery plan`, `密码学`, `密码子`. When only this rule keeps a file out, **See skipped files** lists it, a folder's footer in **Library** and `list` on that folder count it, and a `!` rule brings it back. A file that is also hidden (`.env`), of an unsupported format (`*.pem`) or of a type switched off isn't counted, and a `!` rule alone doesn't bring it back.
 - An agent can draft rule text for the user to paste into the editor. Don't edit `config.json` directly.
 - Notes, clips and canvas files in the Linkly AI Space are always indexed regardless of these rules.
 
@@ -118,7 +119,7 @@ Agents connect separately — see section 11. Adding a folder in the app is what
 
 1. **Found with a grey "Not indexed · …" badge** → only the name is indexed; hover for the reason, then see **Can't extract** (section 4).
 2. **Found, no badge, but its content isn't matched** → a switch is off (OCR, audio/video transcription), it is still queued, or (macOS) it is a legacy `.doc` — re-save as `.docx`.
-3. **Not found** → its folder was never added (**Library → Add folder**), its type is off or excluded (**Rules**), it sits in a built-in ignored folder, or the format isn't supported (e.g. `.htm`, `.avi`).
+3. **Not found** → its folder was never added (**Library → Add folder**), its type is off or excluded (**Rules**), its name looks like a password or key file (see **Password-like files**, section 5), it sits in a built-in ignored folder, or the format isn't supported (e.g. `.htm`, `.avi`).
 
 ## 7. AI chat (Ask)
 

@@ -113,6 +113,7 @@ If the authorization page says the API key limit is reached, the user must revok
   4. Confirm the user's target content is a supported document type (PDF, Markdown, Excel, CSV, DOCX, TXT, PPTX, DOC, RTF, EPUB, HTML, image, audio, video). Files outside this list are not indexed even if they live under indexed folders — check by running `linkly explore` and looking at the document-type distribution.
   5. For audio or video, check that transcription is switched on — it is opt-in per media kind in the desktop app's Index management → Extraction enhancements (Audio transcription / Video transcription). Until it is enabled those files are indexed by filename only.
   6. If the user expects content from a **cloud** library, confirm the connection mode reaches it — see "Cloud library content is missing" below.
+  7. If the file name looks like a password or key file (`passwords.txt`, `client_secret.txt`, `secretkey.txt`), a built-in rule keeps it out of the index. `linkly list --scope folder --path <its folder>` says how many such files the folder holds, and the app lists them under Index management → Rules → See skipped files; a `!` rule brings one back. A file that is also hidden (`.env`), of an unsupported format (`*.pem`) or of a type switched off isn't counted there, and a `!` rule alone doesn't bring it back.
 
 #### `Invalid modified_after` / `Invalid modified_before`
 
@@ -184,7 +185,7 @@ When using Linkly AI through an AI tool's MCP connection (Claude, Cursor, ChatGP
 ### MCP tools return errors
 
 - **"Search failed":** The desktop app may have restarted. Wait a moment and retry.
-- **"Document not found":** The document may have been moved or deleted. Search again to get fresh IDs.
+- **"Document not found":** The document may have been moved or deleted. Search again to get fresh IDs. If it never appears in search, check whether its name looks like a password or key file (see "Search returns no results", step 7).
 - **Timeout:** The desktop app may be busy indexing. Check the app's tray icon status.
 
 ### Gateway errors
