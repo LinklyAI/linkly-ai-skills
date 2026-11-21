@@ -89,6 +89,75 @@ For complex information-gathering tasks, a single query is rarely enough. Use it
 3. **Targeted follow-up**: Search with newly discovered keywords or rephrase the query using natural language for semantic coverage.
 4. **Parallel queries**: When possible, run multiple independent searches in parallel (different keyword angles) and merge the doc_id sets.
 
+## Getting the Answer Right
+
+Agents often lose an answer the index could have given them: they stop searching too early, trust the question over the document, or read too little of the document they found. Five habits prevent most of these misses.
+
+### Two searches missed — change the language or the words
+
+**When:** two searches in a row return nothing relevant. The user's library often mixes languages, and the question may be in a different language from the document that answers it.
+
+**Do:** before saying the content is not there, translate the key terms into the other languages the library may use (Chinese, English, Japanese, …) and search again. If that also misses, try synonyms or a broader term. Only then tell the user it was not found, and list what you tried.
+
+```bash
+linkly search "how do I feed a sourdough starter?" --limit 10   # miss
+linkly search "sourdough starter feeding ratio" --limit 10      # miss
+linkly search "酸面团 鲁邦种 喂养 サワー種" --limit 10            # translated terms
+linkly search "bread baking notes" --limit 10                   # broader term
+```
+
+### Details in the question are clues, not facts
+
+**When:** the user gives a specific year, count, amount, name or title ("the 2019 budget that set aside 40,000 for travel").
+
+**Do:** use the details to find the document, then check each one against the text. If a detail does not match — the amount is in the 2020 budget, not the 2019 one — say so plainly, and answer what the user actually wants to know. Don't keep searching with the wrong detail, and don't quietly answer with a figure for a neighboring year.
+
+```bash
+linkly search "which budget set aside 40,000 for travel in 2019?" --limit 10
+linkly grep "40,000" <ID> -C 3          # the line is in the 2020 budget
+```
+
+> The 40,000 travel line is in the **2020** budget, not 2019. The 2019 budget sets aside …
+
+### Summary questions — find every document first, then read each
+
+**When:** the user asks for a summary or a roundup ("what do my documents say about X?", "list every remote-work rule in our policies"). The points are usually spread across several documents, and the usual failure is missing one or two of them.
+
+**Do:**
+
+1. Search with several phrasings (a full question, keywords, the other languages of the library) and merge the `doc_id`s into one list of relevant documents.
+2. Read the relevant sections of **each** document on that list — not only the top hit. Use `outline` to find the section in long documents.
+3. In the answer, say which documents you read, and say plainly what you could not cover (documents you skipped, sections you did not open, results beyond the `limit`).
+
+```bash
+linkly search "what are our rules for working remotely?" --limit 20
+linkly search "remote work home office policy allowance" --limit 20
+linkly search "远程办公 在家办公 规定 リモートワーク" --limit 20
+linkly outline <ID1> <ID2> <ID3>
+```
+
+### Long documents — outline first, then read whole sections
+
+**When:** a result has `has_outline: true` and many lines (`total_lines`), or the answer has to be gathered from several places in one document.
+
+**Do:** run `outline` and read the matching sections by their line ranges (`[L30-50]` → `--offset 30 --limit 21`). After a `grep` hit, read the whole section that contains the hit, not only the matched lines and their context — lists and conditions often continue past the grep window.
+
+```bash
+linkly outline <ID>
+# [3] When to seek help [L120-168, 49行]
+linkly read <ID> --offset 120 --limit 49
+```
+
+If the question asks for five warning signs and the lines you read show four, read the rest of the section before answering.
+
+### Only something similar was found — don't present it as the answer
+
+**When:** the question is about one specific thing ("my last electricity bill", "our lease agreement") and the results contain only something close to it — a company expense sheet with an electricity line, a lease template.
+
+**Do:** answer only when the document really is the thing the user means. Otherwise, say what you found and that it is not what they asked for, and let them decide whether it helps.
+
+> I didn't find your electricity bill. The closest match is a company expense sheet (`office/expenses-2024.xlsx`) with an electricity line — it is not a personal bill.
+
 ## Complex Scenario Patterns
 
 ### Cross-document information aggregation
@@ -119,7 +188,7 @@ After finding documents with `search`, use `grep` to locate specific content wit
 2. **Codes or identifiers**: `linkly grep "INV-\d{4}" <DOC_ID> -i` — search for invoice numbers, error codes, etc. To scan multiple documents, pass all the IDs in one call (`linkly grep "INV-\d{4}" <ID1> <ID2> -i`) or pipe them in via `-` — no shell loop needed. Only the MCP `grep` tool is limited to one `doc_id` per call.
 3. **Count occurrences**: `linkly grep "TODO|FIXME" <ID> --mode count` — quickly tally matches.
 4. **Context for understanding**: `linkly grep "pattern" <ID> -C 3` — see surrounding lines.
-5. **Combine with read**: After finding a match at line N, use `linkly read <ID> --offset N-10 --limit 30` to read the full surrounding context.
+5. **Combine with read**: After finding a match at line N, read the whole section that contains it — its line range comes from `linkly outline <ID>`. Without an outline, use `linkly read <ID> --offset N-10 --limit 30` to read the surrounding context.
 
 **When to use grep vs outline:**
 

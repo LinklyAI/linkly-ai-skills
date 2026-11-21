@@ -158,6 +158,7 @@ Search uses BM25 + vector hybrid retrieval and ranks mostly by meaning, with a b
 - Use `--path-glob` to filter by file path: the pattern is **substring-matched** against the path (it may appear anywhere — no leading/trailing `*` needed), always case-sensitive. `*` matches any chars (incl. `/`), `?` one char. A full directory path like `/Users/me/notes/` scopes to that directory. When the actual path is unknown, run Step 0 (`find_paths`) first.
 - For time scope: `--modified-after` / `--modified-before` (ISO 8601 UTC) for explicit windows like "in 2024" / "after July 1, 2024"; `--time-sort newest|oldest|default` for "most recent / earliest" without a fixed window (`default` or omitting the flag both keep relevance ordering). See ["Tool Response Metadata"](#tool-response-metadata) below for how to derive relative dates.
 - Start with a small limit (5–10) to scan relevance before requesting more.
+- After two searches miss, translate the key terms into the other languages the library may use (Chinese, English, Japanese, …), then try synonyms or a broader term, before saying it isn't there.
 - Each result includes a `doc_id` — save these verbatim for subsequent steps. They are opaque strings (e.g. `local://1044`, or `cloud://owner/slug/...` for cloud documents); never reshape or strip them.
 
 **Don't:** guess `--path-glob` when the user names a fuzzy container — run `find_paths` (Step 0) first to get the real on-disk path.
@@ -211,6 +212,7 @@ linkly read <ID> --image p3-1
 
 - For short documents: read without offset/limit to get the full content.
 - For long documents: use outline to identify target sections, then read specific line ranges.
+- After a `grep` hit, read the whole section that contains it, not only the matched lines.
 - To paginate: advance `offset` by `limit` on each call (e.g., offset=1 limit=200, then offset=201 limit=200).
 
 **Images referenced in the text:** markdown image references inside the shown line range are resolved to indexed image documents and appended as a mapping block. `--image-text` / `image_text` controls the detail: `none` (mapping only), `abstract` (default — plus a one-line excerpt and word count per image), `full` (plus inline OCR text). Use `full` only when the images carry content you actually need — it is capped at 2000 chars per image and 20000 chars total, and over-budget images silently degrade to `abstract`. On **cloud** documents `full` never inlines text: matched images degrade to `abstract` with a per-image pointer, and you `read` the image's own `doc_id` for its full text.
@@ -407,6 +409,11 @@ For detailed troubleshooting steps, see `references/troubleshooting.md`.
 18. **Notes stay local.** They are plain Markdown files in the user's library folder and are never uploaded to a cloud library. Don't offer to sync or publish them.
 19. **Name yourself on every CLI call.** `--client <your-app-name>` — see ["Name yourself on every CLI call"](#4-name-yourself-on-every-cli-call). The examples in this document omit it for brevity; your calls should not.
 20. **Annotations are the user's voice, not the document's.** A `(in annotations)` hit or a `User annotations` block tells you what the user _thinks_ about a passage. Answer "what does the article say" from the body and "what did I think of it" from the annotations (`--scope annotations` to find them), and say which is which.
+21. **Check the user's details against the document.** A year, count or name in the question is a clue, not a fact. If the document says otherwise, say so and answer what the user actually wants.
+22. **For summaries, find every relevant document before reading.** Search with several phrasings, read the relevant sections of each document, and say which documents you read and what you did not cover.
+23. **Don't present a similar document as the answer.** Answer only when the document is the thing the user means ("my electricity bill"); otherwise say what you found and that it is not that.
+
+See `references/search-strategies.md` ("Getting the Answer Right") for when each of these applies and examples.
 
 ## References
 
