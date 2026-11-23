@@ -4,13 +4,37 @@
 ![License](https://img.shields.io/badge/license-Apache--2.0-green)
 ![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey)
 
-[Agent Skills](https://agentskills.io) for [Linkly AI](https://linkly.ai) — search, browse, and read your local documents (and linked cloud libraries) from any AI coding agent.
-
-This skill teaches AI agents how to use Linkly AI's document search capabilities, enabling them to find and read your locally indexed documents (PDF, Markdown, Excel, CSV, DOCX, TXT, PPTX, DOC, RTF, EPUB, HTML, images, audio, video) as well as cloud libraries you've linked via Linkly Web — and to capture short Markdown notes back into your library.
+The official [Agent Skill](https://agentskills.io) for [Linkly AI](https://linkly.ai). It lets Claude Code, Codex, OpenClaw and other AI agents search and read the documents on your computer.
 
 ## What is Linkly AI?
 
-[Linkly AI](https://linkly.ai) is a desktop application that indexes documents on your computer and provides full-text search, structural outlines, content reading, and local note capture through a local MCP server. Through the `mcp.linkly.ai` cloud gateway it can also reach cloud libraries you've linked via Linkly Web. Think of it as a knowledge base — local and cloud — that AI agents can query.
+[Linkly AI](https://linkly.ai) is a desktop app for macOS, Windows and Linux. It indexes the folders you choose and gives AI agents tools to search, outline and read those files. The index stays on your computer, and every local feature is free without an account.
+
+**It is for you if** you keep papers, reports, notes or recordings in ordinary folders and want your agent to use them without uploading or pasting files.
+
+**Supported files:** PDF, DOCX, DOC, PPTX, XLSX, CSV, EPUB, RTF, TXT, Markdown, HTML, images (OCR), audio and video (speech transcription).
+
+**How it differs from giving an agent your folders directly:**
+
+- A coding agent reads plain text well, but has to find and convert PDFs, Office files, scans and recordings itself. Linkly AI has already indexed them.
+- Search covers the meaning of a question as well as its keywords.
+- The agent reads an outline first, then the sections it needs, so long documents do not fill the context window.
+- The same index serves every agent you use, through MCP, the CLI or this skill.
+
+The skill also reaches cloud libraries you have linked in Linkly AI, and can save short Markdown notes back to your library.
+
+## Quick Start
+
+1. [Download the Linkly AI desktop app](https://linkly.ai) and add a folder.
+2. Install the skill:
+
+   ```bash
+   npx skills add LinklyAI/linkly-ai-skills
+   ```
+
+3. Ask your agent: "Search my documents for last quarter's report and summarize it."
+
+Agents with a terminal also need the [CLI](#cli-installation). Other options are in [Installing This Skill](#installing-this-skill).
 
 ## What Does This Skill Do?
 
