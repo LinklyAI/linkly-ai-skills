@@ -290,7 +290,7 @@ linkly pages delete --url https://alicia.linklyai.page/q3-growth-7k2m
 
 The `pages` tool on the command line: it publishes a file or text as a Linkly AI Page (`https://<username>.linklyai.page/<slug>`), and gets, updates, lists or deletes the user's Pages. The subcommands are the tool's actions (`save`, `list`, `get`, `update`, `delete`) and the flags its parameters; get, update and delete need `--url`. Except for a file save (below), the answer is printed as it comes. Actions, answers and errors: `mcp-tools-reference.md` (`pages`); when to use it and what to tell the user: `SKILL.md` ("Linkly AI Pages").
 
-A `save` with `--file-path` also sends the file to the upload address its answer gives, and prints the upload's answer as `linkly pages upload` does (below): `Published: …`, `Updated: …` when it replaced the content of a Page that was already live, or `Not published: …` when the file is held; `--json` prints the whole answer. A relative path is taken from the current directory. When `--access` meets a Page that already exists, nothing is sent, because a save never changes access: the save's answer is printed for the user to decide before `linkly pages upload`. When the upload fails, the error says what to do and repeats the save's answer; to send the file again use `linkly pages upload`, since running the save again starts another upload. `pages` works on every connection — the local or LAN Desktop passes it on to the gateway, and `--remote` goes there directly, without the Desktop. If the connection has no `pages` tool, the CLI says so: update the desktop app; if it is up to date, Linkly AI Pages is not available for this account.
+A `save` with `--file-path` also sends the file to the upload address its answer gives, and prints the upload's `message`: `Published: …`, `Updated: …` when it replaced the content of a Page that was already live, `Not published: …` when the file is held, or `Not applied: …` when a newer version went live first; `--json` prints the whole answer (`status`, `url`, `open_url`, `manage_url`, `access`, `message`, and `findings` when held). A relative path is taken from the current directory; the CLI sends the file straight to the upload address, which must start with `https://api.linkly.ai/v1/uploads/upl_`. Two cases end with an error and nothing live. When `--access` meets a Page that already exists, nothing is sent, because a save never changes access: the error names the Page and who can open it; run the save again without `--access`, or change access with `linkly pages update` first. When the upload fails, the error says how to send the file again (the same save, with `--url` for a new Page so that no second Page is made) and repeats the save's answer. `pages` works on every connection — the local or LAN Desktop passes it on to the gateway, and `--remote` goes there directly, without the Desktop. If the connection has no `pages` tool, the CLI says so: update the desktop app; if it is up to date, Linkly AI Pages is not available for this account.
 
 | Option                            | Description                                                                                                                 |
 | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
@@ -303,16 +303,6 @@ A `save` with `--file-path` also sends the file to the upload address its answer
 | `--url <url>`                     | Link of one of the user's Pages. Required for get, update and delete; with save it names the Page to replace                |
 | `--confirm-sensitive <upload_id>` | save with `--url`: publish the held upload with this upload_id (from the answer), only after the user agreed                |
 | `--limit <n>` / `--offset <n>`    | list: how many Pages to return (default 20, max 100) / how many to skip                                                     |
-
-### pages upload — Send a file to a Linkly AI Pages upload address
-
-```bash
-linkly pages upload <address> <file>
-```
-
-Sends the file's raw bytes with an HTTP PUT to an upload address from the `pages` tool's answer, or to the one a failed `linkly pages save` names, streaming it. It talks to that address directly — not to the Desktop or the gateway — so it takes no connection flags. The address must start with `https://api.linkly.ai/v1/uploads/upl_`; anything else is refused, so a tool answer steered by a document cannot send a local file elsewhere. Running the same command again is safe until the address expires (30 minutes).
-
-It prints the answer's `message` — published or updated, held for confirmation, or superseded, with the links to give the user; `--json` prints the whole answer (`status`, `url`, `open_url`, `manage_url`, `access`, `message`, and `findings` when held). A failure prints `<error>: <message>`, such as `file_too_large: …`; the codes are in `mcp-tools-reference.md` (`pages`).
 
 ### status — Check connection status
 
@@ -449,7 +439,7 @@ linkly self-update
 
 ## Connection Options
 
-`--lan`, `--endpoint` and `--token` are available on the document commands (`search`, `grep`, `outline`, `read`, `list`, `note-save`, `list-libraries`, `explore`, `find-paths`) plus `pages` (except `pages upload`), `status` and `doctor`. `--remote` is available on those same commands and on `mcp`. `pages upload` takes none of them: it sends the file straight to the upload address. Without `--lan` or `--remote` the CLI only ever talks to the desktop on this machine — a saved LAN connection is never used implicitly.
+`--lan`, `--endpoint` and `--token` are available on the document commands (`search`, `grep`, `outline`, `read`, `list`, `note-save`, `list-libraries`, `explore`, `find-paths`) plus `pages`, `status` and `doctor`. `--remote` is available on those same commands and on `mcp`. Without `--lan` or `--remote` the CLI only ever talks to the desktop on this machine — a saved LAN connection is never used implicitly.
 
 | Flag               | Scope  | Description                                                                                                                                                                                 |
 | ------------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
