@@ -299,7 +299,7 @@ A `save` with `--file-path` also sends the file to the upload address its answer
 | `--content-type <type>`           | save with `--content`: `markdown` or `html`                                                                                 |
 | `--title <title>`                 | save, update: the Page title                                                                                                |
 | `--description <text>`            | save, update: one sentence about the Page                                                                                   |
-| `--access <access>`               | `private` (the default for a new Page) or `public`; update also takes `password` (Pro). save sets it only on a new Page     |
+| `--access <access>`               | `private` (the default for a new Page) or `public`; update also takes `password` (Pro). save sets it only on a new Page, never with `--url` |
 | `--url <url>`                     | Link of one of the user's Pages. Required for get, update and delete; with save it names the Page to replace                |
 | `--confirm-sensitive <upload_id>` | save with `--url`: publish the held upload with this upload_id (from the answer), only after the user agreed                |
 | `--limit <n>` / `--offset <n>`    | list: how many Pages to return (default 20, max 100) / how many to skip                                                     |
