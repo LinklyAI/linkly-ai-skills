@@ -285,6 +285,8 @@ Error codes: `NOTE_INVALID_INPUT`, `NOTE_NOT_FOUND`, `NOTE_DUPLICATE_ID`, `NOTE_
 linkly pages save --file-path /Users/me/reports/q3-growth.html --description "Q3 growth review"
 linkly pages list
 linkly pages update --url https://alicia.linklyai.page/q3-growth-7k2m --access public
+linkly pages update --url https://alicia.linklyai.page/q3-growth-7k2m --access password    # Pro; prints the password
+linkly pages update --url https://alicia.linklyai.page/q3-growth-7k2m --reset-password     # a new password
 linkly pages delete --url https://alicia.linklyai.page/q3-growth-7k2m
 ```
 
@@ -299,7 +301,8 @@ A `save` with `--file-path` also sends the file to the upload address its answer
 | `--content-type <type>`           | save with `--content`: `markdown` or `html`                                                                                 |
 | `--title <title>`                 | save, update: the Page title                                                                                                |
 | `--description <text>`            | save, update: one sentence about the Page                                                                                   |
-| `--access <access>`               | `private` (the default for a new Page) or `public`; update also takes `password` (Pro). save sets it only on a new Page, never with `--url` |
+| `--access <access>`               | `private` (the default for a new Page) or `public`; update also takes `password` (Pro) and prints the password. save sets it only on a new Page, never with `--url` |
+| `--reset-password`                | update: replace the password of a password Page and print the new one; the old one stops working. Needs a CLI newer than 1.1.1 |
 | `--url <url>`                     | Link of one of the user's Pages. Required for get, update and delete; with save it names the Page to replace                |
 | `--confirm-sensitive <upload_id>` | save with `--url`: publish the held upload with this upload_id (from the answer), only after the user agreed                |
 | `--limit <n>` / `--offset <n>`    | list: how many Pages to return (default 20, max 100) / how many to skip                                                     |
