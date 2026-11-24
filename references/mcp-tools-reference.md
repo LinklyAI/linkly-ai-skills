@@ -753,7 +753,7 @@ Every optional parameter accepts an explicit `null` (same as omitting it). A par
 
 ### Uploading the file
 
-PUT the file's raw bytes — not multipart, not base64 — with a `Content-Length` header:
+PUT the file's raw bytes — not multipart, not base64 — with a `Content-Length` header (`linkly pages save --file-path` does this by itself):
 
 ```bash
 linkly pages upload "https://api.linkly.ai/v1/uploads/upl_…" /Users/me/reports/q3-growth.html
@@ -768,7 +768,7 @@ The upload answers with JSON (`linkly pages upload` prints its `message`, or the
 
 | `status`             | Meaning and what to do                                                                                                                                                                                                                                                                                      |
 | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `published`          | Live. Tell the user both links: `url` to share, `open_url` to open it themselves (signed in to linkly.ai, they arrive as the author).                                                                                                                                                                       |
+| `published`          | Live. `message` begins `Updated:` instead of `Published:` when it replaced the content of a Page that was already live. Tell the user both links: `url` to share, `open_url` to open it themselves (signed in to linkly.ai, they arrive as the author).                                                     |
 | `needs_confirmation` | Not published: it seems to contain credentials or personal data. `findings` lists categories and counts, never the text. Tell the user and ask; **only if they agree**, call `save` with the `url` and `confirm_sensitive` set to the answer's `upload_id`. Unconfirmed uploads are deleted after 24 hours. |
 | `superseded`         | A newer version of the Page went live first, so this upload was dropped.                                                                                                                                                                                                                                    |
 
