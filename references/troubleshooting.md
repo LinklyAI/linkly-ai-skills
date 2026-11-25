@@ -271,7 +271,7 @@ The opposite mismatch also bites: the CLI is up to date but the desktop app on t
 Known thresholds worth naming to the user:
 
 - **Desktop 0.11.0** — `list` with `scope="folder"` / `scope="library"`, and additive `note_save` tags. Below it, CLI v0.6.1 refuses outright on a local or LAN connection rather than sending a call that would misbehave; over the cloud gateway you get `UPDATE_REQUIRED` for the local scopes while cloud libraries keep working.
-- **Linkly AI Pages** — a Desktop that predates it has no `pages` tool: the local server doesn't list it, and `linkly pages` answers `This connection has no pages tool`. Update the desktop app; if it is already up to date, Linkly AI Pages is not available for this account. Over the cloud gateway (`--remote`, or the `linkly-ai-cloud` connector) `pages` does not depend on the Desktop.
+- **Linkly AI Pages** — a Desktop that predates it has no `pages` tool: the local server doesn't list it, and `linkly pages` in CLI 1.1.1 and older answers `This connection has no pages tool`. Update the desktop app; if it is already up to date, Linkly AI Pages is not available for this account. A newer CLI does not depend on the Desktop for `pages`: it needs `linkly auth login`. Over the cloud gateway (`--remote`, or the `linkly-ai-cloud` connector) `pages` does not depend on the Desktop.
 
 **Diagnose with `linkly status`** — it prints the desktop's version alongside the CLI's, and recent CLI builds show a ⚠ banner under the `App` line naming the features the desktop is too old for.
 
