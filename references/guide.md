@@ -241,7 +241,7 @@ The real address and port are in **Agent usage → View MCP connection settings*
 
 ## 13. Account and plans
 
-- **Sign in:** **Settings → Account → Sign In** opens the browser; check that the code on the page matches the app's and click **Authorize**. **Copy link** lets you authorize on another device. Web sign-in uses Google, GitHub, Notion, Apple or an email code; the first sign-in asks for a display name and a username (it appears in cloud library and Linkly AI Pages addresses and can't be changed later).
+- **Sign in:** **Settings → Account → Sign In** opens the browser; check that the code on the page matches the app's and click **Authorize**. **Copy link** lets you authorize on another device. Web sign-in uses Google, GitHub, Notion or an email code; the first sign-in asks for a display name and a username (it appears in cloud library and Linkly AI Pages addresses and can't be changed later).
 - **Or with an API key:** **Settings → Account → Sign in with an API key**; the user creates the key at dashboard → **Security** and pastes it there. Never ask for the key in the chat.
 - **Sign-in stopped working:** **Sign In Again**.
 - **Sign out:** **Settings → Account → Sign Out** — clears local credentials only; indexes, chats and cloud content are kept.
