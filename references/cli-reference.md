@@ -285,10 +285,10 @@ Error codes: `NOTE_INVALID_INPUT`, `NOTE_NOT_FOUND`, `NOTE_DUPLICATE_ID`, `NOTE_
 linkly pages setup                        # once per account; shows the details and confirms nothing by itself
 linkly pages save --file-path /Users/me/reports/q3-growth.html --description "Q3 growth review"
 linkly pages list
-linkly pages update --url https://alicia.linklyai.page/q3-growth-7k2m --access public
-linkly pages update --url https://alicia.linklyai.page/q3-growth-7k2m --access password    # Pro; prints the password
-linkly pages update --url https://alicia.linklyai.page/q3-growth-7k2m --reset-password     # a new password
-linkly pages delete --url https://alicia.linklyai.page/q3-growth-7k2m
+linkly pages update --url https://alicia.linklyai.page/q3-growth --access public
+linkly pages update --url https://alicia.linklyai.page/q3-growth --access password    # Pro; prints the password
+linkly pages update --url https://alicia.linklyai.page/q3-growth --reset-password     # a new password
+linkly pages delete --url https://alicia.linklyai.page/q3-growth
 ```
 
 The `pages` tool on the command line: it publishes a file or text as a Linkly AI Page (`https://<username>.linklyai.page/<slug>`), and gets, updates, lists or deletes the user's Pages. The subcommands are the tool's actions (`save`, `list`, `get`, `update`, `delete`, `setup`) and the flags its parameters; get, update and delete need `--url`. Except for a file save and `setup` (below), the answer is printed as it comes. Actions, answers and errors: `mcp-tools-reference.md` (`pages`); when to use it and what to tell the user: `SKILL.md` ("Linkly AI Pages").

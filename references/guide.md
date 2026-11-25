@@ -2,7 +2,7 @@
 
 How to use the Linkly AI desktop app itself: where things are, how to do common tasks, and what to check when something doesn't work. Read this when the user asks about the app ("how do I give you access to my files", "where is the setting for…", "why can't it find…", "how do I connect ChatGPT") rather than about the content of their documents.
 
-Distilled from the Linkly AI documentation as of 2026-10-26 and checked against the desktop app's own interface text (desktop 1.2.x).
+Based on the Linkly AI documentation and the interface text of desktop 1.7.
 
 ## How to use this guide
 
@@ -16,11 +16,11 @@ Distilled from the Linkly AI documentation as of 2026-10-26 and checked against 
 
 **Main window** (opens with `Mod+K`, or left-click the tray icon / Dock icon):
 
-- **Sidebar, top:** **Ask** (AI chat), **Find** (search page), **Home**, **Note**, **Clips**, **Library**, then **Chat history**.
-- **Sidebar footer:** **Index status** icon (hover card → **Show more** opens Index management), **Agent usage** icon, **Quota** icon (opens the **Model quota** panel), and an update button when a new version is downloaded.
+- **Sidebar, top:** **Ask** (AI chat), **Find** (search page), **Home**, **Note**, **Clips**, **Creations**, **Library**, then **Chat history**. **Library** shows a warning when a folder can't be read or a cloud library needs attention.
+- **Sidebar footer:** **Index status** icon (hover card → **Show more** opens Index management), shield icon (**Privacy data protection**), **Agent usage** icon, **Quota** icon (**Model quota** panel), and an update button when a new version is downloaded.
 - **Account menu** (bottom-left): **Settings**, **Keyboard shortcuts**, **Show getting started**, **Upgrade to Pro**, **Visit website**, **Help docs**.
 
-**Settings** (account menu → **Settings**, or `Mod+,`) tabs: **General**, **Account**, **Appearance**, **Shortcuts**, **Network**, **About**, then **AI Models** and **Skills**.
+**Settings** (account menu → **Settings**, or `Mod+,`): **Preferences** — **General**, **Account**, **Appearance**, **Shortcuts**, **Network**, **About**; **Extensions** — **AI Models**, **Search**, **Skills**, **Folders**, **Creations**, **Pet**. An older app may lack some of them.
 
 **Index management** (sidebar footer index icon, **Home → My knowledge assets** status card, or tray → **View Index**) tabs: **Index**, **Rules**, **Can't extract**, **Advanced**.
 
@@ -33,6 +33,8 @@ Distilled from the Linkly AI documentation as of 2026-10-26 and checked against 
 
 **Tray icon:** left-click opens the main window; right-click menu has **Open Linkly AI**, **Search** (Launcher), **Ask AI**, **View Index**, **⏸ Pause Indexing** / **▶ Start Indexing**, MCP server status and **Stop/Start MCP Server**, **Settings**, **Shortcuts**, Quit. Closing the main window only hides it; the app keeps running in the tray.
 
+**Privacy data protection** page tabs: **Overview**, **Events**, **Settings**, **App privacy** (section 14).
+
 **Global shortcuts:** Launcher (**Search**) `Mod+L`, main window `Mod+K`. Installs upgraded from older versions may still use the old Launcher default `Mod+Shift+L`. Both are set in **Settings → Shortcuts**.
 
 ## 2. Getting started
@@ -43,10 +45,10 @@ Distilled from the Linkly AI documentation as of 2026-10-26 and checked against 
 
 1. Cover page: tick the **Privacy Policy** agreement (required). **Help improve Linkly AI (anonymous)** is on by default.
 2. **Bring your files in**: **Sample files** are always indexed; **Documents**, **Desktop** and **Downloads** are unticked by default — tick the ones to index.
-3. **Let your agent put your files to work**: **Install** next to **Install the Linkly CLI and Skills** installs them (nothing is installed unless clicked); **Keep the CLI and Skills up to date** is on by default.
+3. **Connect an agent**: **Install** installs the Linkly CLI and Skills (nothing is installed unless clicked); **Keep the CLI and Skills up to date** is on by default.
 4. **All set** → **Get started**.
 
-There is no sign-in step. Indexing, search, notes, the Launcher and local MCP all work without an account and offline. An account is needed only for official AI models, cloud libraries, Linkly AI Pages and remote access (section 12).
+There is no sign-in step. Indexing, search, notes, the Launcher and local MCP all work without an account and offline. An account is needed only for official AI models, cloud libraries, Linkly AI Pages and remote access (section 13).
 
 **After install** the app downloads its semantic-search and OCR models in the background. Keyword search works immediately; semantic search starts once the download and indexing finish (section 4).
 
@@ -55,14 +57,14 @@ There is no sign-in step. Indexing, search, notes, the Launcher and local MCP al
 If no folders were ticked in the wizard, only the sample files are indexed — the most common reason "it can't see my files".
 
 - **Add a folder:** **Library** → **Add folder** → pick the folder. Indexing starts automatically. (Also on **Home**, the getting-started checklist step **Add folders**.)
-- **Or drop files into the Linkly AI Space** (`~/LinklyAI`, watched by default; see section 13).
+- **Or drop files into the Linkly AI Space** (`~/LinklyAI`, watched by default; see section 14).
 - **macOS permission errors:** in the wizard the folder shows **Not authorized**; later, in **Library** it shows **Authorization expired**, and a sidebar icon warns that folders lost authorization or can't be read. Use **Re-authorize** / **Grant Full Disk Access** on that folder, or System Settings → Privacy & Security → Full Disk Access → add Linkly AI, then restart the app.
 - **NAS / network drives:** mount the share in the OS first (Windows Map network drive, macOS Finder → Connect to Server `smb://…`, Linux mount), then **Library → Add folder**. The folder is tagged **External** and shows **Offline** while unmounted; the index is kept. Change detection on network shares can lag until the next launch.
 - **Cloud-drive folders (iCloud, Dropbox, OneDrive):** add them like any folder. Files not downloaded to this device are only searchable by name ("Not indexed · cloud placeholder"); set the folder to always keep files on this device in the sync client.
 - **Stop indexing a folder:** **Library → Manage sources** → **Remove** on its row. Files on disk are untouched. The Linkly AI Space row can't be removed.
 - **Code files are not indexed**, nor are archives and installers.
 
-Agents connect separately — see section 11. Adding a folder in the app is what makes its files available to every connected agent.
+Agents connect separately — see section 12. Adding a folder in the app is what makes its files available to every connected agent.
 
 ## 4. Indexing
 
@@ -114,6 +116,9 @@ Agents connect separately — see section 11. Adding a folder in the app is what
 - `Tab` or **Ask AI** sends the query to the chat; **Open in main window** continues on the **Find** page.
 - Pin it open with the pin button (bottom-right).
 - It searches local content only, not cloud libraries.
+- The preview can show the original of PDFs, images, HTML, Word, Excel, CSV and PowerPoint files.
+
+**Number of results and Enhanced ranking (Jev, Pro):** **Settings → Search**. Enhanced ranking sends the query with each candidate's title, file and folder name, summary and a short passage to a cloud model; it is off by default.
 
 **"Why can't I find this file?"** — search its file name first:
 
@@ -144,13 +149,13 @@ Agents connect separately — see section 11. Adding a folder in the app is what
 
 **Right panel:** **Files in this chat** (**Referenced** / **Read**) and **Canvas**. Expand a tool-call group in the conversation to see what the AI searched and read. Export per item: **Download response**, **Download table**, **Download diagram** (to the Downloads folder); there is no whole-conversation export.
 
-**Privacy:** with official or other cloud models, your messages and the document excerpts the AI retrieved are sent to that provider (official models go through Linkly's servers). With a local model, nothing leaves the computer.
+**Privacy:** with official or other cloud models, your messages and the document excerpts the AI retrieved are sent to that provider (official models go through Linkly's servers to providers with zero data retention). With a local model, nothing leaves the computer. Sensitive values in what the chat reads are hidden by default (section 14).
 
 ## 8. Notes
 
 - **Open:** sidebar **Note**, or `Mod+Shift+N` in the main window. Card notes on a timeline; each is a Markdown file in `~/LinklyAI/Notes/YYYY-MM/`.
 - **Write:** type in the bottom box, `Mod+Enter` or **Publish note**. **Edit** → **Save** on a card. **⋯ → Delete → Delete permanently** deletes the file for good (no trash, no undo).
-- **Tags:** write `#tag` in the body (`#` shows suggestions; nested tags with `/`, e.g. `#projects/client-a`). The body is the only source of tags; delete the `#tag` text to remove one. Click a tag to filter.
+- **Tags:** type `#` and pick a tag from the list (or **Create #…**); a `#114` that isn't picked stays plain text. Nested tags use `/`, e.g. `#projects/client-a`. The body is the only source of tags; delete the tag there to remove it. Click a tag to filter.
 - **Sort / filter / search:** **Newest created**, **Oldest created**, **Recently edited**; **Author** filter (**Me** or an agent); search with the magnifier or `Mod+F`.
 - **Just-written note not found by search:** normal for a short while — the timeline reads files directly, search waits for indexing.
 - **Edit elsewhere:** **Open notes folder**; Obsidian, VS Code etc. work. Files moved out of `Notes/YYYY-MM/` or stripped of their header stay searchable but leave the timeline.
@@ -163,10 +168,22 @@ Agents connect separately — see section 11. Adding a folder in the app is what
 - **Clip:** click the toolbar icon (pin it — there is no shortcut or context menu) → side panel converts the page → **Copy**, or **Download** → **Save clip** → **Save**.
 - **Where it goes:** with the desktop app running, into `~/LinklyAI/Clips/` and indexed automatically (toast **Saved to LinklyAI Space**). Otherwise into `~/Downloads/Linkly/`, which is not indexed and never moved later (toast **Client offline — saved to browser downloads**).
 - **Connection check:** extension **Settings → Download settings → Save to LinklyAI Space** shows **Online** or **App not detected** (**Re-check**, **Launch desktop app**). Still going to Downloads with the app running → update the desktop app.
-- **In the app:** sidebar **Clips** → browse, read, **Chat with this clip**, **Open clips folder**.
+- **In the app:** sidebar **Clips** → browse, read, **Chat with this clip**, **Open clips folder**. While reading, select text to **Highlight** or **Annotate**, or **Add a comment on the whole clip**; annotations are searchable and agents see them with the clip. Right-click a clip to delete it.
 - Pages are processed in the browser; translation and AI outline use Chrome's on-device model.
 
-## 10. Libraries
+## 10. Creations
+
+Collects the files local AI agents produce and keeps a copy in the library: Claude Code, Claude Desktop, ChatGPT (Codex), WorkBuddy, Antigravity, QwenWork and Doubao Work. Which of them, and which file types, are chosen when you start collecting and later in **Settings → Creations**; agents that aren't installed show **Not detected**.
+
+- **Open:** sidebar **Creations**. Filter by agent, type, time or project; unread ones are marked **New** (**Mark all as read**).
+- **Types:** HTML, Slides, Word, Excel / CSV, PDF, Markdown, Images.
+- **Where the copies are:** `Creations/` in the Linkly AI Space. They are indexed like other files. Don't edit a copy: when the agent changes the original, the copy is updated.
+- **HTML:** **Run** opens it in its own window; **Open in browser** uses the default browser.
+- **Share:** **⋯ → Share to Linkly AI Pages** (section 11).
+- **Delete** removes the copy, and that file isn't collected again. Deleting the original doesn't touch the copy.
+- **A file isn't there:** it is in a git repository, its type is off in **Settings → Creations**, it is too large, or it was produced while Linkly AI wasn't running.
+
+## 11. Libraries and sharing
 
 **Local library** — an optional named group of folders for scoped search (and the unit that can be pushed to the cloud). Adding already-indexed folders doesn't re-index.
 
@@ -184,9 +201,16 @@ Search it with `@` in the Launcher or chat, or tell an agent "search my <identif
 
 To let an agent search a cloud library — including your own — open its web page and click **Link** (uses one link slot; limits on the pricing page), or use **Use in AI** on the page and give the line to the agent. In the desktop app, linked cloud libraries appear under **Connected cloud libraries** in **Library** and in the chat's `@` picker. Sharing (**Public** / **Showcase** / **Private**, invitations, access requests) is managed on the web library's settings page. Agent-side details: `https://linkly.ai/docs/en/library-setup.md`.
 
-**Share a file as a web page (Linkly AI Pages):** right-click a file in **Library** → **Share to Linkly AI Pages**; the same option is in the preview toolbar and in a creation's **⋯** menu. The app uploads the file and opens its page on linkly.ai, where the author chooses who can see it and clicks **Publish**; nobody can open it before that. In this chat, when the `pages` tool is available and the user wants to send a report or document to someone, save it with `pages` and give the user the link to publish it on linkly.ai. If the option or the `pages` tool isn't there, Linkly AI Pages isn't available for this account. Plan limits: https://linkly.ai/pricing. All Pages: `https://linkly.ai/dashboard/pages`.
+**Share a file as a web page (Linkly AI Pages):** for Markdown, HTML, PDF and images. Sign in first.
 
-## 11. Connecting AI apps and agents
+- **In the app:** **Library** → right-click a file → **Share to Linkly AI Pages**; also in the preview toolbar and a creation's **⋯** menu. The app uploads the file and opens its page on linkly.ai; there you set the link, title and who can see it, and click **Publish**. Nobody can open it before that. In the app's own chat, save with `pages` and give the user the link to publish it there.
+- **From another agent or the CLI:** `pages` / `linkly pages` publishes directly; see `SKILL.md` ("Linkly AI Pages").
+- **First use:** set up once at `https://linkly.ai/dashboard/pages/setup`, through an agent or with `linkly pages setup`. The address is `<username>.linklyai.page`.
+- **Who can open it:** private (default, only you), public (anyone; search engines may index it) or password (Pro).
+- **Manage:** `https://linkly.ai/dashboard/pages` — title, description, access, password, delete. A published Page keeps its link.
+- **"Linkly AI Pages isn't available yet."** or no such menu: update the app and sign in; if it stays, it isn't available for this account. Limits: https://linkly.ai/pricing.
+
+## 12. Connecting AI apps and agents
 
 **Pick the path by where the AI app runs and what it should reach:**
 
@@ -205,7 +229,7 @@ The real address and port are in **Agent usage → View MCP connection settings*
 
 **LAN access:** **Agent usage → Management → Allow LAN access** (requires **Allow local access**). **View MCP connection settings → LAN** shows the address and **Token**; the other device sends `Authorization: Bearer <token>`. The user should copy the token into the other app themselves — never paste it into a chat. Plain HTTP: trusted networks only. **Regenerate token** invalidates the old one at once.
 
-**Remote access (Pro):** sign in, then **Agent usage → Management → Allow remote access (internet)** and wait for **Connected**. In the cloud app add `https://mcp.linkly.ai/mcp` and approve the OAuth sign-in. The desktop app must stay running. Status meanings: **Connecting**, **Connected**, **Not signed in**, **Pro required**, **Connection failed** (hover for the reason). Behind a proxy: **Settings → Network → Route the MCP tunnel through the proxy**. Revoke authorized apps on the web: dashboard → **Security** → **Authorized apps**.
+**Remote access (Pro):** sign in, then **Agent usage → Management → Allow remote access (internet)** (needs **Allow local access**) and wait for **Connected**. In the cloud app add `https://mcp.linkly.ai/mcp` and approve the OAuth sign-in. The desktop app must stay running. Status meanings: **Connecting**, **Connected**, **Not signed in**, **Pro required**, **Connection failed** (hover for the reason). Behind a proxy: **Settings → Network → Route the MCP tunnel through the proxy**. Revoke authorized apps on the web: dashboard → **Security** → **Authorized apps**.
 
 **Turning access off:** **Allow local access** off cuts off the CLI and every AI app (LAN and remote switches are disabled with it). **Stop** on the status card stops the MCP server.
 
@@ -215,23 +239,31 @@ The real address and port are in **Agent usage → View MCP connection settings*
 
 **Supported apps** (setup page: `https://linkly.ai/docs/en/integration/use-in-<app>`): Claude (claude.ai) `use-in-claude`, Claude Desktop / Cowork `use-in-cowork`, ChatGPT `use-in-chatgpt`, Claude Code `use-in-claude-code`, Codex `use-in-codex`, Cursor `use-in-cursor`, Windsurf `use-in-windsurf`, GitHub Copilot `use-in-github-copilot`, Gemini CLI `use-in-gemini-cli`, Kimi Code `use-in-kimi-code`, ZCode `use-in-zcode`, OpenClaw `use-in-openclaw`, Cherry Studio `use-in-cherry-studio`, Raycast (stdio only) `use-in-raycast`, LM Studio `use-in-lm-studio`, WorkBuddy `use-in-workbuddy`, QoderWork `use-in-qoderwork`, QwenPaw `use-in-qwenpaw`, n8n `use-in-n8n`, Dify `use-in-dify`. Any other MCP client: use the table above.
 
-## 12. Account and plans
+## 13. Account and plans
 
-- **Sign in:** **Settings → Account → Sign In** (opens the browser). Web sign-in uses Google, GitHub, Notion, Apple or an email code; the first sign-in asks for a display name and a username (the username appears in cloud library and Linkly AI Pages addresses and can't be changed later).
-- **No browser on that machine:** expand "Optional: connect your account by setting an API key manually" at the bottom of **Settings → Account** and have the user paste the key there (dashboard → **Security → API Keys**). Never ask for the key in the chat.
-- **"Needs setup" / "This sign-in is invalid or the key has expired."** → **Sign In** again.
+- **Sign in:** **Settings → Account → Sign In** opens the browser; check that the code on the page matches the app's and click **Authorize**. **Copy link** lets you authorize on another device. Web sign-in uses Google, GitHub, Notion, Apple or an email code; the first sign-in asks for a display name and a username (it appears in cloud library and Linkly AI Pages addresses and can't be changed later).
+- **Or with an API key:** **Settings → Account → Sign in with an API key**; the user creates the key at dashboard → **Security** and pastes it there. Never ask for the key in the chat.
+- **Sign-in stopped working:** **Sign In Again**.
 - **Sign out:** **Settings → Account → Sign Out** — clears local credentials only; indexes, chats and cloud content are kept.
-- **Free** covers all local features, MCP / CLI / Skills, the clipper, basic official models, private cloud libraries and Linkly AI Pages. **Pro** adds frontier official models, higher quotas, remote access, public / showcase cloud libraries, and cloud embedding / transcription, password Pages. Limits and prices: https://linkly.ai/pricing.
+- **Free** covers all local features, MCP / CLI / Skills, the clipper, Creations, privacy protection, basic official models, private cloud libraries and Linkly AI Pages. **Pro** adds frontier official models, higher quotas, remote access, public / showcase cloud libraries, cloud embedding, OCR and transcription, Enhanced ranking and password Pages. Limits and prices: https://linkly.ai/pricing.
 - **Subscribe** on the pricing page; **cancel** via dashboard avatar menu → **My subscription**.
 - Multiple computers: sign in on each; quota is per account. Custom model providers are set up per computer.
 
-## 13. Data, privacy and maintenance
+## 14. Data, privacy and maintenance
 
-**What stays local:** original files (never modified), the search and vector indexes, chats, notes, logs, and local models. Anonymous usage statistics (counts, version, OS, a random device ID — never content, file names or queries) are on by default; turn off in **Settings → About → User Experience Improvement Program**. What leaves the machine when chatting: see section 7.
+**What stays local:** original files (never modified), the search and vector indexes, chats, notes, logs, and local models. Anonymous usage statistics (counts, version, OS, a random device ID — never content, file names or queries) are on by default; turn off in **Settings → About → User Experience Improvement Program**. Content leaves the machine only through features that send it: cloud models (section 7), cloud OCR, transcription, embedding and Enhanced ranking when switched on, cloud libraries and Linkly AI Pages.
+
+**Privacy data protection** (shield icon in the sidebar footer):
+
+- **Auto-hide sensitive data** (**Settings** tab): keys, passwords, recovery codes, card and ID numbers in what agents read are replaced with `[REDACTED:<type>]`. One switch each for **Local**, **LAN**, **Remote** and **Built-in chat**, all on by default. Phone numbers and email addresses aren't hidden by default. **Folders shown as they are** leaves chosen folders alone.
+- **See the originals for a while:** **Overview → Pause 10 min**; **Resume** ends it. Only the user should turn hiding off; don't ask them to unless they need a hidden value.
+- **Remote results** are hidden once more by the web: dashboard → **Security → Hide sensitive information for remote access**.
+- **Reminders** when AI agents read sensitive content on this computer: **Events** tab, the pet (**Settings → Pet**) and system notifications.
+- **App privacy** tab: where each feature's data goes.
 
 **Linkly AI Space vs App Data:**
 
-- **Linkly AI Space** (`~/LinklyAI`, in the home folder, not Documents) holds your content: `Notes/`, `Clips/`, `Canvas/`, `Linkly_AI_Examples/` (sample files, safe to delete). **Settings → General → Linkly AI Space → Open / Change / Restore Default**. **Change** doesn't move existing files — copy them yourself, then remove the old path in **Library → Manage sources** if wanted. Don't move or delete the folder in the file manager.
+- **Linkly AI Space** (`~/LinklyAI`, in the home folder, not Documents) holds your content: `Notes/`, `Clips/`, `Canvas/`, `Creations/`, `Linkly_AI_Examples/` (sample files, safe to delete). **Settings → General → Linkly AI Space → Open / Change / Restore Default**. **Change** doesn't move existing files — copy them yourself, then remove the old path in **Library → Manage sources** if wanted. Don't move or delete the folder in the file manager.
 - **App Data** holds the index, database, logs and models. **Settings → General → App Data → Open / Change** (**Change and restart** moves everything to the new location and leaves a link at the old one). Never put it in a cloud-sync folder; network locations are refused. Don't delete the old location's leftover link.
 
 **Logs:** **Settings → General → App Data → Open** → `logs/app.log`, or **Settings → About → Send diagnostic log**. After a crash, the next launch offers **Send report**.
