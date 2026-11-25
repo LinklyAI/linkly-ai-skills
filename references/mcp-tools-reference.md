@@ -612,7 +612,7 @@ Each item carries:
 | `snippet`                                 | Present but `null` unless `snippet: true`                                             |
 | `skip_reason`                             | Non-null means the file is indexed by name but **has no readable body** — see below   |
 
-**`skip_reason` is a stop sign.** `cloud_placeholder` (never downloaded), `no_audio_track`, `transcription_failed`, `password_like` (named like a password or key file, and its text looks like stored passwords or keys), or a signature/extension mismatch. Markdown output surfaces it as `**Content not indexed**`. Relay the reason; do not queue that `doc_id` for `read` and retry — there is no text to get.
+**`skip_reason` is a stop sign.** `cloud_placeholder` (never downloaded), `no_audio_track`, `transcription_failed`, `password_like` (named like a password or key file, and either its text looks like stored passwords or keys, or it was not sent to cloud OCR or transcription), or a signature/extension mismatch. Markdown output surfaces it as `**Content not indexed**`. Relay the reason; do not queue that `doc_id` for `read` and retry — there is no text to get.
 
 ### Response — notes
 
