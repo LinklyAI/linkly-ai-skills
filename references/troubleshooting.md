@@ -80,7 +80,7 @@ If you cannot wait in the foreground, use the two steps, in the same environment
 | `already_logged_in` | A key is already stored here. Check it with `linkly auth status`; `linkly auth logout` first only if it should change.   |
 | `network`           | The website or gateway was unreachable. Retry the same command.                                                          |
 
-If the authorization page says the API key limit is reached, the user must revoke a key in the dashboard (Integrations → API Keys) and click Authorize again; meanwhile `--wait` just keeps waiting.
+If the authorization page says the API key limit is reached, the user must revoke a key in the dashboard (Security → API Keys) and click Authorize again; meanwhile `--wait` just keeps waiting.
 
 #### "No LAN connection saved"
 
@@ -266,12 +266,12 @@ The opposite mismatch also bites: the CLI is up to date but the desktop app on t
 - `Error: ... unknown tool '<name>'` (or "tool not found" / "method not found") — that tool doesn't exist in the desktop's MCP surface yet
 - `Error: ... unknown field '<param>'` — the tool exists but not that parameter
 - A call **looks** like it succeeded but a filter had no effect — the same documents come back as a query without it. Very old desktops silently drop parameters they don't recognise instead of erroring
-- The `[meta] now=` footer / `_meta.now` field is missing from successful responses (`pages` answers never carry it; that one is not a symptom)
+- The `[meta] now=` footer / `_meta.now` field is missing from a successful document tool answer, such as `search` (`linkly pages save --file-path` and `linkly pages setup` may print none; that is not a symptom)
 
 Known thresholds worth naming to the user:
 
 - **Desktop 0.11.0** — `list` with `scope="folder"` / `scope="library"`, and additive `note_save` tags. Below it, CLI v0.6.1 refuses outright on a local or LAN connection rather than sending a call that would misbehave; over the cloud gateway you get `UPDATE_REQUIRED` for the local scopes while cloud libraries keep working.
-- **Linkly AI Pages** — a Desktop that predates it has no `pages` tool: the local server doesn't list it, and `linkly pages` in CLI 1.1.1 and older answers `This connection has no pages tool`. Update the desktop app; if it is already up to date, Linkly AI Pages is not available for this account. A newer CLI does not depend on the Desktop for `pages`: it needs `linkly auth login`. Over the cloud gateway (`--remote`, or the `linkly-ai-cloud` connector) `pages` does not depend on the Desktop.
+- **Linkly AI Pages** — a Desktop that predates it has no `pages` tool: the local server doesn't list it, and `linkly pages` in CLI 1.1.1 and older answers `This connection has no pages tool`. Update the desktop app; if it is already up to date, Linkly AI Pages is not available for this account. CLI 1.2.0+ does not depend on the Desktop for `pages`: it answers `Sign in with linkly auth login …` when it has no key, and `Linkly AI Pages is not available for this account` when the account does not have it. Over the cloud gateway (`--remote`, or the `linkly-ai-cloud` connector) `pages` does not depend on the Desktop.
 
 **Diagnose with `linkly status`** — it prints the desktop's version alongside the CLI's, and recent CLI builds show a ⚠ banner under the `App` line naming the features the desktop is too old for.
 
@@ -299,10 +299,9 @@ This skill may be outdated — it might reference commands or parameters that no
 
 ## General Tips
 
-1. **Always check `linkly status` first** (CLI) or verify MCP tools are responding (MCP mode).
-2. **`linkly doctor` is your best friend** — run it before diving into manual debugging.
-3. **Restart the desktop app** if all else fails — this resolves most transient issues.
-4. **Check the system tray icon** — it shows the current indexing status and can help identify if the app is busy.
+1. **Run `linkly doctor` first** (CLI), or verify MCP tools are responding (MCP mode).
+2. **Restart the desktop app** if all else fails — this resolves most transient issues.
+3. **Check the system tray icon** — it shows the current indexing status and can help identify if the app is busy.
 
 ## When You Can't Resolve It
 

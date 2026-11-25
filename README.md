@@ -40,7 +40,7 @@ Agents with a terminal also need the [CLI](#cli-installation). Other options are
 
 When installed, this skill enables AI agents to:
 
-- **Search** your local documents (and linked cloud libraries) by keywords with relevance ranking, time windows, and path filters
+- **Search** your local documents (and linked cloud libraries) by question or keywords with relevance ranking, time windows, and path filters
 - **Find paths** for fuzzy or cross-language container names ("in my WeChat", "在 Notion 笔记里") by matching against the indexed file paths
 - **List** a known container — a disk folder, a library, or your notes — as a complete paged enumeration, with no search query to invent
 - **Explore** the knowledge base for an overview of themes, document types, and recent activity
@@ -49,6 +49,7 @@ When installed, this skill enables AI agents to:
 - **Grep** for specific text patterns with regex matching
 - **Read** document content with line-based pagination, including OCR text from referenced images
 - **List and write notes** — browse your local Markdown notes by tag, and save new ones
+- **Publish** a file as a web page with Linkly AI Pages when you ask to share it
 - **Diagnose issues** with `linkly doctor` when things aren't working
 - **Auto-detect** whether to use CLI commands or MCP tools based on the environment
 - **Guide setup** if Linkly AI is not yet installed
@@ -172,7 +173,7 @@ The version appears in three places, and the release workflow refuses to publish
 │   ├── search-strategies.md           # Advanced query crafting patterns
 │   └── troubleshooting.md             # Diagnosing and resolving issues
 └── scripts/
-    └── package.sh                     # Build the release .zip for upload
+    └── package.sh                     # Bump the version, tag and push a release
 ```
 
 | File                                | Purpose                                                            |
