@@ -20,7 +20,7 @@ Distilled from the Linkly AI documentation as of 2026-10-26 and checked against 
 - **Sidebar footer:** **Index status** icon (hover card → **Show more** opens Index management), **Agent usage** icon, **Quota** icon (opens the **Model quota** panel), and an update button when a new version is downloaded.
 - **Account menu** (bottom-left): **Settings**, **Keyboard shortcuts**, **Show getting started**, **Upgrade to Pro**, **Visit website**, **Help docs**.
 
-**Settings** (account menu → **Settings**, or `Mod+,`) tabs: **General**, **Account**, **Appearance**, **Shortcuts**, **Network**, **Data Privacy**, **About**, then **AI Models** and **Skills**.
+**Settings** (account menu → **Settings**, or `Mod+,`) tabs: **General**, **Account**, **Appearance**, **Shortcuts**, **Network**, **About**, then **AI Models** and **Skills**.
 
 **Index management** (sidebar footer index icon, **Home → My knowledge assets** status card, or tray → **View Index**) tabs: **Index**, **Rules**, **Can't extract**, **Advanced**.
 
@@ -46,7 +46,7 @@ Distilled from the Linkly AI documentation as of 2026-10-26 and checked against 
 3. **Let your agent put your files to work**: **Install** next to **Install the Linkly CLI and Skills** installs them (nothing is installed unless clicked); **Keep the CLI and Skills up to date** is on by default.
 4. **All set** → **Get started**.
 
-There is no sign-in step. Indexing, search, notes, the Launcher and local MCP all work without an account and offline. An account is needed only for official AI models, cloud libraries and remote access (section 12).
+There is no sign-in step. Indexing, search, notes, the Launcher and local MCP all work without an account and offline. An account is needed only for official AI models, cloud libraries, Linkly AI Pages and remote access (section 12).
 
 **After install** the app downloads its semantic-search and OCR models in the background. Keyword search works immediately; semantic search starts once the download and indexing finish (section 4).
 
@@ -205,7 +205,7 @@ The real address and port are in **Agent usage → View MCP connection settings*
 
 **LAN access:** **Agent usage → Management → Allow LAN access** (requires **Allow local access**). **View MCP connection settings → LAN** shows the address and **Token**; the other device sends `Authorization: Bearer <token>`. The user should copy the token into the other app themselves — never paste it into a chat. Plain HTTP: trusted networks only. **Regenerate token** invalidates the old one at once.
 
-**Remote access (Pro):** sign in, then **Agent usage → Management → Allow remote access (internet)** and wait for **Connected**. In the cloud app add `https://mcp.linkly.ai/mcp` and approve the OAuth sign-in. The desktop app must stay running. Status meanings: **Connecting**, **Connected**, **Not signed in**, **Pro required**, **Connection failed** (hover for the reason). Behind a proxy: **Settings → Network → Route the MCP tunnel through the proxy**. Revoke authorized apps on the web: dashboard → **Integrations** → **Authorized apps**.
+**Remote access (Pro):** sign in, then **Agent usage → Management → Allow remote access (internet)** and wait for **Connected**. In the cloud app add `https://mcp.linkly.ai/mcp` and approve the OAuth sign-in. The desktop app must stay running. Status meanings: **Connecting**, **Connected**, **Not signed in**, **Pro required**, **Connection failed** (hover for the reason). Behind a proxy: **Settings → Network → Route the MCP tunnel through the proxy**. Revoke authorized apps on the web: dashboard → **Security** → **Authorized apps**.
 
 **Turning access off:** **Allow local access** off cuts off the CLI and every AI app (LAN and remote switches are disabled with it). **Stop** on the status card stops the MCP server.
 
@@ -217,17 +217,17 @@ The real address and port are in **Agent usage → View MCP connection settings*
 
 ## 12. Account and plans
 
-- **Sign in:** **Settings → Account → Sign In** (opens the browser). Web sign-in uses Google, GitHub, Notion or an email code; the first sign-in asks for a display name and a username (the username appears in cloud library URLs and can't be changed later).
-- **No browser on that machine:** expand "Optional: connect your account by setting an API key manually" at the bottom of **Settings → Account** and have the user paste the key there (dashboard → **Integrations → API Keys**). Never ask for the key in the chat.
+- **Sign in:** **Settings → Account → Sign In** (opens the browser). Web sign-in uses Google, GitHub, Notion, Apple or an email code; the first sign-in asks for a display name and a username (the username appears in cloud library and Linkly AI Pages addresses and can't be changed later).
+- **No browser on that machine:** expand "Optional: connect your account by setting an API key manually" at the bottom of **Settings → Account** and have the user paste the key there (dashboard → **Security → API Keys**). Never ask for the key in the chat.
 - **"Needs setup" / "This sign-in is invalid or the key has expired."** → **Sign In** again.
 - **Sign out:** **Settings → Account → Sign Out** — clears local credentials only; indexes, chats and cloud content are kept.
-- **Free** covers all local features, MCP / CLI / Skills, the clipper, basic official models and private cloud libraries. **Pro** adds frontier official models, higher quotas, remote access, public / showcase cloud libraries, and cloud embedding / transcription. Limits and prices: https://linkly.ai/pricing.
+- **Free** covers all local features, MCP / CLI / Skills, the clipper, basic official models, private cloud libraries and Linkly AI Pages. **Pro** adds frontier official models, higher quotas, remote access, public / showcase cloud libraries, and cloud embedding / transcription, password Pages. Limits and prices: https://linkly.ai/pricing.
 - **Subscribe** on the pricing page; **cancel** via dashboard avatar menu → **My subscription**.
 - Multiple computers: sign in on each; quota is per account. Custom model providers are set up per computer.
 
 ## 13. Data, privacy and maintenance
 
-**What stays local:** original files (never modified), the search and vector indexes, chats, notes, logs, and local models. Anonymous usage statistics (counts, version, OS, a random device ID — never content, file names or queries) are on by default; turn off in **Settings → Data Privacy → User Experience Improvement Program**. What leaves the machine when chatting: see section 7.
+**What stays local:** original files (never modified), the search and vector indexes, chats, notes, logs, and local models. Anonymous usage statistics (counts, version, OS, a random device ID — never content, file names or queries) are on by default; turn off in **Settings → About → User Experience Improvement Program**. What leaves the machine when chatting: see section 7.
 
 **Linkly AI Space vs App Data:**
 

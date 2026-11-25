@@ -2,11 +2,11 @@
 
 Command-line interface for Linkly AI — search your local documents (and, over `--remote`, your linked cloud libraries) from the terminal.
 
-The CLI connects to the Linkly AI desktop app's MCP server (locally or over LAN), or to the `mcp.linkly.ai` cloud gateway via `--remote`, giving fast access to indexed documents without leaving the terminal.
+The CLI connects to the Linkly AI desktop app's MCP server (locally or over LAN), or to the `mcp.linkly.ai` cloud gateway via `--remote`, giving fast access to indexed documents without leaving the terminal. `linkly pages` goes to the gateway by itself and needs no desktop app.
 
 ## Prerequisites
 
-For **local** documents, the **Linkly AI desktop app** must be running with its MCP server enabled (the CLI auto-discovers it via `~/.linkly/port`). Use LAN mode (`--lan` with a saved LAN token, or `--endpoint` + `--token`) or Remote mode (`--remote` with a saved API key) to connect over the network. Linked **cloud** libraries reached via `--remote` do not require the desktop to be online — see below.
+For **local** documents, the **Linkly AI desktop app** must be running with its MCP server enabled (the CLI auto-discovers it via `~/.linkly/port`). Use LAN mode (`--lan` with a saved LAN token, or `--endpoint` + `--token`) or Remote mode (`--remote`, after `linkly auth login`) to connect over the network. Linked **cloud** libraries reached via `--remote` do not require the desktop to be online — see below.
 
 Remote mode reaches both your local libraries and your linked cloud libraries through the `mcp.linkly.ai` gateway. Linked cloud libraries are served even when the desktop tunnel is disconnected; local / default-scope calls additionally need the desktop online and its tunnel connected. Reaching **local** content over the tunnel is a Pro feature — on a Free plan those calls fail with `Tool error: Pro subscription required …`, while linked cloud libraries stay available on all plans.
 
@@ -295,22 +295,22 @@ The `pages` tool on the command line: it publishes a file or text as a Linkly AI
 
 A `save` with `--file-path` also sends the file to the upload address its answer gives, and prints the upload's `message`: `Published: …`, `Updated: …` when it replaced the content of a Page that was already live, `Not published: …` when the file is held, or `Not applied: …` when a newer version went live first; `--json` prints the whole answer: `outcome` (`published`, `needs_confirmation`, …), `url`, `open_url`, `manage_url`, `access`, `message`, and `findings` when held; `status` is `success`, as for every command that calls a tool. A relative path is taken from the current directory; the CLI sends the file straight to the upload address, which must start with `https://api.linkly.ai/v1/uploads/upl_`. Two cases end with an error. When `--access` meets a Page found by the same file, nothing is sent and the Page keeps its content and access, because a save never changes access: the error names the Page and who can open it; run the save again without `--access`, or change access with `linkly pages update` first. When the upload fails, the error says why and repeats the save's answer, and, when another try can work, how to send the file again (the same save; for a new Page with `--url <url>` and without `--access`, so that no second Page is made). A failed upload does not prove that nothing went live, since the answer can be lost on its way back after the file arrived: check with `linkly pages get --url <url>` before saying so.
 
-`linkly pages setup` shows what setting up Linkly AI Pages means: the author name, the address and the terms. At a terminal it then asks; otherwise, and with `--json`, it confirms nothing. Show the details to the user, and only after they agree run `linkly pages setup --confirm <username>`.
+`linkly pages setup` shows what setting up Linkly AI Pages means: the author name, the address and the terms. At a terminal it then asks; otherwise, and with `--json`, it confirms nothing. Show the details to the user, and only after they agree run `linkly pages setup --confirm <username>` (with `--json`, `next_step` says the same).
 
-**Account and connection** (CLI newer than 1.1.1): `pages` goes straight to the cloud gateway with the account signed in to the CLI (`linkly auth login`, or `LINKLY_API_KEY`), and works with the desktop app closed. Without a sign-in it fails and says so; it never uses the Desktop's account. `--lan` and `--endpoint` are refused. A file saved again updates the Page made from the same absolute path on this computer (outside temporary folders), also when it was published through the Desktop, as long as the account is the same; for this the CLI reads the Desktop's device id from its settings file and nothing else, or keeps an id of its own when there is no Desktop. With `--remote` there is no such matching: pass `--url`. CLI 1.1.1 and older go through the Desktop unless `--remote` is given. "Linkly AI Pages is not available for this account" is final: tell the user and don't retry.
+**Account and connection** (CLI 1.2.0+): `pages` goes straight to the cloud gateway with the account signed in to the CLI (`linkly auth login`, or `LINKLY_API_KEY`), and works with the desktop app closed. Without a sign-in it fails and says so; it never uses the Desktop's account. `--lan` and `--endpoint` are refused. A file saved again updates the Page made from the same absolute path on this computer (outside temporary folders), also when it was published through the Desktop, as long as the account is the same; for this the CLI reads the Desktop's device id from its settings file and nothing else, or keeps an id of its own when there is no Desktop. With `--remote` there is no such matching: pass `--url`. CLI 1.1.1 and older go through the Desktop unless `--remote` is given. "Linkly AI Pages is not available for this account" is final: tell the user and don't retry.
 
 | Option                            | Description                                                                                                                 |
 | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | `--file-path <path>`              | save: the file to publish and upload (Markdown, HTML, PDF, PNG, JPEG, GIF, WebP, SVG); may be a relative path               |
 | `--content <text>`                | save: the Markdown or HTML text itself, instead of a file; `-` reads it from stdin (at most 16 MiB). Needs `--content-type` |
 | `--content-type <type>`           | save with `--content`: `markdown` or `html`                                                                                 |
-| `--title <title>`                 | save, update: the Page title                                                                                                |
+| `--title <title>`                 | save, update: the Page title; with `--content`, a new Page's link is made from it                                                                                                |
 | `--description <text>`            | save, update: one sentence about the Page                                                                                   |
 | `--access <access>`               | `private` (the default for a new Page) or `public`; update also takes `password` (Pro) and prints the password. save sets it only on a new Page, never with `--url` |
-| `--reset-password`                | update: replace the password of a password Page and print the new one; the old one stops working. Needs a CLI newer than 1.1.1 |
+| `--reset-password`                | update: replace the password of a password Page and print the new one; the old one stops working. Needs CLI 1.2.0+ |
 | `--url <url>`                     | Link of one of the user's Pages. Required for get, update and delete; with save it names the Page to replace                |
 | `--confirm-sensitive <upload_id>` | save with `--url`: publish the held upload with this upload_id (from the answer), only after the user agreed                |
-| `--confirm <username>`            | setup: set up Linkly AI Pages, only after the user saw the details and agreed. Needs a CLI newer than 1.1.1                 |
+| `--confirm <username>`            | setup: set up Linkly AI Pages, only after the user saw the details and agreed. Needs CLI 1.2.0+                 |
 | `--limit <n>` / `--offset <n>`    | list: how many Pages to return (default 20, max 100) / how many to skip                                                     |
 
 ### status — Check connection status
@@ -351,7 +351,7 @@ linkly mcp --remote   # bridge through the cloud gateway (local + cloud librarie
                       # library_search / library_link; the local bridge never does
 ```
 
-Runs the CLI as a stdio MCP server for integration with Claude Desktop, Cursor, or other MCP clients. The bridge is a transparent passthrough — whatever tools the upstream exposes are forwarded as-is.
+Runs the CLI as a stdio MCP server for integration with Claude Desktop, Cursor, or other MCP clients. Tool calls are forwarded to the upstream chosen below, except `pages`, which goes to the cloud gateway in either mode with the account signed in to the CLI (CLI 1.2.0+). Without a sign-in `pages` is not listed; restart the bridge after signing in.
 
 **Choose the upstream deliberately, because it decides what the MCP client can reach:**
 
@@ -388,7 +388,7 @@ linkly auth logout --lan
 
 | Command                                  | Description                                                                                                                                                               |
 | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `login`                                  | Sign in through the browser: prints a one-time link and confirmation code, then saves a newly issued API key for `--remote` (see below)                                   |
+| `login`                                  | Sign in through the browser: prints a one-time link and confirmation code, then saves a newly issued API key for `--remote` and `pages` (see below)                                   |
 | `set-key <key>`                          | Save an API key from the linkly.ai dashboard (format: `lkai_<32-char hex>`, 37 chars total) to `~/.linkly/credentials.json` for `--remote`                                |
 | `set-key <token> --lan --endpoint <url>` | Save the LAN address and token (both from the desktop app's Agent usage → View MCP connection settings) for `--lan`. Not checked against the desktop — run `doctor --lan` |
 | `status`                                 | Show which key is in use, whether it is valid, the account's plan, and the saved LAN connection (token masked)                                                            |
@@ -396,7 +396,7 @@ linkly auth logout --lan
 
 The remote key and the LAN connection are stored side by side; saving or removing one never touches the other.
 
-**`set-key` is for people, not agents.** An agent signs in with `login --no-wait` / `--wait` and never asks for, receives, or types a key or LAN token: whatever passes through the conversation goes to the model provider and the chat logs. If a user pastes one into the chat, don't use it; tell them to revoke it (linkly.ai → Integrations → API Keys, or regenerate the LAN token in the desktop app).
+**`set-key` is for people, not agents.** An agent signs in with `login --no-wait` / `--wait` and never asks for, receives, or types a key or LAN token: whatever passes through the conversation goes to the model provider and the chat logs. If a user pastes one into the chat, don't use it; tell them to revoke it (linkly.ai → Security → API Keys, or regenerate the LAN token in the desktop app).
 
 **`login` for agents.** The link works on any device, so a user can authorize from their phone while the CLI runs on a server. Split the login so the link reaches the user before anything blocks, and run both steps in the same environment and config directory:
 
@@ -418,7 +418,7 @@ linkly auth login --wait --json
 
 Failures in `--json` mode are `{"status":"error","code":…,"message":…}`; the codes are `timeout`, `expired`, `denied`, `no_pending_login`, `login_in_progress`, `already_logged_in`, `network` — see `troubleshooting.md` for what to do with each. A successful login proves the account only: check reach with `linkly doctor --remote` (local content needs Pro and the desktop online; linked cloud libraries work on any plan).
 
-**`LINKLY_CONFIG_DIR`** moves `credentials.json` and the pending login out of `~/.linkly`. One directory holds one account: an agent serving several users gives each user their own directory. Desktop discovery (`~/.linkly/port`) is not affected.
+**`LINKLY_CONFIG_DIR`** moves `credentials.json` and the pending login out of `~/.linkly`. One directory holds one account: an agent serving several users gives each user their own directory. Desktop discovery (`~/.linkly/port`) is not affected. **`LINKLY_API_KEY`**, set by the user, goes before the saved key.
 
 ### completions — Shell completion script
 
@@ -618,7 +618,7 @@ linkly search "architecture" --json | jq -r '.results[].doc_id' | linkly outline
 # First narrow by semantics, then filter by exact keyword
 linkly search "deployment" --json \
   | jq -r '.results[].doc_id' \
-  | linkly grep "docker\|kubernetes" -
+  | linkly grep "docker|kubernetes" -
 ```
 
 **Aggregate into a file:**
