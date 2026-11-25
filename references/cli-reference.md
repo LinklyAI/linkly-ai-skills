@@ -282,38 +282,36 @@ Error codes: `NOTE_INVALID_INPUT`, `NOTE_NOT_FOUND`, `NOTE_DUPLICATE_ID`, `NOTE_
 ### pages — Publish a file as a web page (Linkly AI Pages)
 
 ```bash
+linkly pages setup                        # once per account; shows the details and confirms nothing by itself
 linkly pages save --file-path /Users/me/reports/q3-growth.html --description "Q3 growth review"
-linkly pages upload "https://api.linkly.ai/v1/uploads/upl_…" /Users/me/reports/q3-growth.html
 linkly pages list
 linkly pages update --url https://alicia.linklyai.page/q3-growth-7k2m --access public
+linkly pages update --url https://alicia.linklyai.page/q3-growth-7k2m --access password    # Pro; prints the password
+linkly pages update --url https://alicia.linklyai.page/q3-growth-7k2m --reset-password     # a new password
 linkly pages delete --url https://alicia.linklyai.page/q3-growth-7k2m
 ```
 
-The `pages` tool on the command line: it publishes a file or text as a Linkly AI Page (`https://<username>.linklyai.page/<slug>`), and gets, updates, lists or deletes the user's Pages. The subcommands are the tool's actions (`save`, `list`, `get`, `update`, `delete`) and the flags its parameters; get, update and delete need `--url`. The answer is printed as it comes. Actions, answers and errors: `mcp-tools-reference.md` (`pages`); when to use it and what to tell the user: `SKILL.md` ("Linkly AI Pages").
+The `pages` tool on the command line: it publishes a file or text as a Linkly AI Page (`https://<username>.linklyai.page/<slug>`), and gets, updates, lists or deletes the user's Pages. The subcommands are the tool's actions (`save`, `list`, `get`, `update`, `delete`, `setup`) and the flags its parameters; get, update and delete need `--url`. Except for a file save and `setup` (below), the answer is printed as it comes. Actions, answers and errors: `mcp-tools-reference.md` (`pages`); when to use it and what to tell the user: `SKILL.md` ("Linkly AI Pages").
 
-A `save` with `--file-path` uploads nothing itself: it answers with an upload address, and the Page goes live once the file is sent there with `linkly pages upload` (below). `pages` works on every connection — the local or LAN Desktop passes it on to the gateway, and `--remote` goes there directly, without the Desktop. If the connection has no `pages` tool, the CLI says so: update the desktop app; if it is up to date, Linkly AI Pages is not available for this account.
+A `save` with `--file-path` also sends the file to the upload address its answer gives, and prints the upload's `message`: `Published: …`, `Updated: …` when it replaced the content of a Page that was already live, `Not published: …` when the file is held, or `Not applied: …` when a newer version went live first; `--json` prints the whole answer: `outcome` (`published`, `needs_confirmation`, …), `url`, `open_url`, `manage_url`, `access`, `message`, and `findings` when held; `status` is `success`, as for every command that calls a tool. A relative path is taken from the current directory; the CLI sends the file straight to the upload address, which must start with `https://api.linkly.ai/v1/uploads/upl_`. Two cases end with an error. When `--access` meets a Page found by the same file, nothing is sent and the Page keeps its content and access, because a save never changes access: the error names the Page and who can open it; run the save again without `--access`, or change access with `linkly pages update` first. When the upload fails, the error says why and repeats the save's answer, and, when another try can work, how to send the file again (the same save; for a new Page with `--url <url>` and without `--access`, so that no second Page is made). A failed upload does not prove that nothing went live, since the answer can be lost on its way back after the file arrived: check with `linkly pages get --url <url>` before saying so.
+
+`linkly pages setup` shows what setting up Linkly AI Pages means: the author name, the address and the terms. At a terminal it then asks; otherwise, and with `--json`, it confirms nothing. Show the details to the user, and only after they agree run `linkly pages setup --confirm <username>`.
+
+**Account and connection** (CLI newer than 1.1.1): `pages` goes straight to the cloud gateway with the account signed in to the CLI (`linkly auth login`, or `LINKLY_API_KEY`), and works with the desktop app closed. Without a sign-in it fails and says so; it never uses the Desktop's account. `--lan` and `--endpoint` are refused. A file saved again updates the Page made from the same absolute path on this computer (outside temporary folders), also when it was published through the Desktop, as long as the account is the same; for this the CLI reads the Desktop's device id from its settings file and nothing else, or keeps an id of its own when there is no Desktop. With `--remote` there is no such matching: pass `--url`. CLI 1.1.1 and older go through the Desktop unless `--remote` is given. "Linkly AI Pages is not available for this account" is final: tell the user and don't retry.
 
 | Option                            | Description                                                                                                                 |
 | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `--file-path <path>`              | save: absolute path of the file to publish (Markdown, HTML, PDF, PNG, JPEG, GIF, WebP, SVG)                                 |
+| `--file-path <path>`              | save: the file to publish and upload (Markdown, HTML, PDF, PNG, JPEG, GIF, WebP, SVG); may be a relative path               |
 | `--content <text>`                | save: the Markdown or HTML text itself, instead of a file; `-` reads it from stdin (at most 16 MiB). Needs `--content-type` |
 | `--content-type <type>`           | save with `--content`: `markdown` or `html`                                                                                 |
 | `--title <title>`                 | save, update: the Page title                                                                                                |
 | `--description <text>`            | save, update: one sentence about the Page                                                                                   |
-| `--access <access>`               | `private` (the default for a new Page) or `public`; update also takes `password` (Pro). save sets it only on a new Page     |
+| `--access <access>`               | `private` (the default for a new Page) or `public`; update also takes `password` (Pro) and prints the password. save sets it only on a new Page, never with `--url` |
+| `--reset-password`                | update: replace the password of a password Page and print the new one; the old one stops working. Needs a CLI newer than 1.1.1 |
 | `--url <url>`                     | Link of one of the user's Pages. Required for get, update and delete; with save it names the Page to replace                |
 | `--confirm-sensitive <upload_id>` | save with `--url`: publish the held upload with this upload_id (from the answer), only after the user agreed                |
+| `--confirm <username>`            | setup: set up Linkly AI Pages, only after the user saw the details and agreed. Needs a CLI newer than 1.1.1                 |
 | `--limit <n>` / `--offset <n>`    | list: how many Pages to return (default 20, max 100) / how many to skip                                                     |
-
-### pages upload — Send a file to a Linkly AI Pages upload address
-
-```bash
-linkly pages upload <address> <file>
-```
-
-Sends the file's raw bytes with an HTTP PUT to the upload address a `pages` save answered with, streaming it. It talks to that address directly — not to the Desktop or the gateway — so it takes no connection flags. The address must start with `https://api.linkly.ai/v1/uploads/upl_`; anything else is refused, so a tool answer steered by a document cannot send a local file elsewhere. Running the same command again is safe until the address expires (30 minutes).
-
-It prints the answer's `message` — published, held for confirmation, or superseded, with the links to give the user; `--json` prints the whole answer (`status`, `url`, `open_url`, `manage_url`, `access`, `message`, and `findings` when held). A failure prints `<error>: <message>`, such as `file_too_large: …`; the codes are in `mcp-tools-reference.md` (`pages`).
 
 ### status — Check connection status
 
@@ -450,7 +448,7 @@ linkly self-update
 
 ## Connection Options
 
-`--lan`, `--endpoint` and `--token` are available on the document commands (`search`, `grep`, `outline`, `read`, `list`, `note-save`, `list-libraries`, `explore`, `find-paths`) plus `pages` (except `pages upload`), `status` and `doctor`. `--remote` is available on those same commands and on `mcp`. `pages upload` takes none of them: it sends the file straight to the upload address. Without `--lan` or `--remote` the CLI only ever talks to the desktop on this machine — a saved LAN connection is never used implicitly.
+`--lan`, `--endpoint` and `--token` are available on the document commands (`search`, `grep`, `outline`, `read`, `list`, `note-save`, `list-libraries`, `explore`, `find-paths`) plus `status` and `doctor`. `--remote` is available on those same commands, on `pages` and on `mcp`. Without `--lan` or `--remote` the CLI only ever talks to the desktop on this machine — a saved LAN connection is never used implicitly. `pages` is the exception: it always goes to the cloud gateway (see above).
 
 | Flag               | Scope  | Description                                                                                                                                                                                 |
 | ------------------ | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
