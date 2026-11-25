@@ -231,7 +231,7 @@ The real address and port are in **Agent usage → View MCP connection settings*
 
 **Remote access (Pro):** sign in, then **Agent usage → Management → Allow remote access (internet)** (needs **Allow local access**) and wait for **Connected**. In the cloud app add `https://mcp.linkly.ai/mcp` and approve the OAuth sign-in. The desktop app must stay running. Status meanings: **Connecting**, **Connected**, **Not signed in**, **Pro required**, **Connection failed** (hover for the reason). Behind a proxy: **Settings → Network → Route the MCP tunnel through the proxy**. Revoke authorized apps on the web: dashboard → **Security** → **Authorized apps**.
 
-**Turning access off:** **Allow local access** off cuts off the CLI and every AI app (LAN and remote switches are disabled with it). **Stop** on the status card stops the MCP server.
+**Turning access off:** **Allow local access** off stops every agent from reaching this Desktop, including over LAN and remote access (those switches are disabled with it). Linked cloud libraries and Linkly AI Pages still work through the cloud gateway. **Stop** on the status card stops the MCP server.
 
 **See which apps read your files:** **Agent usage → Overview** and the **Log** tab (needs **Keep an access log**).
 

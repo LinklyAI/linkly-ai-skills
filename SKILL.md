@@ -1,13 +1,13 @@
 ---
 name: linkly-ai
-description: "Search, browse, read, and take notes across the user's documents indexed by Linkly AI — local files and linked cloud libraries. Use when the user asks to 'search my documents', 'find files about a topic', 'read a local document', 'what's in this folder', 'list the files in that library', 'browse document outlines', 'list knowledge libraries', 'save this as a note', 'list my notes', or any task involving searching, listing, reading, or noting stored content, or publishing a file as a web page (Linkly AI Pages) (PDF, Markdown, Excel, CSV, DOCX, TXT, PPTX, DOC, RTF, EPUB, HTML, images, audio, video). Also triggered by: 'linkly not working', 'cloud library', '搜索我的文档', '查找文件', '这个文件夹里有什么', '列出文件', '知识库搜索', '云端知识库', '记笔记', '我的笔记', '连接不上', '故障排查'. Provides full-text search, container enumeration, structural outlines, paginated reading, and local note capture via CLI or MCP tools. Also answers how to use the Linkly AI app itself ('how do I add a folder', 'connect ChatGPT', '怎么用 Linkly')."
+description: "Search, browse, read, and take notes across the user's documents indexed by Linkly AI — local files and linked cloud libraries. Use when the user asks to 'search my documents', 'find files about a topic', 'read a local document', 'what's in this folder', 'list the files in that library', 'browse document outlines', 'list knowledge libraries', 'save this as a note', 'list my notes', or any task involving searching, listing, reading, or noting stored content (PDF, Markdown, Excel, CSV, DOCX, TXT, PPTX, DOC, RTF, EPUB, HTML, images, audio, video), or publishing a file as a web page (Linkly AI Pages). Also triggered by: 'linkly not working', 'cloud library', '搜索我的文档', '查找文件', '这个文件夹里有什么', '列出文件', '知识库搜索', '云端知识库', '记笔记', '我的笔记', '连接不上', '故障排查'. Provides full-text search, container enumeration, structural outlines, paginated reading, and local note capture via CLI or MCP tools. Also answers how to use the Linkly AI app itself ('how do I add a folder', 'connect ChatGPT', '怎么用 Linkly')."
 license: Apache-2.0
 version: 0.9.7
 ---
 
 # Linkly AI — Document Search (Local + Cloud)
 
-Linkly AI indexes documents on the user's local machine (PDF, Markdown, Excel, CSV, DOCX, TXT, PPTX, DOC, RTF, EPUB, HTML, images, audio, video) and can also reach cloud libraries the user has linked via Linkly Web. It exposes them through a progressive disclosure workflow: **search → grep or outline → read**. It can also capture and list the user's local Markdown notes, and publish a file as a web page (Linkly AI Pages).
+Linkly AI indexes documents on the user's local machine and can also reach cloud libraries the user has linked via Linkly Web. It exposes them through a progressive disclosure workflow: **search → grep or outline → read**. It can also capture and list the user's local Markdown notes, and publish a file as a web page (Linkly AI Pages).
 
 ## Environment Detection
 
@@ -18,27 +18,23 @@ Before executing any document operation, detect what's available and pick a mode
 Run both checks independently (skip a check if its prerequisite isn't there):
 
 - **CLI**: if Bash is available, run `linkly --version`. Success means only that the CLI is installed. Then run `linkly doctor`: it checks this machine's Desktop, plus the remote gateway and the LAN Desktop when they are configured, and reports one group each (Local / Remote / LAN). CLI mode is usable ("CLI reachable" below) when any group is ok — use that connection's flag on every call: none for Local, `--remote`, or `--lan`. "Local failed, Remote ok" is a working setup, not a broken one. `linkly pages` (CLI 1.2.0+) is the exception: call it without a connection flag, whatever `doctor` reports (see ["Linkly AI Pages"](#linkly-ai-pages-share-a-file-as-a-web-page)). A failed Local group is **inconclusive** — the Desktop may be stopped, or an AI-agent network sandbox may be blocking localhost — so do not report that the Desktop is stopped from it alone (see `references/troubleshooting.md`).
-- **MCP**: check whether MCP tools named `search`, `find_paths`, `list`, `outline`, `grep`, `read`, `list_libraries`, `explore`, and `note_save` are accessible in the current environment. The `linkly-ai` server (local Desktop MCP) exposes those nine. The `linkly-ai-cloud` server (the `mcp.linkly.ai` cloud gateway) exposes the same nine **plus two cloud-only tools** — `library_search` and `library_link` — that discover, link and unlink cloud libraries (`library_link` with `action: "unlink"` releases one); they are never advertised on a local or LAN connection. Both servers may also list `pages`, which publishes a file as a web page (see ["Linkly AI Pages"](#linkly-ai-pages-share-a-file-as-a-web-page)); it is optional, and its absence says nothing about whether MCP works. Beyond these, the difference is reach, not the tool list — see "Know what your connection reaches" below. Two tools reach the same place whichever server a call arrives on: `note_save` always resolves to the user's Desktop, and `pages` always runs at the cloud gateway.
+- **MCP**: check for tools named `search`, `find_paths`, `list`, `outline`, `grep`, `read`, `list_libraries`, `explore` and `note_save`. The `linkly-ai` server (local Desktop) has those nine; `linkly-ai-cloud` (the `mcp.linkly.ai` gateway) adds `library_search` and `library_link`. Either may list `pages`; its absence says nothing about whether MCP works. `note_save` always reaches the user's Desktop, and `pages` always runs at the gateway.
 
 ### 2. Pick a mode
 
-| Available                                       | Action                                                                                                                                                                                                                                                                                                                                                           |
-| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **CLI reachable + MCP**                         | Prefer **CLI mode** — clearer error messages and exit codes are easier to surface back to the user.                                                                                                                                                                                                                                                              |
-| **CLI reachable only**                          | Use **CLI mode**.                                                                                                                                                                                                                                                                                                                                                |
-| **CLI unreachable + MCP**                       | Use **MCP mode**. The CLI binary exists, but its localhost path may be blocked by the shell sandbox. Do not claim the Desktop is stopped and do not keep retrying the sandboxed CLI.                                                                                                                                                                             |
-| **CLI installed but unreachable, no MCP tools** | If the command is running in an AI-agent network sandbox, ask the user to approve retrying the **exact Linkly CLI command** outside that sandbox. Do not ask them to disable sandboxing globally or request broad approval for every `linkly` subcommand. Only if the approved retry also fails should you ask the user to launch Linkly AI Desktop, then retry. |
-| **MCP only**                                    | Use **MCP mode**. This is normal in restricted agent environments where the CLI binary is not installed inside the shell. Don't tell the user to install the CLI; MCP is sufficient.                                                                                                                                                                             |
-| **Neither installed**                           | If Bash works and `linkly --version` failed, recommend installing the CLI: [Install Linkly AI CLI](https://linkly.ai/docs/en/use-cli). Otherwise inform the user that Linkly AI requires either the CLI or the MCP integration and stop.                                                                                                                         |
+- **CLI reachable + MCP**: Prefer **CLI mode** — clearer error messages and exit codes are easier to surface back to the user.
+- **CLI reachable only**: Use **CLI mode**.
+- **CLI unreachable + MCP**: Use **MCP mode**. The CLI binary exists, but its localhost path may be blocked by the shell sandbox. Do not claim the Desktop is stopped and do not keep retrying the sandboxed CLI.
+- **CLI installed but unreachable, no MCP tools**: If the command is running in an AI-agent network sandbox, ask the user to approve retrying the **exact Linkly CLI command** outside that sandbox. Do not ask them to disable sandboxing globally or request broad approval for every `linkly` subcommand. Only if the approved retry also fails should you ask the user to launch Linkly AI Desktop, then retry.
+- **MCP only**: Use **MCP mode**. This is normal in restricted agent environments where the CLI binary is not installed inside the shell. Don't tell the user to install the CLI; MCP is sufficient.
+- **Neither installed**: If Bash works and `linkly --version` failed, recommend installing the CLI: [Install Linkly AI CLI](https://linkly.ai/docs/en/use-cli). Otherwise inform the user that Linkly AI requires either the CLI or the MCP integration and stop.
 
 ### 3. Know what your connection reaches
 
 **The connection decides which content is visible, and no tool call can cross that boundary.** This is the most common reason "the document is there but Linkly can't find it".
 
-| Connection                                                                                 | Reaches                                                                                                                                                                                            |
-| ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Local** (`linkly` default, or the `linkly-ai` MCP server) / **LAN** (`--lan`)            | The user's **local** content only. `cloud://` references are rejected.                                                                                                                             |
-| **Cloud gateway** (`--remote`, `linkly mcp --remote`, or the `linkly-ai-cloud` MCP server) | Local content through the desktop tunnel (Pro, Desktop online) **and** linked **cloud** libraries (every plan, Desktop may be offline). Also the only place for `library_search` / `library_link`. |
+- **Local** (`linkly` default, or the `linkly-ai` MCP server) / **LAN** (`--lan`): The user's **local** content only. `cloud://` references are rejected.
+- **Cloud gateway** (`--remote`, `linkly mcp --remote`, or the `linkly-ai-cloud` MCP server): Local content through the desktop tunnel (Pro, Desktop online) **and** linked **cloud** libraries (every plan, Desktop may be offline). Also the only place for `library_search` / `library_link`.
 
 - If the user asks for cloud content on a local or LAN connection, tell them to switch connection; don't retry.
 - **Notes** exist only on the Desktop, whatever the connection. If it is unreachable there is nothing to fall back on: say so, and don't report the notes as lost.
@@ -49,6 +45,7 @@ Run both checks independently (skip a check if its prerequisite isn't there):
 A Linkly API key (`lkai_…`) or LAN token opens the user's documents to whoever holds it, and anything in this conversation reaches the model provider and the chat logs.
 
 - **Never ask for a key or token**, run `linkly auth set-key` or `--token`, or write a key into a config file for the user.
+- **Never read or print a saved key or token** (`~/.linkly/credentials.json`, `LINKLY_API_KEY`); `linkly auth status` shows it masked.
 - To sign in: `linkly auth login --no-wait --json`, give the user the link and code, then `linkly auth login --wait --json` (`references/troubleshooting.md`, "Remote sign-in").
 - LAN mode and manual keys are for the user to set up **in their own terminal**; don't ask them to paste the result.
 - **If a key or token is pasted into the chat**, don't use it. Tell the user to revoke it (linkly.ai → Security → API Keys; a LAN token is regenerated in the desktop app), then use `linkly auth login`.
@@ -56,10 +53,6 @@ A Linkly API key (`lkai_…`) or LAN token opens the user's documents to whoever
 ### 4. Name yourself on every CLI call
 
 **Pass `--client <your-app-name>` on every `linkly` command** (`claude-code`, `cursor`, `codex-cli`…), so the user can see in the app which AI application read their documents. It is only a label. The examples below leave it out; MCP needs nothing.
-
-```bash
-linkly search "budget report" --client claude-code
-```
 
 ## Document Search Workflow
 
@@ -101,13 +94,13 @@ linkly search "doubt disagree unsourced" --scope annotations
 - `--scope notes` searches the user's notes (and ignores `--path-glob` and a local `--library`); `--scope annotations` searches only what the user wrote on their clips.
 - A cloud library with a path, type or time filter is searched by keywords only: use real keywords there.
 - `doc_id` is opaque: pass it on verbatim, never invent or reshape it.
-- Results may carry a `verdict` and `answer_probability` (Enhanced ranking): read the highest first. `no_answer: true` means this search found nothing likely; try at most one rephrased search. Details: `references/mcp-tools-reference.md` (`search`).
+- Results may carry a `verdict` and `answer_probability` (Enhanced ranking): read the highest first. `no_answer: true` means none of the judged results is likely; the library may still hold the answer. Say this search did not find it, and try at most one rephrased search. Details: `references/mcp-tools-reference.md` (`search`).
 
 More: `references/search-strategies.md`.
 
 ### Step 2: Outline or grep
 
-- **`outline`** when the document has `has_outline: true` and more than 200 lines. One call takes local IDs or cloud IDs, not both.
+- **`outline`** on a long document (300+ lines) with `has_outline: true`, when you don't know the wording. One call takes local IDs or cloud IDs, not both.
 - **`grep`** when you know the exact text, in the document's language.
 
 ```bash
@@ -145,7 +138,7 @@ linkly note-save --mode edit --note-id <uuid> --base-version <version> --content
 - **Never add tags on your own**; pass only tags the user asked for. Inline `#tags` in the body are the note's tags; write `\#114` for a literal `#`.
 - `edit` needs `note_id` and `base_version` from `list`. On `NOTE_VERSION_CONFLICT`, read again, merge, retry; never overwrite blindly.
 - Plain paragraphs, bold, strikethrough and lists only, without YAML front matter.
-- Notes stay on the computer; no tool deletes them. Full rules: `references/mcp-tools-reference.md` (`note_save`).
+- Notes stay on this computer and are never synced; don't offer to sync or publish them. No tool deletes them. Full rules: `references/mcp-tools-reference.md` (`note_save`).
 
 ## Linkly AI Pages (Share a File as a Web Page)
 
@@ -153,21 +146,21 @@ linkly note-save --mode edit --note-id <uuid> --base-version <version> --content
 
 **When:** the user asks to share or publish something, or wants a link. If they named another tool (Artifacts, Canvas…), use that. Making content is not consent to publish it.
 
-**Before the first `save`, tell the user the link, the title and who will be able to open it, and get their agreement.** What can be chosen is theirs to choose. The link ends in a slug made from the file name (with `content`: from the title, or the text's heading or first line; a taken one gets `-2`). No parameter sets it and it stays once published; for another link, save the file under another name, or pass another `title` with `content`. New Pages are **private**. `access: "public"` lets anyone open the Page and search engines index it: only with the user's agreement.
+**Before the first `save`, tell the user the expected link, the title and who will be able to open it, and get their agreement.** What can be chosen is theirs to choose. The username is in any link from `list`, or in the answer of `setup`; never guess it. The slug is the file name without its extension (with `content`: the title, or the text's heading or first line), in lowercase, with hyphens for other characters and Chinese as pinyin. A taken one gets `-2`, `-3`…: the answer gives the final link, so say so if it differs. No parameter sets the slug and it stays once published; for another link, save the file under another name, or pass another `title` with `content`. New Pages are **private**. `access: "public"` lets anyone open the Page and search engines index it: only with the user's agreement.
 
 **Sharing a file:**
 
-- **CLI:** `linkly pages save --file-path <file>` does it all. On an error, do what it says; a failed upload may still have gone live, so check with `linkly pages get`.
-- **MCP:** `save` with an absolute `file_path` answers with an upload address valid for 30 minutes. PUT the raw bytes there (`curl --upload-file <file> <address>`; `curl.exe` in PowerShell), only to `https://api.linkly.ai/v1/uploads/…`. Nothing is live until the answer says `Published:` or `Updated:`. The address may appear in the conversation.
+- **CLI:** `linkly pages save --file-path <file>` does it all. On an error, do what it says, but ask first when that would replace an existing Page; a failed upload may still have gone live, so check with `linkly pages get`.
+- **MCP:** `save` with an absolute `file_path` answers with an upload address valid for 30 minutes. Send the raw bytes as the answer says, only to `https://api.linkly.ai/v1/uploads/…`. Nothing is live until the answer says `Published:` or `Updated:`. The address may appear in the conversation.
 - **No shell:** give the user the browser upload link from the answer, or send the text with `content` + `content_type`.
 
 **Afterwards give the user both links:** `url` to share; `open_url` to open it themselves.
 
-**`needs_confirmation`:** nothing was published because it seems to contain credentials or personal data. Tell the user what was found and ask. **Only if they agree**, `save` with `url` and `confirm_sensitive` set to the answer's `upload_id`.
+**`needs_confirmation`:** nothing was published because it seems to contain credentials or personal data. Tell the user what was found and ask. **Only if they agree**, `save` with `url` and `confirm_sensitive` set to the answer's `upload_id`. Contents are checked only in Markdown, HTML and SVG, and every file name: `Published` does not mean a PDF or photo holds nothing sensitive.
 
-**Updating:** `save` with `url` replaces the content (the same local path finds its Page by itself, outside temporary folders, through the Desktop on this computer or the CLI) and never changes who can open it. `update` changes title, description and access.
+**Updating:** `save` with `url` replaces the content (the same local path finds its Page by itself, outside temporary folders, through the Desktop on this computer or the CLI) and never changes who can open it. `update` changes title, description and access. **If a save would replace a Page the user did not agree to replace, stop:** the Page may be public. With the CLI, pass `--access private` (or the agreed access) for a new Page, so that it sends nothing when the file already has a Page; on MCP, read which Page the `save` answer names before you upload. Show the user its link and who can open it, and ask.
 
-**Password (Pro):** `update` with `access: "password"` returns the password, making one if there is none; never ask the user for one. To look it up, call it again only on a Page that is already a password Page. `reset_password: true` only when the user asks for a new one. Give it to nobody else.
+**Password (Pro):** `update` with `access: "password"` returns the password, making one if there is none; never ask the user for one. To look it up, check with `get` that the Page is already a password Page, then call it again: on any other Page it changes who can open it. `reset_password: true` only when the user asks for a new one. Give the password to nobody else. Say the Page is password-protected only after an answer confirms it.
 
 **Delete** only a Page the user named. On `page_limit_reached`, let the user choose which to delete, or upgrade.
 
@@ -193,7 +186,7 @@ Errors and who may link: `references/mcp-tools-reference.md` (`library_search`, 
 
 ## Relative dates
 
-Every successful answer carries the current time: `[meta] now=<iso>` (Markdown) or `_meta.now` (JSON). Compute "last week" from it, never from your training data. Without one yet, run a tiny `search` first.
+For relative dates ("last week"), use the time in a tool answer: `[meta] now=<iso>` (Markdown) or `_meta.now` (JSON), never your training data. Without one yet, run a tiny `search` first.
 
 ## Questions About the App Itself
 
@@ -213,19 +206,14 @@ More: `references/troubleshooting.md`.
 2. **Check the user's details against the document.** A year, count or name in the question is a clue; if the document says otherwise, say so and answer what they actually want.
 3. **For summaries, find every relevant document first.** Search with several phrasings, read the relevant sections of each, and say what you read and what you didn't cover.
 4. **Don't present a similar document as the answer.** Say what you found and that it isn't the one they meant.
-5. **Say which slice you saw** when a result is truncated.
-6. **Read the default output;** use `--json` only when a program parses it or you need exact fields.
-7. **Cite title, path and line numbers.** Open a hit with `read`, `grep` or `outline` before citing it.
+5. **Read the default output;** use `--json` only when a program parses it or you need exact fields.
+6. **Cite title, path and line numbers.** Open a hit with `read`, `grep` or `outline` before citing it.
 
 Examples: `references/search-strategies.md` ("Getting the Answer Right").
 
 ## References
 
-- `references/cli-reference.md` — CLI installation, all commands, and options.
-- `references/mcp-tools-reference.md` — MCP tool schemas, parameters, and response formats.
-- `references/search-strategies.md` — Advanced query crafting, multi-round search, and complex retrieval patterns.
-- `references/troubleshooting.md` — Diagnosing and resolving connection and search issues.
-- `references/guide.md` — Using the Linkly AI desktop app: where things are, setup, indexing, chat, notes, libraries, connecting AI apps, account and data.
+In `references/`: `cli-reference.md` (commands and flags), `mcp-tools-reference.md` (tool parameters, answers, errors), `search-strategies.md`, `troubleshooting.md`, `guide.md` (the desktop app).
 
 ## Version
 

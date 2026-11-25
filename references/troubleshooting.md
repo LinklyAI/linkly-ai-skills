@@ -266,7 +266,7 @@ The opposite mismatch also bites: the CLI is up to date but the desktop app on t
 - `Error: ... unknown tool '<name>'` (or "tool not found" / "method not found") — that tool doesn't exist in the desktop's MCP surface yet
 - `Error: ... unknown field '<param>'` — the tool exists but not that parameter
 - A call **looks** like it succeeded but a filter had no effect — the same documents come back as a query without it. Very old desktops silently drop parameters they don't recognise instead of erroring
-- The `[meta] now=` footer / `_meta.now` field is missing from successful responses
+- The `[meta] now=` footer / `_meta.now` field is missing from a successful document tool answer, such as `search` (`linkly pages save --file-path` and `linkly pages setup` may print none; that is not a symptom)
 
 Known thresholds worth naming to the user:
 
