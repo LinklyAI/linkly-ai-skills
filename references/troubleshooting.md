@@ -141,12 +141,14 @@ If the authorization page says the API key limit is reached, the user must revok
 
 The document is indexed and its `doc_id` is valid, but there is no readable text. The message names the reason:
 
-| Reason in the message                     | What it means                                                                    | What to tell the user                                                    |
-| ----------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| cloud placeholder, not downloaded locally | An online-only file from Dropbox / iCloud / OneDrive that was never materialized | Download it in the cloud client, wait for Linkly to index it, then retry |
-| no audio track                            | A media file with no speech to transcribe                                        | Nothing to read; the file is findable by name only                       |
-| transcription failed                      | Undecodable or unsupported audio                                                 | Nothing to read                                                          |
-| signature doesn't match its extension     | A stub or renamed file whose contents aren't what the extension claims           | The file is likely corrupt or a placeholder                              |
+| Reason in the message                     | What it means                                                                                                  | What to tell the user                                                              |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| cloud placeholder, not downloaded locally | An online-only file from Dropbox / iCloud / OneDrive that was never materialized                               | Download it in the cloud client, wait for Linkly to index it, then retry           |
+| no audio track                            | A media file with no speech to transcribe                                                                      | Nothing to read; the file is findable by name only                                 |
+| transcription failed                      | Undecodable or unsupported audio                                                                               | Nothing to read                                                                    |
+| signature doesn't match its extension     | A stub or renamed file whose contents aren't what the extension claims                                         | The file is likely corrupt or a placeholder                                        |
+| name looks like a password or key file    | Only the name is indexed: its text looks like stored passwords or keys, or it wasn't sent to cloud recognition | Findable by name only; a `!` rule for it in the index rules brings it back in full |
+| index settings now leave this file out    | An exclusion rule, a switched-off file type or a removed watch folder covers it, so it is leaving the index    | Nothing to read; change the rules or folders if it should stay                     |
 
 **These are terminal states.** Don't re-run `search` and retry the read — the document really is in the index, it simply has no body.
 
