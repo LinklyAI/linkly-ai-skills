@@ -166,8 +166,6 @@ Returns a Markdown-formatted overview with four sections:
 3. **Top Keywords**: Global keywords (spread across directories) and local keywords (concentrated ≥90% in a single directory, grouped by source)
 4. **Recent Activity**: Directories with document changes in the last 7 days, with file counts and timestamps
 
-In the global view (no `library`), when the last full scan found files that a built-in rule keeps out because their names look like passwords or keys, the summary says so under the type distribution: `Not indexed by a built-in rule: N file(s) whose names look like passwords or keys.` JSON mode carries the count as `not_indexed_by_builtin_rule.files_named_like_credentials`.
-
 **When to use:** When the user wants to understand what's in their knowledge base, wants an overview of themes, asks about recent changes, or doesn't yet know what to search for. Use the keywords, directory names, and recent activity from the output to formulate targeted search queries.
 
 ## find_paths
@@ -614,9 +612,7 @@ Each item carries:
 | `snippet`                                 | Present but `null` unless `snippet: true`                                             |
 | `skip_reason`                             | Non-null means the file is indexed by name but **has no readable body** — see below   |
 
-**`skip_reason` is a stop sign.** `cloud_placeholder` (never downloaded), `no_audio_track`, `transcription_failed`, or a signature/extension mismatch. Markdown output surfaces it as `**Content not indexed**`. Relay the reason; do not queue that `doc_id` for `read` and retry — there is no text to get.
-
-**A file a built-in rule keeps out has no item at all** — unlike `skip_reason`, which marks a file that is listed but whose content isn't indexed. A file missing from one page of results says nothing by itself: check the scope, the filters and `has_more` first. Besides the user's own exclusion rules, a built-in rule keeps out files whose names look like passwords or keys (`passwords.txt`, `client_secret.txt`, `secretkey.txt`; common words such as `secretary` or `password policy` don't count). When the listed directory holds such files directly, Markdown adds the line `N file(s) directly in this directory are not indexed because their names look like passwords or keys (a built-in rule). …` and JSON adds `not_indexed_by_builtin_rule: { files_named_like_credentials: N }`. Relay it: the user can bring a file back with a `!` rule in the app's index rules. The count covers only files directly in the directory that this rule alone keeps out: not those in its subfolders, and not a file that is also hidden, of an unsupported format (`*.pem`) or of a type switched off — a `!` rule alone doesn't bring those back.
+**`skip_reason` is a stop sign.** `cloud_placeholder` (never downloaded), `no_audio_track`, `transcription_failed`, `password_like` (named like a password or key file, and either its text looks like stored passwords or keys, or it was not sent to cloud OCR or transcription), or a signature/extension mismatch. Markdown output surfaces it as `**Content not indexed**`. Relay the reason; do not queue that `doc_id` for `read` and retry — there is no text to get.
 
 ### Response — notes
 
@@ -674,7 +670,6 @@ When you list a local directory by explicit `path` (`scope="folder"`, or a local
 - **Pro paywall on local scopes** — over the gateway, listing local folders, notes, or a local library rides the Desktop tunnel, which is Pro. Cloud libraries list on the Free plan, and local content is free when the AI client runs on the same computer as the Desktop (local MCP, no tunnel).
 - **`cloud://` passed as `path` or with `scope="folder"`** — `folder` addresses local disk only. Use `scope="library"` with the `cloud://owner/slug` reference and a relative `path` prefix.
 - **`scope="library"` without `library`** — call `list_libraries` first, then pass one of the references it returns.
-- **`path points to a file that is not indexed: its name looks like a password or key file (a built-in rule).`** — the `path` names a file the built-in rule keeps out. Tell the user why it is missing; they can bring it back with a `!` rule. Any other file `path` gets `path points to a file, not a directory; use read/outline with its doc_id.`
 
 **When to use:** the user asks what is inside a container they can name — a folder, a library, or their notes. To find things by topic instead, use `search`. To get a thematic overview of the whole knowledge base rather than a file list, use `explore`.
 

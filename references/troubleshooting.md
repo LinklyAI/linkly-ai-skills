@@ -113,7 +113,6 @@ If the authorization page says the API key limit is reached, the user must revok
   4. Confirm the user's target content is a supported document type (PDF, Markdown, Excel, CSV, DOCX, TXT, PPTX, DOC, RTF, EPUB, HTML, image, audio, video). Files outside this list are not indexed even if they live under indexed folders — check by running `linkly explore` and looking at the document-type distribution.
   5. For audio or video, check that transcription is switched on — it is opt-in per media kind in the desktop app's Index management → Extraction enhancements (Audio transcription / Video transcription). Until it is enabled those files are indexed by filename only.
   6. If the user expects content from a **cloud** library, confirm the connection mode reaches it — see "Cloud library content is missing" below.
-  7. If the file name looks like a password or key file (`passwords.txt`, `client_secret.txt`, `secretkey.txt`), a built-in rule keeps it out of the index. `linkly list --scope folder --path <its folder>` says how many such files the folder holds, and the app lists them under Index management → Rules → See skipped files; a `!` rule brings one back. A file that is also hidden (`.env`), of an unsupported format (`*.pem`) or of a type switched off isn't counted there, and a `!` rule alone doesn't bring it back.
 
 #### `Invalid modified_after` / `Invalid modified_before`
 
@@ -142,12 +141,14 @@ If the authorization page says the API key limit is reached, the user must revok
 
 The document is indexed and its `doc_id` is valid, but there is no readable text. The message names the reason:
 
-| Reason in the message                     | What it means                                                                    | What to tell the user                                                    |
-| ----------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| cloud placeholder, not downloaded locally | An online-only file from Dropbox / iCloud / OneDrive that was never materialized | Download it in the cloud client, wait for Linkly to index it, then retry |
-| no audio track                            | A media file with no speech to transcribe                                        | Nothing to read; the file is findable by name only                       |
-| transcription failed                      | Undecodable or unsupported audio                                                 | Nothing to read                                                          |
-| signature doesn't match its extension     | A stub or renamed file whose contents aren't what the extension claims           | The file is likely corrupt or a placeholder                              |
+| Reason in the message                     | What it means                                                                                                  | What to tell the user                                                              |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| cloud placeholder, not downloaded locally | An online-only file from Dropbox / iCloud / OneDrive that was never materialized                               | Download it in the cloud client, wait for Linkly to index it, then retry           |
+| no audio track                            | A media file with no speech to transcribe                                                                      | Nothing to read; the file is findable by name only                                 |
+| transcription failed                      | Undecodable or unsupported audio                                                                               | Nothing to read                                                                    |
+| signature doesn't match its extension     | A stub or renamed file whose contents aren't what the extension claims                                         | The file is likely corrupt or a placeholder                                        |
+| name looks like a password or key file    | Only the name is indexed: its text looks like stored passwords or keys, or it wasn't sent to cloud recognition | Findable by name only; a `!` rule for it in the index rules brings it back in full |
+| index settings now leave this file out    | An exclusion rule, a switched-off file type or a removed watch folder covers it, so it is leaving the index    | Nothing to read; change the rules or folders if it should stay                     |
 
 **These are terminal states.** Don't re-run `search` and retry the read — the document really is in the index, it simply has no body.
 
@@ -185,7 +186,7 @@ When using Linkly AI through an AI tool's MCP connection (Claude, Cursor, ChatGP
 ### MCP tools return errors
 
 - **"Search failed":** The desktop app may have restarted. Wait a moment and retry.
-- **"Document not found":** The document may have been moved or deleted. Search again to get fresh IDs. If it never appears in search, check whether its name looks like a password or key file (see "Search returns no results", step 7).
+- **"Document not found":** The document may have been moved or deleted. Search again to get fresh IDs.
 - **Timeout:** The desktop app may be busy indexing. Check the app's tray icon status.
 
 ### Gateway errors
