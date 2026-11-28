@@ -170,6 +170,49 @@ In the global view (no `library`), when the last full scan found files that a bu
 
 **When to use:** When the user wants to understand what's in their knowledge base, wants an overview of themes, asks about recent changes, or doesn't yet know what to search for. Use the keywords, directory names, and recent activity from the output to formulate targeted search queries.
 
+## analyze
+
+Count and measure the user's indexed files. Returns JSON computed from the index on each call; no document is opened. The summary always comes back; `sections` adds groups of statistics. Recent Desktops only: an older one answers `Unknown tool`.
+
+### Parameters
+
+| Parameter         | Type       | Required | Default | Description                                                                                                 |
+| ----------------- | ---------- | -------- | ------- | ----------------------------------------------------------------------------------------------------------- |
+| `sections`        | `string[]` | No       | —       | Groups to return besides the summary (see below), or `["all"]`. Omit for the summary alone.                 |
+| `library`         | `string`   | No       | —       | One local library: `local://<id>` or its name. Cloud libraries are not supported.                           |
+| `path`            | `string`   | No       | —       | Only the files under this directory and its subfolders (absolute path, as other tools return it).           |
+| `doc_types`       | `string[]` | No       | —       | Only these document types, e.g. `["pdf", "md", "image"]`.                                                   |
+| `modified_after`  | `string`   | No       | —       | Only files modified at or after this ISO 8601 date or datetime (UTC).                                       |
+| `modified_before` | `string`   | No       | —       | Only files modified at or before this ISO 8601 date or datetime (UTC).                                      |
+| `limit`           | `number`   | No       | `10`    | Entries per ranked list (max 50).                                                                           |
+
+There is no `output_format`: the answer is always JSON.
+
+### Sections
+
+| Section       | What it holds                                                                                                                  |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `types`       | Files, bytes and words per file type                                                                                           |
+| `folders`     | Folders with the most files and with the most words, depth, a two-level tree                                                   |
+| `time`        | Files by year and month (modified and created), weekday by hour, oldest and long-untouched files, added per day                |
+| `content`     | Longest documents, word distribution, languages, authors, audio and video counts with their lengths                            |
+| `keywords`    | The most common words of the text and the `topics` they form. With a scope, the keywords of the documents in it, and no topics |
+| `duplicates`  | Files with the same content, and files with the same name and size                                                             |
+| `names`       | Common words in file names, version families, screenshots                                                                      |
+| `agents`      | Files made by AI agents                                                                                                        |
+| `collections` | Libraries, notes and clips with weekly additions                                                                               |
+| `index`       | Indexing progress, for the whole app whatever the scope                                                                        |
+| `usage`       | Agent calls and searches per day, for the whole app whatever the scope                                                         |
+
+### Response
+
+- `summary`: `files`, `bytes`, `parsed_files`, `words`, `folders`, `file_types`, `languages`, `oldest_modified`, `newest_modified`. While indexing runs, `words_estimated` projects the total word count; `words` covers parsed files only.
+- One key per requested section, named after it. `keywords` comes with `keywords_from`, which says whether the words are from the text of all indexed files or from the keywords of each document in scope, and with `topics` in the first case.
+- `scope`: the filters that applied; `cloud_libraries_included` is always `false`.
+- `sections_available`: every section name.
+
+**When to use:** counting and measuring questions ("how many PDFs", "which folders take the most space", "find my duplicate files") and reports or charts about the files. Not for finding or reading a document: it reports keywords and titles, not what documents say.
+
 ## find_paths
 
 Locate real folder paths in the indexed documents by fuzzy keyword matching on the file path. Returns top folder candidates with file counts so the caller can pick a `path_glob` for a follow-up `search` call. Works on both local and cloud libraries; candidates from a cloud library carry the source library reference (`cloud://<owner>/<slug>`) — pass it as `library` on the follow-up `search` so the glob is scoped to the right backend.
