@@ -18,7 +18,7 @@ Before executing any document operation, detect what's available and pick a mode
 Run both checks independently (skip a check if its prerequisite isn't there):
 
 - **CLI**: if Bash is available, run `linkly --version`. Success means only that the CLI is installed. Then run `linkly doctor`: it checks this machine's Desktop, plus the remote gateway and the LAN Desktop when they are configured, and reports one group each (Local / Remote / LAN). CLI mode is usable ("CLI reachable" below) when any group is ok — use that connection's flag on every call: none for Local, `--remote`, or `--lan`. "Local failed, Remote ok" is a working setup, not a broken one. `linkly pages` (CLI 1.2.0+) is the exception: call it without a connection flag, whatever `doctor` reports (see ["Linkly AI Pages"](#linkly-ai-pages-share-a-file-as-a-web-page)). A failed Local group is **inconclusive** — the Desktop may be stopped, or an AI-agent network sandbox may be blocking localhost — so do not report that the Desktop is stopped from it alone (see `references/troubleshooting.md`).
-- **MCP**: check for tools named `search`, `find_paths`, `list`, `outline`, `grep`, `read`, `list_libraries`, `explore` and `note_save`. The `linkly-ai` server (local Desktop) has those nine; `linkly-ai-cloud` (the `mcp.linkly.ai` gateway) adds `library_search` and `library_link`. Either may list `pages`; its absence says nothing about whether MCP works. `note_save` always reaches the user's Desktop, and `pages` always runs at the gateway.
+- **MCP**: check for tools named `search`, `find_paths`, `list`, `outline`, `grep`, `read`, `list_libraries`, `explore` and `note_save`. The `linkly-ai` server (local Desktop) has those nine; a recent Desktop also lists `analyze`, and its absence says nothing about whether MCP works; `linkly-ai-cloud` (the `mcp.linkly.ai` gateway) adds `library_search` and `library_link`. Either may list `pages`; its absence says nothing about whether MCP works. `note_save` always reaches the user's Desktop, and `pages` always runs at the gateway.
 
 ### 2. Pick a mode
 
@@ -183,6 +183,18 @@ Errors and who may link: `references/mcp-tools-reference.md` (`library_search`, 
 ## Explore
 
 `linkly explore [--library <name>]` gives an overview: types, folders, keywords and the last 7 days' changes. Use it when the user wants to know what they have, or has no topic yet; then `search` with what it shows.
+
+## Analyze
+
+`linkly analyze [--sections <list>]` (MCP: `analyze`) counts and measures the indexed files and answers in JSON: how many, how big, how old, by type, folder and time, duplicates, the most common words and the topics they form. Use it for "how many / how big / which folders take the most space / find my duplicates" questions and for a report or a chart about the files. It opens no document: to find or read one, use `search` and `read`.
+
+```bash
+linkly analyze                                   # the summary alone
+linkly analyze --sections types,folders
+linkly analyze --sections duplicates --path /Users/me/Documents
+```
+
+Ask only for the sections you will use. Local files only: a cloud library is not counted. A Desktop without the tool answers `Unknown tool`: tell the user to update Desktop and go on with `explore`. Sections and fields: `references/mcp-tools-reference.md` (`analyze`).
 
 ## Relative dates
 

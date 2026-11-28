@@ -48,6 +48,33 @@ linkly explore
 linkly explore --library my-research
 ```
 
+### analyze — Count and measure the indexed files
+
+```bash
+linkly analyze [OPTIONS]
+```
+
+Count and measure the indexed files: how many, how big, how old, by type, folder and time, duplicates, the most common words and the topics they form. The answer is always JSON, computed from the index on each call; no document is opened. With no option it returns the summary alone. Local files only; a Desktop without the tool answers `Unknown tool`.
+
+| Option                     | Description                                                                                                                                             |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--sections <list>`        | Comma-separated groups: `types`, `folders`, `time`, `content`, `keywords`, `duplicates`, `names`, `agents`, `collections`, `index`, `usage`, or `all`   |
+| `--library <name>`         | Restrict to one local library: a name or `local://<id>`                                                                                                 |
+| `--path <dir>`             | Restrict to the files under this directory and its subfolders (absolute path)                                                                           |
+| `--doc-types <list>`       | Comma-separated document types, e.g. `pdf,md,image`                                                                                                     |
+| `--modified-after <date>`  | Only files modified at or after this ISO 8601 date or datetime (UTC)                                                                                    |
+| `--modified-before <date>` | Only files modified at or before this ISO 8601 date or datetime (UTC)                                                                                   |
+| `--limit <N>`              | Entries per ranked list (default: 10, max: 50)                                                                                                          |
+
+Examples:
+
+```bash
+linkly analyze
+linkly analyze --sections types,folders
+linkly analyze --sections duplicates --path /Users/me/Documents
+linkly analyze --sections all --limit 20
+```
+
 ### find-paths — Locate folder paths
 
 ```bash
